@@ -21,3 +21,6 @@ type Resource struct {
 	// Interval between checks for the resource
 	CheckEvery time.Duration `yaml:"check_every",omitempty`
 }
+
+// A collection of resources
+type Resources []*Resource

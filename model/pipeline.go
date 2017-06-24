@@ -9,8 +9,8 @@ type Pipeline struct {
 	ResourceTypes ResourceTypes `yaml:"resource_types,omitempty"`
 
 	// Resources needed for defining the jobs
-	Resources []Resource `yaml:",omitempty"`
+	Resources Resources `yaml:",omitempty"`
 
 	// Jobs in the pipeline
-	Jobs []Job `yaml:",omitempty"`
+	Jobs Jobs `yaml:",omitempty"`
 }
