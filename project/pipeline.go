@@ -17,7 +17,7 @@ type Pipeline struct {
 }
 
 func (p *Pipeline) ModelGroups() (model.Groups, error) {
-	groups := make(map[JobGroup][]string)
+	groups := make(map[*JobGroup][]string)
 
 	for _, job := range p.Jobs {
 		for _, group := range job.Groups {
@@ -25,14 +25,17 @@ func (p *Pipeline) ModelGroups() (model.Groups, error) {
 		}
 	}
 
-	groupsNames := JobGroups{}
+	groupsByOrder := JobGroups{}
 	for group := range groups {
-		groupsNames = append(groupsNames, group)
+		groupsByOrder = append(groupsByOrder, group)
 	}
-	sort.Sort(groupsNames)
+	groupsByOrder, err := SortJobGroups(groupsByOrder)
+	if err != nil {
+		return nil, err
+	}
 
 	modelGroups := model.Groups{}
-	for _, group := range groupsNames {
+	for _, group := range groupsByOrder {
 		modelJobs := model.JobNames{}
 
 		jobNames := groups[group]
