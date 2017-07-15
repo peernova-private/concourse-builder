@@ -6,3 +6,5 @@ type Job struct {
 	Name   JobName
 	Groups JobGroups
 }
+
+type Jobs []*Job

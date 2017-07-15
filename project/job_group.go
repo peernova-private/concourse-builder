@@ -1,34 +1,47 @@
 package project
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type JobGroup struct {
 	Name  string
-	After *JobGroup
+	After JobGroups
 }
 
 type JobGroups []*JobGroup
 
 func SortJobGroups(groups JobGroups) (JobGroups, error) {
-	result := make(JobGroups, 0, len(groups))
-
 	blocked := make(map[*JobGroup]struct{})
 	mustHave := make(map[*JobGroup]struct{})
 
+	result := make(JobGroups, 0, len(groups))
 	for _, group := range groups {
-		blocked[group] = struct{}{}
-		if group.After == nil {
+		if len(group.After) == 0 {
 			result = append(result, group)
-		} else {
-			mustHave[group] = struct{}{}
-			blocked[group.After] = struct{}{}
+			continue
+		}
+
+		mustHave[group] = struct{}{}
+		blocked[group] = struct{}{}
+		for _, afterGroup := range group.After {
+			if len(afterGroup.After) > 0 {
+				blocked[afterGroup] = struct{}{}
+			}
 		}
 	}
 
 	for {
 		move := false
 		for group := range blocked {
-			if _, ok := blocked[group.After]; ok {
+			stillBlocked := false
+			for _, afterGroup := range group.After {
+				if _, ok := blocked[afterGroup]; ok {
+					stillBlocked = true
+					break
+				}
+			}
+			if stillBlocked {
 				continue
 			}
 

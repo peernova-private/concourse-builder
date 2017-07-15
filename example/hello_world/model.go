@@ -3,7 +3,7 @@ package hello_world
 import "github.com/ggeorgiev/concourse-builder/model"
 
 var Pipeline = model.Pipeline{
-	Jobs: []model.Job{
+	Jobs: model.Jobs{
 		{
 			Name: "hello-world",
 			Plan: []model.IStep{

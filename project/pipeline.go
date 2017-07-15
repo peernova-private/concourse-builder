@@ -11,27 +11,55 @@ import (
 
 type PipelineName string
 
+type AllJobsGroupOption int
+
+const (
+	AllJobsGroupNone = iota
+	AllJobsGroupFirst
+	AllJobsGroupLast
+)
+
 type Pipeline struct {
 	Name PipelineName
-	Jobs []*Job
+
+	AllJobsGroup AllJobsGroupOption
+	Jobs         []*Job
 }
+type Pipelines []*Pipeline
 
 func (p *Pipeline) ModelGroups() (model.Groups, error) {
 	groups := make(map[*JobGroup][]string)
 
+	allJobNames := make([]string, len(p.Jobs))
 	for _, job := range p.Jobs {
+		allJobNames = append(allJobNames, string(job.Name))
 		for _, group := range job.Groups {
 			groups[group] = append(groups[group], string(job.Name))
 		}
 	}
+	sort.Strings(allJobNames)
 
 	groupsByOrder := JobGroups{}
 	for group := range groups {
 		groupsByOrder = append(groupsByOrder, group)
 	}
+
 	groupsByOrder, err := SortJobGroups(groupsByOrder)
 	if err != nil {
 		return nil, err
+	}
+
+	if p.AllJobsGroup != AllJobsGroupNone && len(groups) > 1 {
+		all := &JobGroup{
+			Name: "all",
+		}
+
+		if p.AllJobsGroup == AllJobsGroupFirst {
+			groupsByOrder = append(JobGroups{all}, groupsByOrder...)
+		} else /* if p.AllJobsGroup == AllJobsGroupLast */ {
+			groupsByOrder = append(groupsByOrder, all)
+		}
+		groups[all] = allJobNames
 	}
 
 	modelGroups := model.Groups{}

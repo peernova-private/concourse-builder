@@ -9,7 +9,7 @@ import (
 var logger = log.New(os.Stdout, "", log.LstdFlags)
 
 type Project struct {
-	Pipelines []*Pipeline
+	Pipelines Pipelines
 }
 
 func (p *Project) Deploy() error {

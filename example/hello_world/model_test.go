@@ -23,7 +23,7 @@ var yml = `jobs:
         - Hello, world!
 `
 
-func TestSerialize(t *testing.T) {
+func TestHelloWorld(t *testing.T) {
 	result, err := yaml.Marshal(Pipeline)
 	assert.Nil(t, err)
 
