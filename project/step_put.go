@@ -34,3 +34,11 @@ func (ps *PutStep) Model() (model.IStep, error) {
 
 	return put, nil
 }
+
+func (ps *PutStep) InputResources() (model.Resources, error) {
+	return nil, nil
+}
+
+func (ps *PutStep) OutputResource() (*model.Resource, error) {
+	return ps.Resource, nil
+}

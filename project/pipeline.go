@@ -87,7 +87,16 @@ func (p *Pipeline) ModelResourceTypes() (model.ResourceTypes, error) {
 }
 
 func (p *Pipeline) ModelResources() (model.Resources, error) {
-	return nil, nil
+	var resources model.Resources
+	for _, job := range p.Jobs {
+		jobResources, err := job.Resources()
+		if err != nil {
+			return nil, err
+		}
+		resources = append(resources, jobResources...)
+	}
+
+	return resources, nil
 }
 
 func (p *Pipeline) ModelJobs() (model.Jobs, error) {

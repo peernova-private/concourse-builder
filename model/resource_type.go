@@ -3,6 +3,10 @@ package model
 // A name of a resource type
 type ResourceTypeName string
 
+func (rtn ResourceTypeName) MarshalYAML() (interface{}, error) {
+	return string(rtn), nil
+}
+
 // A type of a resource type (silly I know)
 type ResourceTypeTypeName string
 

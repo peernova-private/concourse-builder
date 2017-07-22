@@ -1,6 +1,8 @@
 package project
 
-import "github.com/concourse-friends/concourse-builder/model"
+import (
+	"github.com/concourse-friends/concourse-builder/model"
+)
 
 type JobName string
 
@@ -14,6 +16,30 @@ type Job struct {
 }
 
 type Jobs []*Job
+
+func (job *Job) Resources() (model.Resources, error) {
+	var resources model.Resources
+
+	steps := append(ISteps{job.OnSuccess, job.OnFailure}, job.Steps...)
+	for _, step := range steps {
+		if step == nil {
+			continue
+		}
+		inputResources, err := step.InputResources()
+		if err != nil {
+			return nil, err
+		}
+		resources = append(resources, inputResources...)
+
+		outputResource, err := step.OutputResource()
+		if err != nil {
+			return nil, err
+		}
+		resources = append(resources, outputResource)
+	}
+
+	return resources, nil
+}
 
 func (job *Job) Model() (*model.Job, error) {
 	var err error

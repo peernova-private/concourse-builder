@@ -4,6 +4,15 @@ import (
 	"github.com/concourse-friends/concourse-builder/model"
 )
 
+// Image resource type
+var ImageResourceType = &model.ResourceType{
+	// The name
+	Name: "docker-image",
+
+	// The type
+	Type: SystemResourceTypeName,
+}
+
 // Image resource source
 type ImageSource struct {
 	// Image repository
@@ -16,13 +25,8 @@ type ImageSource struct {
 	Insecure bool `yaml:",omitempty"`
 }
 
-// Image resource type
-var ImageResourceType = &model.ResourceType{
-	// The name
-	Name: "docker-image",
-
-	// The type
-	Type: SystemResourceTypeName,
+type ImagePutParams struct {
+	Build *model.Location
 }
 
 func init() {
