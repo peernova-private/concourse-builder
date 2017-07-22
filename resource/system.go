@@ -1,6 +1,6 @@
 package resource
 
-import "github.com/ggeorgiev/concourse-builder/model"
+import "github.com/concourse-friends/concourse-builder/model"
 
 // Concourse supports several types without providing the type.
 // The system resource type name indicates that.

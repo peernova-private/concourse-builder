@@ -2,10 +2,9 @@ package project
 
 import (
 	"io"
-
 	"sort"
 
-	"github.com/ggeorgiev/concourse-builder/model"
+	"github.com/concourse-friends/concourse-builder/model"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -92,7 +91,16 @@ func (p *Pipeline) ModelResources() (model.Resources, error) {
 }
 
 func (p *Pipeline) ModelJobs() (model.Jobs, error) {
-	return nil, nil
+	modelJobs := make(model.Jobs, 0, len(p.Jobs))
+	for _, job := range p.Jobs {
+		modelJob, err := job.Model()
+		if err != nil {
+			return nil, err
+		}
+		modelJobs = append(modelJobs, modelJob)
+	}
+
+	return modelJobs, nil
 }
 
 func (p *Pipeline) Save(writer io.Writer) error {

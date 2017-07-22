@@ -1,11 +1,10 @@
 package sdpExample
 
 import (
+	"bytes"
 	"testing"
 
-	"bytes"
-
-	"github.com/ggeorgiev/concourse-builder/template/sdp"
+	"github.com/concourse-friends/concourse-builder/template/sdp"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -13,6 +12,10 @@ var expected = `groups:
 - name: images
   jobs:
   - git-image
+jobs:
+- name: git-image
+  plan:
+  - put: git-image
 `
 
 func TestSdp(t *testing.T) {

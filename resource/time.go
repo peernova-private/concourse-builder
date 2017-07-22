@@ -3,7 +3,7 @@ package resource
 import (
 	"time"
 
-	"github.com/ggeorgiev/concourse-builder/model"
+	"github.com/concourse-friends/concourse-builder/model"
 )
 
 // Time resource source

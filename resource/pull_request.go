@@ -1,7 +1,7 @@
 package resource
 
 import (
-	"github.com/ggeorgiev/concourse-builder/model"
+	"github.com/concourse-friends/concourse-builder/model"
 )
 
 // Git pull request resource source

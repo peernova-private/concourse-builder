@@ -1,21 +1,17 @@
 package sdp
 
-import "github.com/ggeorgiev/concourse-builder/project"
+import "github.com/concourse-friends/concourse-builder/project"
 
 type SdpSpecification interface {
 }
 
-func GenerateProject(specification SdpSpecification) *project.Project {
-	imagesGroup := &project.JobGroup{
-		Name: "images",
-	}
+var imagesGroup = &project.JobGroup{
+	Name: "images",
+}
 
-	gitImageJob := &project.Job{
-		Name: "git-image",
-		Groups: project.JobGroups{
-			imagesGroup,
-		},
-	}
+func GenerateProject(specification SdpSpecification) *project.Project {
+
+	gitImageJob := GitImageJob()
 
 	mainPipeline := &project.Pipeline{
 		Jobs: project.Jobs{

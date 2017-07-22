@@ -16,8 +16,8 @@ type Put struct {
 	Timeout time.Duration `yaml:",omitempty"`
 
 	// Additional resource specific parameters
-	Params map[string]interface{} `yaml:",omitempty"`
+	Params interface{} `yaml:",omitempty"`
 
 	// Additional resource specific parameters for the get operation that will follow the put operation
-	GetParams map[string]interface{} `yaml:"get_params,omitempty"`
+	GetParams interface{} `yaml:"get_params,omitempty"`
 }

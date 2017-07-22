@@ -1,6 +1,6 @@
 package hello_world
 
-import "github.com/ggeorgiev/concourse-builder/model"
+import "github.com/concourse-friends/concourse-builder/model"
 
 var Pipeline = model.Pipeline{
 	Jobs: model.Jobs{
