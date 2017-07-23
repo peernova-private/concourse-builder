@@ -1,15 +1,17 @@
 package project
 
-import "github.com/concourse-friends/concourse-builder/model"
+import (
+	"github.com/concourse-friends/concourse-builder/model"
+)
+
+type ResourceName string
 
 type IJobResourceSource interface {
 	ModelSource() interface{}
 }
 
 type JobResource struct {
-	Name    model.ResourceName
-	Type    model.ResourceTypeName
-	Source  IJobResourceSource
+	Name    ResourceName
 	Trigger bool
 }
 
@@ -19,14 +21,16 @@ func (jr *JobResource) Path() string {
 	return string(jr.Name)
 }
 
-func (jr *JobResource) Model() *model.Resource {
+func (jr *JobResource) Model(registry *ResourceRegistry) *model.Resource {
+	res := registry.MustGetResource(jr.Name)
+
 	modelResource := &model.Resource{
-		Name: jr.Name,
-		Type: jr.Type,
+		Name: model.ResourceName(jr.Name),
+		Type: res.Type,
 	}
 
-	if jr.Source != nil {
-		modelResource.Source = jr.Source.ModelSource()
+	if res.Source != nil {
+		modelResource.Source = res.Source.ModelSource()
 	}
 
 	return modelResource

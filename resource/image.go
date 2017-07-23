@@ -30,5 +30,5 @@ type ImagePutParams struct {
 }
 
 func init() {
-	GlobalRegistry.MustRegisterType(ImageResourceType)
+	GlobalTypeRegistry.MustRegisterType(ImageResourceType)
 }

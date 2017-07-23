@@ -37,5 +37,5 @@ var PullRequestResourceType = &model.ResourceType{
 }
 
 func init() {
-	GlobalRegistry.MustRegisterType(PullRequestResourceType)
+	GlobalTypeRegistry.MustRegisterType(PullRequestResourceType)
 }

@@ -3,33 +3,16 @@ package sdp
 import (
 	"github.com/concourse-friends/concourse-builder/library"
 	"github.com/concourse-friends/concourse-builder/project"
-	"github.com/concourse-friends/concourse-builder/resource"
 )
 
-func GitImageJob(specification SdpSpecification) (*project.Job, error) {
-	privateKey, err := specification.GitPrivateKey()
-	if err != nil {
-		return nil, err
-	}
-
+func GitImageJob(concourseBuilder, gitImage project.ResourceName) (*project.Job, error) {
 	var concourseBuilderGirResource = &project.JobResource{
-		Name: "concourse-builder-git",
-		Type: resource.GitResourceType.Name,
-		Source: &library.GitSource{
-			URI:        "git@github.com:concourse-friends/concourse-builder.git",
-			Branch:     "master",
-			PrivateKey: privateKey,
-		},
+		Name:    concourseBuilder,
 		Trigger: true,
 	}
 
 	gitImageResource := &project.JobResource{
-		Name: "git-image",
-		Type: resource.ImageResourceType.Name,
-		Source: &library.ImageSource{
-			Repository: specification.DeployImageRepository(),
-			Location:   "concourse-builder/git-image",
-		},
+		Name: gitImage,
 	}
 
 	putGitImage := &project.PutStep{

@@ -9,11 +9,11 @@ import (
 )
 
 // An object that tracks collection of resources by name
-type Registry struct {
+type TypeRegistry struct {
 	types map[model.ResourceTypeName]*model.ResourceType
 }
 
-func (r *Registry) MustRegisterType(resourceType *model.ResourceType) {
+func (r *TypeRegistry) MustRegisterType(resourceType *model.ResourceType) {
 	res, ok := r.types[resourceType.Name]
 	if ok {
 		current, err := yaml.Marshal(res)
@@ -29,15 +29,16 @@ func (r *Registry) MustRegisterType(resourceType *model.ResourceType) {
 			panic(fmt.Sprintf(
 				"Resource type with name %s is already registered with different content", resourceType.Name))
 		}
+		return
 	}
 
 	r.types[resourceType.Name] = resourceType
 }
 
-var GlobalRegistry = initRegistry()
+var GlobalTypeRegistry = initTypeRegistry()
 
-func initRegistry() *Registry {
-	registry := &Registry{
+func initTypeRegistry() *TypeRegistry {
+	registry := &TypeRegistry{
 		types: make(map[model.ResourceTypeName]*model.ResourceType),
 	}
 

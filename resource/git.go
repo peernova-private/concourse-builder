@@ -32,5 +32,5 @@ var GitResourceType = &model.ResourceType{
 }
 
 func init() {
-	GlobalRegistry.MustRegisterType(GitResourceType)
+	GlobalTypeRegistry.MustRegisterType(GitResourceType)
 }

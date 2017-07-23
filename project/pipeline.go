@@ -23,8 +23,17 @@ type Pipeline struct {
 
 	AllJobsGroup AllJobsGroupOption
 	Jobs         []*Job
+
+	ResourceRegistry *ResourceRegistry
 }
+
 type Pipelines []*Pipeline
+
+func NewPipeline() *Pipeline {
+	return &Pipeline{
+		ResourceRegistry: NewResourceRegistry(),
+	}
+}
 
 func (p *Pipeline) ModelGroups() (model.Groups, error) {
 	groups := make(map[*JobGroup][]string)
@@ -95,7 +104,7 @@ func (p *Pipeline) ModelResources() (model.Resources, error) {
 		}
 
 		for _, res := range jobResources {
-			modelResource := res.Model()
+			modelResource := res.Model(p.ResourceRegistry)
 			resources = append(resources, modelResource)
 		}
 	}

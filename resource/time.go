@@ -22,5 +22,5 @@ var TimeResourceType = &model.ResourceType{
 }
 
 func init() {
-	GlobalRegistry.MustRegisterType(TimeResourceType)
+	GlobalTypeRegistry.MustRegisterType(TimeResourceType)
 }

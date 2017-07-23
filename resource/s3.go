@@ -35,5 +35,5 @@ var S3ResourceType = &model.ResourceType{
 }
 
 func init() {
-	GlobalRegistry.MustRegisterType(S3ResourceType)
+	GlobalTypeRegistry.MustRegisterType(S3ResourceType)
 }

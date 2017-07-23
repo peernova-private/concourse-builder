@@ -26,5 +26,5 @@ var SlackResourceType = &model.ResourceType{
 }
 
 func init() {
-	GlobalRegistry.MustRegisterType(SlackResourceType)
+	GlobalTypeRegistry.MustRegisterType(SlackResourceType)
 }
