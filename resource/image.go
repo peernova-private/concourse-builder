@@ -26,16 +26,7 @@ type ImageSource struct {
 }
 
 type ImagePutParams struct {
-	Build *model.Location
-}
-
-func (ipp *ImagePutParams) InputResources() (model.Resources, error) {
-	var resources model.Resources
-	if resource, ok := ipp.Build.Volume.(*model.Resource); ok {
-		resources = append(resources, resource)
-	}
-
-	return resources, nil
+	Build string
 }
 
 func init() {

@@ -1,4 +1,4 @@
-package model
+package library
 
 import "path"
 
@@ -8,6 +8,9 @@ type Location struct {
 	Path   string
 }
 
-func (l *Location) MarshalYAML() (interface{}, error) {
-	return path.Join(l.Volume.Path(), l.Path), nil
+func (l *Location) String() string {
+	if l.Volume != nil {
+		return path.Join(l.Volume.Path(), l.Path)
+	}
+	return l.Path
 }

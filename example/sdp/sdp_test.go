@@ -27,6 +27,7 @@ jobs:
 - name: git-image
   plan:
   - get: concourse-builder-git
+    trigger: true
   - put: git-image
     params:
       build: concourse-builder-git/template/sdp/docker/git-image

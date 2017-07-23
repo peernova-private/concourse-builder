@@ -17,8 +17,8 @@ type Job struct {
 
 type Jobs []*Job
 
-func (job *Job) InputResources() (model.Resources, error) {
-	var resources model.Resources
+func (job *Job) InputResources() (JobResources, error) {
+	var resources JobResources
 
 	steps := append(ISteps{job.OnSuccess, job.OnFailure}, job.Steps...)
 	for _, step := range steps {
@@ -35,8 +35,8 @@ func (job *Job) InputResources() (model.Resources, error) {
 	return resources, nil
 }
 
-func (job *Job) Resources() (model.Resources, error) {
-	var resources model.Resources
+func (job *Job) Resources() (JobResources, error) {
+	var resources JobResources
 
 	steps := append(ISteps{job.OnSuccess, job.OnFailure}, job.Steps...)
 	for _, step := range steps {
@@ -71,7 +71,8 @@ func (job *Job) Model() (*model.Job, error) {
 
 	for _, input := range inputs {
 		step := &model.Get{
-			Get: input.Name,
+			Get:     model.ResourceName(input.Name),
+			Trigger: input.Trigger,
 		}
 		modelSteps = append(modelSteps, step)
 	}

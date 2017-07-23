@@ -1,9 +1,7 @@
 package sdp
 
 import (
-	"path"
-
-	"github.com/concourse-friends/concourse-builder/model"
+	"github.com/concourse-friends/concourse-builder/library"
 	"github.com/concourse-friends/concourse-builder/project"
 	"github.com/concourse-friends/concourse-builder/resource"
 )
@@ -14,28 +12,30 @@ func GitImageJob(specification SdpSpecification) (*project.Job, error) {
 		return nil, err
 	}
 
-	var concourseBuilderGirResource = &model.Resource{
+	var concourseBuilderGirResource = &project.JobResource{
 		Name: "concourse-builder-git",
 		Type: resource.GitResourceType.Name,
-		Source: &resource.GitSource{
+		Source: &library.GitSource{
 			URI:        "git@github.com:concourse-friends/concourse-builder.git",
 			Branch:     "master",
 			PrivateKey: privateKey,
 		},
+		Trigger: true,
 	}
 
-	gitImageResource := &model.Resource{
+	gitImageResource := &project.JobResource{
 		Name: "git-image",
 		Type: resource.ImageResourceType.Name,
-		Source: resource.ImageSource{
-			Repository: path.Join(specification.DeployImageRepository().Domain, "concourse-builder/git-image"),
+		Source: &library.ImageSource{
+			Repository: specification.DeployImageRepository(),
+			Location:   "concourse-builder/git-image",
 		},
 	}
 
 	putGitImage := &project.PutStep{
-		Resource: gitImageResource,
-		Params: &resource.ImagePutParams{
-			Build: &model.Location{
+		JobResource: gitImageResource,
+		Params: &library.ImagePutParams{
+			Build: &library.Location{
 				Volume: concourseBuilderGirResource,
 				Path:   "template/sdp/docker/git-image",
 			},

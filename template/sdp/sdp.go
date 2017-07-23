@@ -1,12 +1,12 @@
 package sdp
 
 import (
+	"github.com/concourse-friends/concourse-builder/library"
 	"github.com/concourse-friends/concourse-builder/project"
-	"github.com/concourse-friends/concourse-builder/resource"
 )
 
 type SdpSpecification interface {
-	DeployImageRepository() *resource.ImageRepository
+	DeployImageRepository() *library.ImageRepository
 	GitPrivateKey() (string, error)
 }
 

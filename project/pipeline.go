@@ -93,7 +93,11 @@ func (p *Pipeline) ModelResources() (model.Resources, error) {
 		if err != nil {
 			return nil, err
 		}
-		resources = append(resources, jobResources...)
+
+		for _, res := range jobResources {
+			modelResource := res.Model()
+			resources = append(resources, modelResource)
+		}
 	}
 
 	return resources, nil

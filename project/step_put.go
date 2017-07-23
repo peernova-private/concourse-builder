@@ -1,24 +1,17 @@
 package project
 
 import (
-	"time"
-
 	"github.com/concourse-friends/concourse-builder/model"
 )
 
 type IPutParams interface {
-	InputResources() (model.Resources, error)
+	InputResources() (JobResources, error)
+	ModelParams() interface{}
 }
 
 type PutStep struct {
 	// The resource that will be put
-	Resource *model.Resource
-
-	// How many attempts before give up
-	Attempts int
-
-	// Time duration for the get operation to timeout
-	Timeout time.Duration
+	JobResource *JobResource
 
 	// Additional resource specific parameters
 	Params IPutParams
@@ -29,17 +22,17 @@ type PutStep struct {
 
 func (ps *PutStep) Model() (model.IStep, error) {
 	put := &model.Put{
-		Put:       ps.Resource.Name,
-		Attempts:  ps.Attempts,
-		Timeout:   ps.Timeout,
-		Params:    ps.Params,
-		GetParams: ps.GetParams,
+		Put: model.ResourceName(ps.JobResource.Name),
+	}
+
+	if ps.Params != nil {
+		put.Params = ps.Params.ModelParams()
 	}
 
 	return put, nil
 }
 
-func (ps *PutStep) InputResources() (model.Resources, error) {
+func (ps *PutStep) InputResources() (JobResources, error) {
 	if ps.Params != nil {
 		return ps.Params.InputResources()
 	}
@@ -47,6 +40,6 @@ func (ps *PutStep) InputResources() (model.Resources, error) {
 	return nil, nil
 }
 
-func (ps *PutStep) OutputResource() (*model.Resource, error) {
-	return ps.Resource, nil
+func (ps *PutStep) OutputResource() (*JobResource, error) {
+	return ps.JobResource, nil
 }
