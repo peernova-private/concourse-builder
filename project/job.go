@@ -17,6 +17,24 @@ type Job struct {
 
 type Jobs []*Job
 
+func (job *Job) InputResources() (model.Resources, error) {
+	var resources model.Resources
+
+	steps := append(ISteps{job.OnSuccess, job.OnFailure}, job.Steps...)
+	for _, step := range steps {
+		if step == nil {
+			continue
+		}
+		inputResources, err := step.InputResources()
+		if err != nil {
+			return nil, err
+		}
+		resources = append(resources, inputResources...)
+	}
+
+	return resources, nil
+}
+
 func (job *Job) Resources() (model.Resources, error) {
 	var resources model.Resources
 
@@ -45,6 +63,19 @@ func (job *Job) Model() (*model.Job, error) {
 	var err error
 
 	var modelSteps model.ISteps
+
+	inputs, err := job.InputResources()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, input := range inputs {
+		step := &model.Get{
+			Get: input.Name,
+		}
+		modelSteps = append(modelSteps, step)
+	}
+
 	for _, step := range job.Steps {
 		modelStep, err := step.Model()
 		if err != nil {

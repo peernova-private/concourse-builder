@@ -19,7 +19,7 @@ type GitSource struct {
 	Paths []string `yaml:",omitempty"`
 
 	// Which paths to be excluded from being checked
-	IgnorePaths []string `yaml:"ignore_paths"`
+	IgnorePaths []string `yaml:"ignore_paths,omitempty"`
 }
 
 // Git resource type

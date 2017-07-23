@@ -1,11 +1,18 @@
 package sdpExample
 
-import "github.com/concourse-friends/concourse-builder/resource"
+import (
+	"github.com/concourse-friends/concourse-builder/resource"
+)
 
-type specification struct {
-	ImageRepository *resource.ImageRepository
+type testSpecification struct {
 }
 
-func (s *specification) DeployImageRepository() *resource.ImageRepository {
-	return s.ImageRepository
+func (s *testSpecification) DeployImageRepository() *resource.ImageRepository {
+	return &resource.ImageRepository{
+		Domain: "repository.com",
+	}
+}
+
+func (s *testSpecification) GitPrivateKey() (string, error) {
+	return "private-key", nil
 }

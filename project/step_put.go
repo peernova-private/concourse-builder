@@ -6,6 +6,10 @@ import (
 	"github.com/concourse-friends/concourse-builder/model"
 )
 
+type IPutParams interface {
+	InputResources() (model.Resources, error)
+}
+
 type PutStep struct {
 	// The resource that will be put
 	Resource *model.Resource
@@ -17,7 +21,7 @@ type PutStep struct {
 	Timeout time.Duration
 
 	// Additional resource specific parameters
-	Params interface{}
+	Params IPutParams
 
 	// Additional resource specific parameters for the get operation that will follow the put operation
 	GetParams interface{}
@@ -36,6 +40,10 @@ func (ps *PutStep) Model() (model.IStep, error) {
 }
 
 func (ps *PutStep) InputResources() (model.Resources, error) {
+	if ps.Params != nil {
+		return ps.Params.InputResources()
+	}
+
 	return nil, nil
 }
 

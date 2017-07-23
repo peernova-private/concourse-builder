@@ -8,11 +8,28 @@ import (
 	"github.com/concourse-friends/concourse-builder/resource"
 )
 
-func GitImageJob(specification SdpSpecification) *project.Job {
+func GitImageJob(specification SdpSpecification) (*project.Job, error) {
+	privateKey, err := specification.GitPrivateKey()
+	if err != nil {
+		return nil, err
+	}
+
+	var concourseBuilderGirResource = &model.Resource{
+		Name: "concourse-builder-git",
+		Type: resource.GitResourceType.Name,
+		Source: &resource.GitSource{
+			URI:        "git@github.com:concourse-friends/concourse-builder.git",
+			Branch:     "master",
+			PrivateKey: privateKey,
+		},
+	}
+
 	gitImageResource := &model.Resource{
-		Name:   "git-image",
-		Type:   resource.ImageResourceType.Name,
-		Source: path.Join(specification.DeployImageRepository().Domain, "concourse-builder/git-image"),
+		Name: "git-image",
+		Type: resource.ImageResourceType.Name,
+		Source: resource.ImageSource{
+			Repository: path.Join(specification.DeployImageRepository().Domain, "concourse-builder/git-image"),
+		},
 	}
 
 	putGitImage := &project.PutStep{
@@ -34,5 +51,5 @@ func GitImageJob(specification SdpSpecification) *project.Job {
 			putGitImage,
 		},
 	}
-	return gitImageJob
+	return gitImageJob, nil
 }
