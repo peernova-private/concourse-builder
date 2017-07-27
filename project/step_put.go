@@ -22,7 +22,8 @@ type PutStep struct {
 
 func (ps *PutStep) Model() (model.IStep, error) {
 	put := &model.Put{
-		Put: model.ResourceName(ps.JobResource.Name),
+		Put:       model.ResourceName(ps.JobResource.Name),
+		GetParams: ps.GetParams,
 	}
 
 	if ps.Params != nil {
@@ -33,11 +34,17 @@ func (ps *PutStep) Model() (model.IStep, error) {
 }
 
 func (ps *PutStep) InputResources() (JobResources, error) {
+	var resources JobResources
+
 	if ps.Params != nil {
-		return ps.Params.InputResources()
+		inputResources, err := ps.Params.InputResources()
+		if err != nil {
+			return nil, err
+		}
+		resources = append(resources, inputResources...)
 	}
 
-	return nil, nil
+	return resources, nil
 }
 
 func (ps *PutStep) OutputResource() (*JobResource, error) {

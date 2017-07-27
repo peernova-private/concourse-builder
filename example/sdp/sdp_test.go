@@ -23,14 +23,39 @@ resources:
   type: docker-image
   source:
     repository: repository.com/concourse-builder/git-image
+- name: ubuntu-image
+  type: docker-image
+  source:
+    repository: ubuntu
+    tag: "16.04"
+  check_every: 24h
 jobs:
 - name: git-image
   plan:
-  - get: concourse-builder-git
-    trigger: true
+  - aggregate:
+    - get: concourse-builder-git
+      trigger: true
+    - get: ubuntu-image
+      trigger: true
+  - task: prepare
+    image: ubuntu-image
+    config:
+      platform: linux
+      inputs:
+      - name: concourse-builder-git
+      params:
+        DOCKER_STEPS: concourse-builder-git/docker/git_steps
+        FROM_IMAGE: ubuntu:16.04
+      run:
+        path: concourse-builder-git/scripts/docker_image_prepare.sh
+      outputs:
+      - name: prepared
+        path: prepared
   - put: git-image
     params:
-      build: concourse-builder-git/template/sdp/docker/git-image
+      build: prepared
+    get_params:
+      skip_download: true
 `
 
 func TestSdp(t *testing.T) {

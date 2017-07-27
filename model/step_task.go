@@ -52,7 +52,7 @@ type TaskRun struct {
 // An output for a task
 type TaskOutput struct {
 	// A name of a transfer resource to output
-	Name ResourceName `yaml:",omitempty"`
+	Name string `yaml:",omitempty"`
 
 	// The location of the artifacts
 	Path string `yaml:",omitempty"`
@@ -61,22 +61,22 @@ type TaskOutput struct {
 // Configuration of a task
 type TaskConfig struct {
 	// What platform the task runs on
-	Platform string `yaml:",omitempty"`
+	Platform Platform `yaml:",omitempty"`
 
 	// Image resource the task to use for container
 	ImageResource TaskImageResource `yaml:"image_resource,omitempty"`
 
 	// List of inputs
-	Inputs []TaskInput `yaml:",omitempty"`
+	Inputs []*TaskInput `yaml:",omitempty"`
 
 	// Additional params (set as environment variables)
 	Params map[string]interface{} `yaml:",omitempty"`
 
 	// What to run
-	Run TaskRun `yaml:",omitempty"`
+	Run *TaskRun `yaml:",omitempty"`
 
 	// List of outputs from the task
-	Outputs []TaskOutput `yaml:",omitempty"`
+	Outputs []*TaskOutput `yaml:",omitempty"`
 }
 
 // A name of a task

@@ -7,9 +7,10 @@ import (
 )
 
 type Resource struct {
-	Name   ResourceName
-	Type   model.ResourceTypeName
-	Source IJobResourceSource
+	Name       ResourceName
+	Type       model.ResourceTypeName
+	Source     IJobResourceSource
+	CheckEvery model.Duration
 }
 
 // An object that tracks collection of resources by name

@@ -25,6 +25,10 @@ type ImageSource struct {
 	Insecure bool `yaml:",omitempty"`
 }
 
+type ImageGetParams struct {
+	SkipDownload bool `yaml:"skip_download,omitempty"`
+}
+
 type ImagePutParams struct {
 	Build string
 }

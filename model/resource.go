@@ -1,9 +1,5 @@
 package model
 
-import (
-	"time"
-)
-
 // A name of a resource
 type ResourceName string
 
@@ -23,12 +19,12 @@ type Resource struct {
 	Source interface{} `yaml:",omitempty"`
 
 	// Interval between checks for the resource
-	CheckEvery time.Duration `yaml:"check_every,omitempty"`
+	CheckEvery Duration `yaml:"check_every,omitempty"`
 }
-
-// A collection of resources
-type Resources []*Resource
 
 func (r *Resource) Path() string {
 	return string(r.Name)
 }
+
+// A collection of resources
+type Resources []*Resource

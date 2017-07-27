@@ -5,22 +5,33 @@ import (
 	"github.com/concourse-friends/concourse-builder/resource"
 )
 
+type IBuild interface {
+	Path() string
+	InputResource() *project.JobResource
+}
+
 type ImagePutParams struct {
-	Build *Location
+	Build     IBuild
+	FromImage *project.JobResource
 }
 
 func (ipp *ImagePutParams) ModelParams() interface{} {
 	return &resource.ImagePutParams{
-		Build: ipp.Build.String(),
+		Build: ipp.Build.Path(),
 	}
 }
 
 func (ipp *ImagePutParams) InputResources() (project.JobResources, error) {
 	var resources project.JobResources
 
-	res, ok := ipp.Build.Volume.(*project.JobResource)
-	if ok {
+	res := ipp.Build.InputResource()
+	if res != nil {
 		resources = append(resources, res)
 	}
+
+	if ipp.FromImage != nil {
+		resources = append(resources, ipp.FromImage)
+	}
+
 	return resources, nil
 }

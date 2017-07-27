@@ -17,7 +17,7 @@ var Pipeline = model.Pipeline{
 								Repository: "ubuntu",
 							},
 						},
-						Run: model.TaskRun{
+						Run: &model.TaskRun{
 							Path: "echo",
 							Args: []string{
 								"Hello, world!",

@@ -96,17 +96,21 @@ func (p *Pipeline) ModelResourceTypes() (model.ResourceTypes, error) {
 }
 
 func (p *Pipeline) ModelResources() (model.Resources, error) {
-	var resources model.Resources
+	var jobResources JobResources
 	for _, job := range p.Jobs {
-		jobResources, err := job.Resources()
+		resources, err := job.Resources()
 		if err != nil {
 			return nil, err
 		}
+		jobResources = append(jobResources, resources...)
+	}
 
-		for _, res := range jobResources {
-			modelResource := res.Model(p.ResourceRegistry)
-			resources = append(resources, modelResource)
-		}
+	jobResources = jobResources.Deduplicate()
+
+	var resources model.Resources
+	for _, res := range jobResources {
+		modelResource := res.Model(p.ResourceRegistry)
+		resources = append(resources, modelResource)
 	}
 
 	return resources, nil

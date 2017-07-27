@@ -32,7 +32,7 @@ func (job *Job) InputResources() (JobResources, error) {
 		resources = append(resources, inputResources...)
 	}
 
-	return resources, nil
+	return resources.Deduplicate(), nil
 }
 
 func (job *Job) Resources() (JobResources, error) {
@@ -53,10 +53,12 @@ func (job *Job) Resources() (JobResources, error) {
 		if err != nil {
 			return nil, err
 		}
-		resources = append(resources, outputResource)
+		if outputResource != nil {
+			resources = append(resources, outputResource)
+		}
 	}
 
-	return resources, nil
+	return resources.Deduplicate(), nil
 }
 
 func (job *Job) Model() (*model.Job, error) {
@@ -69,13 +71,23 @@ func (job *Job) Model() (*model.Job, error) {
 		return nil, err
 	}
 
+	var modelGetSteps model.ISteps
 	for _, input := range inputs {
 		step := &model.Get{
 			Get:     model.ResourceName(input.Name),
 			Trigger: input.Trigger,
 		}
-		modelSteps = append(modelSteps, step)
+		modelGetSteps = append(modelGetSteps, step)
 	}
+
+	if len(modelGetSteps) > 1 {
+		modelGetSteps = model.ISteps{
+			&model.Aggregation{
+				Aggregate: modelGetSteps,
+			},
+		}
+	}
+	modelSteps = append(modelSteps, modelGetSteps...)
 
 	for _, step := range job.Steps {
 		modelStep, err := step.Model()

@@ -5,34 +5,14 @@ import (
 	"github.com/concourse-friends/concourse-builder/project"
 )
 
-func GitImageJob(concourseBuilder, gitImage project.ResourceName) (*project.Job, error) {
-	var concourseBuilderGirResource = &project.JobResource{
-		Name:    concourseBuilder,
-		Trigger: true,
+func GitImageJob(concourseBuilder, gitImage project.ResourceName) *project.Job {
+	dockerSteps := &library.Location{
+		Volume: &project.JobResource{
+			Name:    library.ConcourseBuilderGit,
+			Trigger: true,
+		},
+		RelativePath: "docker/git_steps",
 	}
 
-	gitImageResource := &project.JobResource{
-		Name: gitImage,
-	}
-
-	putGitImage := &project.PutStep{
-		JobResource: gitImageResource,
-		Params: &library.ImagePutParams{
-			Build: &library.Location{
-				Volume: concourseBuilderGirResource,
-				Path:   "template/sdp/docker/git-image",
-			},
-		},
-	}
-
-	gitImageJob := &project.Job{
-		Name: "git-image",
-		Groups: project.JobGroups{
-			imagesGroup,
-		},
-		Steps: project.ISteps{
-			putGitImage,
-		},
-	}
-	return gitImageJob, nil
+	return library.BuildImage("git", dockerSteps, gitImage)
 }

@@ -11,10 +11,6 @@ type SdpSpecification interface {
 	GitPrivateKey() (string, error)
 }
 
-var imagesGroup = &project.JobGroup{
-	Name: "images",
-}
-
 func GenerateProject(specification SdpSpecification) (*project.Project, error) {
 	mainPipeline := project.NewPipeline()
 
@@ -24,7 +20,7 @@ func GenerateProject(specification SdpSpecification) (*project.Project, error) {
 	}
 
 	concourseBuilderGit := &project.Resource{
-		Name: "concourse-builder-git",
+		Name: library.ConcourseBuilderGit,
 		Type: resource.GitResourceType.Name,
 		Source: &library.GitSource{
 			URI:        "git@github.com:concourse-friends/concourse-builder.git",
@@ -43,12 +39,10 @@ func GenerateProject(specification SdpSpecification) (*project.Project, error) {
 			Location:   "concourse-builder/git-image",
 		},
 	}
+	mainPipeline.ResourceRegistry.MustRegister(library.UbuntuImage)
 	mainPipeline.ResourceRegistry.MustRegister(gitImage)
 
-	gitImageJob, err := GitImageJob(concourseBuilderGit.Name, gitImage.Name)
-	if err != nil {
-		return nil, err
-	}
+	gitImageJob := GitImageJob(concourseBuilderGit.Name, gitImage.Name)
 
 	mainPipeline.Jobs = project.Jobs{
 		gitImageJob,
