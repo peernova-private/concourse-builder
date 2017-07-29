@@ -10,9 +10,16 @@ var imagesGroup = &project.JobGroup{
 	Name: "images",
 }
 
-func BuildImage(name string, dockerFileResource project.IParamValue, image project.ResourceName) *project.Job {
+type BuildImageArgs struct {
+	Name               string
+	DockerFileResource project.IParamValue
+	Image              project.ResourceName
+	BuildArgs          map[string]interface{}
+}
+
+func BuildImage(args *BuildImageArgs) *project.Job {
 	imageResource := &project.JobResource{
-		Name: image,
+		Name: args.Image,
 	}
 
 	ubuntuImageResource := &project.JobResource{
@@ -36,7 +43,7 @@ func BuildImage(name string, dockerFileResource project.IParamValue, image proje
 			RelativePath: "scripts/docker_image_prepare.sh",
 		},
 		Params: map[string]interface{}{
-			"DOCKER_STEPS": dockerFileResource,
+			"DOCKER_STEPS": args.DockerFileResource,
 			"FROM_IMAGE":   (*FromParam)(UbuntuImage),
 		},
 		Outputs: []project.IOutput{
@@ -51,6 +58,7 @@ func BuildImage(name string, dockerFileResource project.IParamValue, image proje
 			Build: &Location{
 				RelativePath: preparedDir.Path(),
 			},
+			BuildArgs: args.BuildArgs,
 		},
 		GetParams: &resource.ImageGetParams{
 			SkipDownload: true,
@@ -58,7 +66,7 @@ func BuildImage(name string, dockerFileResource project.IParamValue, image proje
 	}
 
 	imageJob := &project.Job{
-		Name: project.JobName(name + "-image"),
+		Name: project.JobName(args.Name + "-image"),
 		Groups: project.JobGroups{
 			imagesGroup,
 		},

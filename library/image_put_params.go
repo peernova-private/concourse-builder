@@ -12,12 +12,14 @@ type IBuild interface {
 
 type ImagePutParams struct {
 	Build     IBuild
+	BuildArgs map[string]interface{}
 	FromImage *project.JobResource
 }
 
 func (ipp *ImagePutParams) ModelParams() interface{} {
 	return &resource.ImagePutParams{
-		Build: ipp.Build.Path(),
+		Build:     ipp.Build.Path(),
+		BuildArgs: ipp.BuildArgs,
 	}
 }
 

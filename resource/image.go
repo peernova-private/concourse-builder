@@ -30,7 +30,8 @@ type ImageGetParams struct {
 }
 
 type ImagePutParams struct {
-	Build string
+	Build     string
+	BuildArgs map[string]interface{} `yaml:"build_args,omitempty"`
 }
 
 func init() {

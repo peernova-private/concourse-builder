@@ -14,6 +14,8 @@ type SdpSpecification interface {
 func GenerateProject(specification SdpSpecification) (*project.Project, error) {
 	mainPipeline := project.NewPipeline()
 
+	mainPipeline.ResourceRegistry.MustRegister(library.UbuntuImage)
+
 	privateKey, err := specification.GitPrivateKey()
 	if err != nil {
 		return nil, err
@@ -31,6 +33,18 @@ func GenerateProject(specification SdpSpecification) (*project.Project, error) {
 
 	mainPipeline.ResourceRegistry.MustRegister(concourseBuilderGit)
 
+	flyImage := &project.Resource{
+		Name: "fly-image",
+		Type: resource.ImageResourceType.Name,
+		Source: &library.ImageSource{
+			Repository: specification.DeployImageRepository(),
+			Location:   "concourse-builder/fly-image",
+		},
+	}
+	mainPipeline.ResourceRegistry.MustRegister(flyImage)
+
+	flyImageJob := FlyImageJob(flyImage.Name)
+
 	gitImage := &project.Resource{
 		Name: "git-image",
 		Type: resource.ImageResourceType.Name,
@@ -39,12 +53,12 @@ func GenerateProject(specification SdpSpecification) (*project.Project, error) {
 			Location:   "concourse-builder/git-image",
 		},
 	}
-	mainPipeline.ResourceRegistry.MustRegister(library.UbuntuImage)
 	mainPipeline.ResourceRegistry.MustRegister(gitImage)
 
-	gitImageJob := GitImageJob(concourseBuilderGit.Name, gitImage.Name)
+	gitImageJob := GitImageJob(gitImage.Name)
 
 	mainPipeline.Jobs = project.Jobs{
+		flyImageJob,
 		gitImageJob,
 	}
 
