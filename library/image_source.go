@@ -2,7 +2,6 @@ package library
 
 import (
 	"path"
-
 	"time"
 
 	"github.com/concourse-friends/concourse-builder/model"
