@@ -8,7 +8,7 @@ import (
 func GitImageJob(gitImage project.ResourceName) *project.Job {
 	dockerSteps := &library.Location{
 		Volume: &project.JobResource{
-			Name:    library.ConcourseBuilderGit,
+			Name:    library.ConcourseBuilderGitName,
 			Trigger: true,
 		},
 		RelativePath: "docker/git_steps",

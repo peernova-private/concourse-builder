@@ -27,6 +27,17 @@ func (im *ImageSource) ModelSource() interface{} {
 	}
 }
 
+var GoImage = &project.Resource{
+	Name: "go-image",
+	Type: resource.ImageResourceType.Name,
+	Source: &ImageSource{
+		Repository: DockerHub,
+		Location:   "golang",
+		Tag:        "1.8",
+	},
+	CheckEvery: model.Duration(24 * time.Hour),
+}
+
 var UbuntuImage = &project.Resource{
 	Name: "ubuntu-image",
 	Type: resource.ImageResourceType.Name,

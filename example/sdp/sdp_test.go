@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/concourse-friends/concourse-builder/template/sdp"
+	"github.com/pmezard/go-difflib/difflib"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -13,6 +14,14 @@ var expected = `groups:
   jobs:
   - fly-image
   - git-image
+- name: sys
+  jobs:
+  - fly-image
+- name: all
+  jobs:
+  - fly-image
+  - git-image
+  - self-update
 resources:
 - name: concourse-builder-git
   type: git
@@ -28,6 +37,12 @@ resources:
   type: docker-image
   source:
     repository: repository.com/concourse-builder/git-image
+- name: go-image
+  type: docker-image
+  source:
+    repository: golang
+    tag: "1.8"
+  check_every: 24h
 - name: ubuntu-image
   type: docker-image
   source:
@@ -60,7 +75,7 @@ jobs:
     params:
       build: prepared
       build_args:
-        FLY_VERSION: 3.2.1
+        FLY_VERSION: v3.3.1
     get_params:
       skip_download: true
 - name: git-image
@@ -89,7 +104,38 @@ jobs:
       build: prepared
     get_params:
       skip_download: true
+- name: self-update
+  plan:
+  - aggregate:
+    - get: concourse-builder-git
+      trigger: true
+    - get: go-image
+      trigger: true
+  - task: prepare
+    image: go-image
+    config:
+      platform: linux
+      inputs:
+      - name: concourse-builder-git
+      run:
+        path: concourse-builder-git/foo
+      outputs:
+      - name: prepared
+        path: prepared
 `
+
+func ContextDiff(a, b string) string {
+	diff := difflib.ContextDiff{
+		A:        difflib.SplitLines(a),
+		B:        difflib.SplitLines(b),
+		FromFile: "actual",
+		ToFile:   "expected",
+		Context:  3,
+		Eol:      "\n",
+	}
+	result, _ := difflib.GetContextDiffString(diff)
+	return result
+}
 
 func TestSdp(t *testing.T) {
 	prj, err := sdp.GenerateProject(&testSpecification{})
@@ -100,5 +146,5 @@ func TestSdp(t *testing.T) {
 	err = prj.Pipelines[0].Save(yml)
 	assert.NoError(t, err)
 
-	assert.Equal(t, expected, yml.String())
+	assert.Equal(t, expected, yml.String(), ContextDiff(expected, yml.String()))
 }

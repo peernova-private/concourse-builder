@@ -17,6 +17,10 @@ type Job struct {
 
 type Jobs []*Job
 
+func (job *Job) AddToGroup(groups ...*JobGroup) {
+	job.Groups = append(job.Groups, groups...)
+}
+
 func (job *Job) InputResources() (JobResources, error) {
 	var resources JobResources
 

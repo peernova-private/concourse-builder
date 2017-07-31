@@ -11,4 +11,4 @@ func (gs *GitSource) ModelSource() interface{} {
 	return (*resource.GitSource)(gs)
 }
 
-var ConcourseBuilderGit project.ResourceName = "concourse-builder-git"
+var ConcourseBuilderGitName project.ResourceName = "concourse-builder-git"

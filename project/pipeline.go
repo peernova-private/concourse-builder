@@ -38,7 +38,7 @@ func NewPipeline() *Pipeline {
 func (p *Pipeline) ModelGroups() (model.Groups, error) {
 	groups := make(map[*JobGroup][]string)
 
-	allJobNames := make([]string, len(p.Jobs))
+	allJobNames := make([]string, 0, len(p.Jobs))
 	for _, job := range p.Jobs {
 		allJobNames = append(allJobNames, string(job.Name))
 		for _, group := range job.Groups {

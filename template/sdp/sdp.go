@@ -7,22 +7,26 @@ import (
 )
 
 type SdpSpecification interface {
-	DeployImageRepository() *library.ImageRepository
-	GitPrivateKey() (string, error)
+	FlyVersion() (string, error)
+	DeployImageRepository() (*library.ImageRepository, error)
+	ConcourseBuilderGitPrivateKey() (string, error)
+	GenerateMainPipelineLocation(resourceRegistry *project.ResourceRegistry) (project.IRun, error)
 }
 
 func GenerateProject(specification SdpSpecification) (*project.Project, error) {
 	mainPipeline := project.NewPipeline()
+	mainPipeline.AllJobsGroup = project.AllJobsGroupLast
 
+	mainPipeline.ResourceRegistry.MustRegister(library.GoImage)
 	mainPipeline.ResourceRegistry.MustRegister(library.UbuntuImage)
 
-	privateKey, err := specification.GitPrivateKey()
+	privateKey, err := specification.ConcourseBuilderGitPrivateKey()
 	if err != nil {
 		return nil, err
 	}
 
 	concourseBuilderGit := &project.Resource{
-		Name: library.ConcourseBuilderGit,
+		Name: library.ConcourseBuilderGitName,
 		Type: resource.GitResourceType.Name,
 		Source: &library.GitSource{
 			URI:        "git@github.com:concourse-friends/concourse-builder.git",
@@ -33,23 +37,35 @@ func GenerateProject(specification SdpSpecification) (*project.Project, error) {
 
 	mainPipeline.ResourceRegistry.MustRegister(concourseBuilderGit)
 
+	dockerRepository, err := specification.DeployImageRepository()
+	if err != nil {
+		return nil, err
+	}
+
+	// Prepare fly image job
 	flyImage := &project.Resource{
 		Name: "fly-image",
 		Type: resource.ImageResourceType.Name,
 		Source: &library.ImageSource{
-			Repository: specification.DeployImageRepository(),
+			Repository: dockerRepository,
 			Location:   "concourse-builder/fly-image",
 		},
 	}
 	mainPipeline.ResourceRegistry.MustRegister(flyImage)
 
-	flyImageJob := FlyImageJob(flyImage.Name)
+	flyVersion, err := specification.FlyVersion()
+	if err != nil {
+		return nil, err
+	}
 
+	flyImageJob := FlyImageJob(flyVersion, flyImage.Name)
+
+	// Prepare git image job
 	gitImage := &project.Resource{
 		Name: "git-image",
 		Type: resource.ImageResourceType.Name,
 		Source: &library.ImageSource{
-			Repository: specification.DeployImageRepository(),
+			Repository: dockerRepository,
 			Location:   "concourse-builder/git-image",
 		},
 	}
@@ -57,9 +73,15 @@ func GenerateProject(specification SdpSpecification) (*project.Project, error) {
 
 	gitImageJob := GitImageJob(gitImage.Name)
 
+	// Prepare self update job
+	generateMainPipelineLocation, err := specification.GenerateMainPipelineLocation(mainPipeline.ResourceRegistry)
+
+	selfUpdateJob := SelfUpdateJob(generateMainPipelineLocation)
+
 	mainPipeline.Jobs = project.Jobs{
 		flyImageJob,
 		gitImageJob,
+		selfUpdateJob,
 	}
 
 	prj := &project.Project{

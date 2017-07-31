@@ -5,21 +5,24 @@ import (
 	"github.com/concourse-friends/concourse-builder/project"
 )
 
-func FlyImageJob(flyImage project.ResourceName) *project.Job {
+func FlyImageJob(flyVersion string, flyImage project.ResourceName) *project.Job {
 	dockerSteps := &library.Location{
 		Volume: &project.JobResource{
-			Name:    library.ConcourseBuilderGit,
+			Name:    library.ConcourseBuilderGitName,
 			Trigger: true,
 		},
 		RelativePath: "docker/fly_steps",
 	}
 
-	return library.BuildImage(&library.BuildImageArgs{
+	job := library.BuildImage(&library.BuildImageArgs{
 		Name:               "fly",
 		DockerFileResource: dockerSteps,
 		Image:              flyImage,
 		BuildArgs: map[string]interface{}{
-			"FLY_VERSION": "v3.3.1",
+			"FLY_VERSION": flyVersion,
 		},
 	})
+
+	job.AddToGroup(project.SystemGroup)
+	return job
 }

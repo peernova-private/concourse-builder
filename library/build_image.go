@@ -6,8 +6,11 @@ import (
 	"github.com/concourse-friends/concourse-builder/resource"
 )
 
-var imagesGroup = &project.JobGroup{
+var ImagesGroup = &project.JobGroup{
 	Name: "images",
+	Before: project.JobGroups{
+		project.SystemGroup,
+	},
 }
 
 type BuildImageArgs struct {
@@ -37,7 +40,7 @@ func BuildImage(args *BuildImageArgs) *project.Job {
 		Image:    ubuntuImageResource,
 		Run: &Location{
 			Volume: &project.JobResource{
-				Name:    ConcourseBuilderGit,
+				Name:    ConcourseBuilderGitName,
 				Trigger: true,
 			},
 			RelativePath: "scripts/docker_image_prepare.sh",
@@ -68,7 +71,7 @@ func BuildImage(args *BuildImageArgs) *project.Job {
 	imageJob := &project.Job{
 		Name: project.JobName(args.Name + "-image"),
 		Groups: project.JobGroups{
-			imagesGroup,
+			ImagesGroup,
 		},
 		Steps: project.ISteps{
 			taskPrepare,
