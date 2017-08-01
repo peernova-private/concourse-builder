@@ -109,19 +109,35 @@ jobs:
   - aggregate:
     - get: concourse-builder-git
       trigger: true
+    - get: fly-image
+      trigger: true
     - get: go-image
       trigger: true
-  - task: prepare
+  - task: prepare pipelines
     image: go-image
     config:
       platform: linux
       inputs:
       - name: concourse-builder-git
+      params:
+        CONOCURCE_BUILDER_GIT_PRIVATE_KEY: private-key
+        PIPELINES: pipelines
       run:
         path: concourse-builder-git/foo
       outputs:
-      - name: prepared
-        path: prepared
+      - name: pipelines
+        path: pipelines
+  - task: update pipelines
+    image: fly-image
+    config:
+      platform: linux
+      inputs:
+      - name: concourse-builder-git
+      - name: pipelines
+      params:
+        PIPELINES: pipelines
+      run:
+        path: concourse-builder-git/scripts/set_pipelines.sh
 `
 
 func ContextDiff(a, b string) string {

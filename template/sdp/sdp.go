@@ -15,6 +15,7 @@ type SdpSpecification interface {
 
 func GenerateProject(specification SdpSpecification) (*project.Project, error) {
 	mainPipeline := project.NewPipeline()
+	mainPipeline.Name = "sdp"
 	mainPipeline.AllJobsGroup = project.AllJobsGroupLast
 
 	mainPipeline.ResourceRegistry.MustRegister(library.GoImage)
@@ -76,7 +77,7 @@ func GenerateProject(specification SdpSpecification) (*project.Project, error) {
 	// Prepare self update job
 	generateMainPipelineLocation, err := specification.GenerateMainPipelineLocation(mainPipeline.ResourceRegistry)
 
-	selfUpdateJob := SelfUpdateJob(generateMainPipelineLocation)
+	selfUpdateJob := SelfUpdateJob(privateKey, generateMainPipelineLocation, flyImage.Name)
 
 	mainPipeline.Jobs = project.Jobs{
 		flyImageJob,

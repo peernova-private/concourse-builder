@@ -26,6 +26,13 @@ func (l *Location) InputResource() *project.JobResource {
 	return nil
 }
 
+func (l *Location) OutputName() string {
+	if res, ok := l.Volume.(*TaskOutput); ok {
+		return res.Name()
+	}
+	return ""
+}
+
 func (l *Location) Value() interface{} {
 	return l.Path()
 }

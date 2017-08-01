@@ -18,6 +18,10 @@ type IParamValue interface {
 	Value() interface{}
 }
 
+type IParamInput interface {
+	OutputName() string
+}
+
 type TaskStep struct {
 	Platform model.Platform
 	Name     model.TaskName
@@ -48,6 +52,17 @@ func (ts *TaskStep) Model() (model.IStep, error) {
 		task.Config.Inputs = append(task.Config.Inputs, &model.TaskInput{
 			Name: model.ResourceName(runInputResource.Name),
 		})
+	}
+
+	for _, value := range ts.Params {
+		if param, ok := value.(IParamInput); ok {
+			name := param.OutputName()
+			if name != "" {
+				task.Config.Inputs = append(task.Config.Inputs, &model.TaskInput{
+					Name: model.ResourceName(name),
+				})
+			}
+		}
 	}
 
 	for _, output := range ts.Outputs {
