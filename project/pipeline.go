@@ -22,7 +22,7 @@ type Pipeline struct {
 	Name PipelineName
 
 	AllJobsGroup AllJobsGroupOption
-	Jobs         []*Job
+	Jobs         Jobs
 
 	ResourceRegistry *ResourceRegistry
 }
@@ -117,13 +117,23 @@ func (p *Pipeline) ModelResources() (model.Resources, error) {
 }
 
 func (p *Pipeline) ModelJobs() (model.Jobs, error) {
+	columns, err := p.Jobs.SortByColumns()
+	if err != nil {
+		return nil, err
+	}
+
 	modelJobs := make(model.Jobs, 0, len(p.Jobs))
-	for _, job := range p.Jobs {
-		modelJob, err := job.Model()
-		if err != nil {
-			return nil, err
+
+	var previousColumn Jobs
+	for _, column := range columns {
+		for _, job := range column {
+			modelJob, err := job.Model(previousColumn)
+			if err != nil {
+				return nil, err
+			}
+			modelJobs = append(modelJobs, modelJob)
 		}
-		modelJobs = append(modelJobs, modelJob)
+		previousColumn = column
 	}
 
 	return modelJobs, nil

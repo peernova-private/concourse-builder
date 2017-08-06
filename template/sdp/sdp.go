@@ -78,6 +78,7 @@ func GenerateProject(specification SdpSpecification) (*project.Project, error) {
 	generateMainPipelineLocation, err := specification.GenerateMainPipelineLocation(mainPipeline.ResourceRegistry)
 
 	selfUpdateJob := SelfUpdateJob(privateKey, generateMainPipelineLocation, flyImage.Name)
+	selfUpdateJob.AddJobToRunAfter(flyImageJob)
 
 	mainPipeline.Jobs = project.Jobs{
 		flyImageJob,

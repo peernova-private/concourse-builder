@@ -13,12 +13,15 @@ type Job struct {
 	Steps         ISteps
 	OnSuccess     IStep
 	OnFailure     IStep
+	AfterJobs     Jobs
 }
-
-type Jobs []*Job
 
 func (job *Job) AddToGroup(groups ...*JobGroup) {
 	job.Groups = append(job.Groups, groups...)
+}
+
+func (job *Job) AddJobToRunAfter(jobs ...*Job) {
+	job.AfterJobs = append(job.AfterJobs, jobs...)
 }
 
 func (job *Job) InputResources() (JobResources, error) {
@@ -65,7 +68,7 @@ func (job *Job) Resources() (JobResources, error) {
 	return resources.Deduplicate(), nil
 }
 
-func (job *Job) Model() (*model.Job, error) {
+func (job *Job) Model(previousColumn Jobs) (*model.Job, error) {
 	var err error
 
 	var modelSteps model.ISteps
@@ -81,6 +84,12 @@ func (job *Job) Model() (*model.Job, error) {
 			Get:     model.ResourceName(input.Name),
 			Trigger: input.Trigger,
 		}
+
+		step.Passed, err = previousColumn.NamesOfUsingResourceJobs(input)
+		if err != nil {
+			return nil, err
+		}
+
 		modelGetSteps = append(modelGetSteps, step)
 	}
 

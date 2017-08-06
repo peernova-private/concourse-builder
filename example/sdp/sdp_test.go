@@ -109,8 +109,13 @@ jobs:
   - aggregate:
     - get: concourse-builder-git
       trigger: true
+      passed:
+      - fly-image
+      - git-image
     - get: fly-image
       trigger: true
+      passed:
+      - fly-image
     - get: go-image
       trigger: true
   - task: prepare pipelines
