@@ -10,7 +10,7 @@ type FromParam project.Resource
 
 func (fp *FromParam) Value() interface{} {
 	source := fp.Source.(*ImageSource)
-	result := path.Join(source.Repository.Domain, source.Location)
+	result := path.Join(source.Registry.Domain, source.Location)
 	if source.Tag != "" {
 		result = result + ":" + source.Tag
 	}

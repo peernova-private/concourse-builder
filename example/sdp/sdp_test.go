@@ -32,11 +32,11 @@ resources:
 - name: fly-image
   type: docker-image
   source:
-    repository: repository.com/concourse-builder/fly-image
+    repository: registry.com/concourse-builder/fly-image
 - name: git-image
   type: docker-image
   source:
-    repository: repository.com/concourse-builder/git-image
+    repository: registry.com/concourse-builder/git-image
 - name: go-image
   type: docker-image
   source:
@@ -125,7 +125,7 @@ jobs:
       inputs:
       - name: concourse-builder-git
       params:
-        CONOCURCE_BUILDER_GIT_PRIVATE_KEY: private-key
+        CONCOURCE_BUILDER_GIT_PRIVATE_KEY: private-key
         PIPELINES: pipelines
       run:
         path: concourse-builder-git/foo

@@ -12,9 +12,9 @@ func (s *testSpecification) FlyVersion() (string, error) {
 	return "v3.3.1", nil
 }
 
-func (s *testSpecification) DeployImageRepository() (*library.ImageRepository, error) {
-	return &library.ImageRepository{
-		Domain: "repository.com",
+func (s *testSpecification) DeployImageRepository() (*library.ImageRegistry, error) {
+	return &library.ImageRegistry{
+		Domain: "registry.com",
 	}, nil
 }
 

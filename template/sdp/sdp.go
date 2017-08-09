@@ -8,7 +8,7 @@ import (
 
 type SdpSpecification interface {
 	FlyVersion() (string, error)
-	DeployImageRepository() (*library.ImageRepository, error)
+	DeployImageRepository() (*library.ImageRegistry, error)
 	ConcourseBuilderGitPrivateKey() (string, error)
 	GenerateMainPipelineLocation(resourceRegistry *project.ResourceRegistry) (project.IRun, error)
 }
@@ -48,8 +48,8 @@ func GenerateProject(specification SdpSpecification) (*project.Project, error) {
 		Name: "fly-image",
 		Type: resource.ImageResourceType.Name,
 		Source: &library.ImageSource{
-			Repository: dockerRepository,
-			Location:   "concourse-builder/fly-image",
+			Registry: dockerRepository,
+			Location: "concourse-builder/fly-image",
 		},
 	}
 	mainPipeline.ResourceRegistry.MustRegister(flyImage)
@@ -66,8 +66,8 @@ func GenerateProject(specification SdpSpecification) (*project.Project, error) {
 		Name: "git-image",
 		Type: resource.ImageResourceType.Name,
 		Source: &library.ImageSource{
-			Repository: dockerRepository,
-			Location:   "concourse-builder/git-image",
+			Registry: dockerRepository,
+			Location: "concourse-builder/git-image",
 		},
 	}
 	mainPipeline.ResourceRegistry.MustRegister(gitImage)

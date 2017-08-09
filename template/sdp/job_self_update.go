@@ -22,7 +22,7 @@ func SelfUpdateJob(privateKey string, pipelineLocation project.IRun, flyImage pr
 		Image:    goImageResource,
 		Run:      pipelineLocation,
 		Params: map[string]interface{}{
-			"CONOCURCE_BUILDER_GIT_PRIVATE_KEY": privateKey,
+			"CONCOURCE_BUILDER_GIT_PRIVATE_KEY": privateKey,
 			"PIPELINES":                         "pipelines",
 		},
 		Outputs: []project.IOutput{
