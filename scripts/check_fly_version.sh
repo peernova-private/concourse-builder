@@ -2,7 +2,7 @@
 
 set -ex
 
-INSECURE=""
+INSECURE="1"
 
 if [ ! -z "$INSECURE" ]
 then
