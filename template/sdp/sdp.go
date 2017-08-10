@@ -7,10 +7,11 @@ import (
 )
 
 type SdpSpecification interface {
-	FlyVersion() (string, error)
+	Concourse() (*library.Concourse, error)
 	DeployImageRepository() (*library.ImageRegistry, error)
 	ConcourseBuilderGitPrivateKey() (string, error)
 	GenerateMainPipelineLocation(resourceRegistry *project.ResourceRegistry) (project.IRun, error)
+	Environment() (map[string]interface{}, error)
 }
 
 func GenerateProject(specification SdpSpecification) (*project.Project, error) {
@@ -43,6 +44,19 @@ func GenerateProject(specification SdpSpecification) (*project.Project, error) {
 		return nil, err
 	}
 
+	// Prepare curl image job
+	curlImage := &project.Resource{
+		Name: "curl-image",
+		Type: resource.ImageResourceType.Name,
+		Source: &library.ImageSource{
+			Registry: dockerRepository,
+			Location: "concourse-builder/curl-image",
+		},
+	}
+	mainPipeline.ResourceRegistry.MustRegister(curlImage)
+
+	curlImageJob := CurlImageJob(curlImage.Name)
+
 	// Prepare fly image job
 	flyImage := &project.Resource{
 		Name: "fly-image",
@@ -54,12 +68,13 @@ func GenerateProject(specification SdpSpecification) (*project.Project, error) {
 	}
 	mainPipeline.ResourceRegistry.MustRegister(flyImage)
 
-	flyVersion, err := specification.FlyVersion()
+	concourse, err := specification.Concourse()
 	if err != nil {
 		return nil, err
 	}
 
-	flyImageJob := FlyImageJob(flyVersion, flyImage.Name)
+	flyImageJob := FlyImageJob(concourse, curlImage, flyImage.Name)
+	flyImageJob.AddJobToRunAfter(curlImageJob)
 
 	// Prepare git image job
 	gitImage := &project.Resource{
@@ -76,11 +91,20 @@ func GenerateProject(specification SdpSpecification) (*project.Project, error) {
 
 	// Prepare self update job
 	generateMainPipelineLocation, err := specification.GenerateMainPipelineLocation(mainPipeline.ResourceRegistry)
+	if err != nil {
+		return nil, err
+	}
 
-	selfUpdateJob := SelfUpdateJob(privateKey, generateMainPipelineLocation, flyImage.Name)
+	environment, err := specification.Environment()
+	if err != nil {
+		return nil, err
+	}
+
+	selfUpdateJob := SelfUpdateJob(environment, concourse, generateMainPipelineLocation, flyImage.Name)
 	selfUpdateJob.AddJobToRunAfter(flyImageJob)
 
 	mainPipeline.Jobs = project.Jobs{
+		curlImageJob,
 		flyImageJob,
 		gitImageJob,
 		selfUpdateJob,

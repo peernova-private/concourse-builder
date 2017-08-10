@@ -1,10 +1,9 @@
-ARG FLY_VERSION
-
 RUN set -ex \
     # install fly \
     && apt-get update \
-    && apt-get install -y curl \
-    && curl -s https://github.com/concourse/concourse/releases/download/${FLY_VERSION}/fly_linux_amd64 --output /usr/local/bin/fly \
+    && curl -L --fail -s https://github.com/concourse/concourse/releases/download/v${FLY_VERSION}/fly_linux_amd64 \
+       --output /usr/local/bin/fly \
+    && chmod 755 /usr/local/bin/fly \
     \
     # cleanup \
     && apt-get clean \

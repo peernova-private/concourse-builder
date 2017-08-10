@@ -5,21 +5,24 @@ import (
 	"github.com/concourse-friends/concourse-builder/project"
 )
 
-func GitImageJob(gitImage project.ResourceName) *project.Job {
+func CurlImageJob(curlImage project.ResourceName) *project.Job {
 	dockerSteps := &library.Location{
 		Volume: &project.JobResource{
 			Name:    library.ConcourseBuilderGitName,
 			Trigger: true,
 		},
-		RelativePath: "docker/git_steps",
+		RelativePath: "docker/curl_steps",
 	}
 
-	return library.BuildImage(
+	job := library.BuildImage(
 		library.UbuntuImage,
 		library.UbuntuImage,
 		&library.BuildImageArgs{
-			Name:               "git",
+			Name:               "curl",
 			DockerFileResource: dockerSteps,
-			Image:              gitImage,
+			Image:              curlImage,
 		})
+
+	job.AddToGroup(project.SystemGroup)
+	return job
 }

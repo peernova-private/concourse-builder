@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 
-env
+set -ex
+
+fly --target trgt login --insecure --concourse-url $CONCOURSE_URL --username $CONCOURSE_USER --password $CONCOURSE_PASSWORD
 
 cd $PIPELINES
 
 for yml in *
 do
     name=$(echo $yml | cut -f 1 -d '.')
-    echo name: $name file: $yml
+    fly -t trgt set-pipeline -n -p $name -c $yml
 done

@@ -1,10 +1,9 @@
 package library
 
 import (
+	"fmt"
 	"path"
 	"time"
-
-	"fmt"
 
 	"github.com/concourse-friends/concourse-builder/model"
 	"github.com/concourse-friends/concourse-builder/project"

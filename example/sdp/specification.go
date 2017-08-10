@@ -8,8 +8,12 @@ import (
 type testSpecification struct {
 }
 
-func (s *testSpecification) FlyVersion() (string, error) {
-	return "v3.3.1", nil
+func (s *testSpecification) Concourse() (*library.Concourse, error) {
+	return &library.Concourse{
+		URL:      "http://concourse.com",
+		User:     "user",
+		Password: "password",
+	}, nil
 }
 
 func (s *testSpecification) DeployImageRepository() (*library.ImageRegistry, error) {
@@ -29,5 +33,11 @@ func (s *testSpecification) GenerateMainPipelineLocation(resourceRegistry *proje
 			Trigger: true,
 		},
 		RelativePath: "foo",
+	}, nil
+}
+
+func (s *testSpecification) Environment() (map[string]interface{}, error) {
+	return map[string]interface{}{
+		"FOO": "BAR",
 	}, nil
 }

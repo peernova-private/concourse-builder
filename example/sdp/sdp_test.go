@@ -12,13 +12,16 @@ import (
 var expected = `groups:
 - name: images
   jobs:
+  - curl-image
   - fly-image
   - git-image
 - name: sys
   jobs:
+  - curl-image
   - fly-image
 - name: all
   jobs:
+  - curl-image
   - fly-image
   - git-image
   - self-update
@@ -29,6 +32,10 @@ resources:
     uri: git@github.com:concourse-friends/concourse-builder.git
     branch: master
     private_key: private-key
+- name: curl-image
+  type: docker-image
+  source:
+    repository: registry.com/concourse-builder/curl-image
 - name: fly-image
   type: docker-image
   source:
@@ -50,7 +57,7 @@ resources:
     tag: "16.04"
   check_every: 24h
 jobs:
-- name: fly-image
+- name: curl-image
   plan:
   - aggregate:
     - get: concourse-builder-git
@@ -64,18 +71,16 @@ jobs:
       inputs:
       - name: concourse-builder-git
       params:
-        DOCKER_STEPS: concourse-builder-git/docker/fly_steps
+        DOCKER_STEPS: concourse-builder-git/docker/curl_steps
         FROM_IMAGE: ubuntu:16.04
       run:
         path: concourse-builder-git/scripts/docker_image_prepare.sh
       outputs:
       - name: prepared
         path: prepared
-  - put: fly-image
+  - put: curl-image
     params:
       build: prepared
-      build_args:
-        FLY_VERSION: v3.3.1
     get_params:
       skip_download: true
 - name: git-image
@@ -104,6 +109,39 @@ jobs:
       build: prepared
     get_params:
       skip_download: true
+- name: fly-image
+  plan:
+  - aggregate:
+    - get: concourse-builder-git
+      trigger: true
+      passed:
+      - curl-image
+      - git-image
+    - get: curl-image
+      trigger: true
+      passed:
+      - curl-image
+  - task: prepare
+    image: curl-image
+    config:
+      platform: linux
+      inputs:
+      - name: concourse-builder-git
+      params:
+        DOCKER_STEPS: concourse-builder-git/docker/fly_steps
+        EVAL: echo ENV FLY_VERSION=` + "`" + `curl http://concourse.com/api/v1/info | awk -F
+          ',' ' { print $1 } ' | awk -F ':' ' { print $2 } '` + "`" + `
+        FROM_IMAGE: registry.com/concourse-builder/curl-image
+      run:
+        path: concourse-builder-git/scripts/docker_image_prepare.sh
+      outputs:
+      - name: prepared
+        path: prepared
+  - put: fly-image
+    params:
+      build: prepared
+    get_params:
+      skip_download: true
 - name: self-update
   plan:
   - aggregate:
@@ -111,7 +149,6 @@ jobs:
       trigger: true
       passed:
       - fly-image
-      - git-image
     - get: fly-image
       trigger: true
       passed:
@@ -125,7 +162,7 @@ jobs:
       inputs:
       - name: concourse-builder-git
       params:
-        CONCOURCE_BUILDER_GIT_PRIVATE_KEY: private-key
+        FOO: BAR
         PIPELINES: pipelines
       run:
         path: concourse-builder-git/foo
@@ -140,6 +177,9 @@ jobs:
       - name: concourse-builder-git
       - name: pipelines
       params:
+        CONCOURSE_PASSWORD: password
+        CONCOURSE_URL: http://concourse.com
+        CONCOURSE_USER: user
         PIPELINES: pipelines
       run:
         path: concourse-builder-git/scripts/set_pipelines.sh
@@ -151,7 +191,7 @@ func ContextDiff(a, b string) string {
 		B:        difflib.SplitLines(b),
 		FromFile: "actual",
 		ToFile:   "expected",
-		Context:  3,
+		Context:  10,
 		Eol:      "\n",
 	}
 	result, _ := difflib.GetContextDiffString(diff)

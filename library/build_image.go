@@ -18,26 +18,27 @@ type BuildImageArgs struct {
 	DockerFileResource project.IParamValue
 	Image              project.ResourceName
 	BuildArgs          map[string]interface{}
+	Eval               string
 }
 
-func BuildImage(args *BuildImageArgs) *project.Job {
+func BuildImage(prepare *project.Resource, from *project.Resource, args *BuildImageArgs) *project.Job {
 	imageResource := &project.JobResource{
 		Name: args.Image,
-	}
-
-	ubuntuImageResource := &project.JobResource{
-		Name:    UbuntuImage.Name,
-		Trigger: true,
 	}
 
 	preparedDir := &TaskOutput{
 		Directory: "prepared",
 	}
 
+	prepareImageResource := &project.JobResource{
+		Name:    prepare.Name,
+		Trigger: true,
+	}
+
 	taskPrepare := &project.TaskStep{
 		Platform: model.LinuxPlatform,
 		Name:     "prepare",
-		Image:    ubuntuImageResource,
+		Image:    prepareImageResource,
 		Run: &Location{
 			Volume: &project.JobResource{
 				Name:    ConcourseBuilderGitName,
@@ -47,17 +48,26 @@ func BuildImage(args *BuildImageArgs) *project.Job {
 		},
 		Params: map[string]interface{}{
 			"DOCKER_STEPS": args.DockerFileResource,
-			"FROM_IMAGE":   (*FromParam)(UbuntuImage),
+			"FROM_IMAGE":   (*FromParam)(from),
 		},
 		Outputs: []project.IOutput{
 			preparedDir,
 		},
 	}
 
+	if args.Eval != "" {
+		taskPrepare.Params["EVAL"] = args.Eval
+	}
+
+	fromImageResource := &project.JobResource{
+		Name:    from.Name,
+		Trigger: true,
+	}
+
 	putImage := &project.PutStep{
 		JobResource: imageResource,
 		Params: &ImagePutParams{
-			FromImage: ubuntuImageResource,
+			FromImage: fromImageResource,
 			Build: &Location{
 				RelativePath: preparedDir.Path(),
 			},

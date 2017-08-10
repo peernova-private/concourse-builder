@@ -27,6 +27,7 @@ func (jobs Jobs) SortByColumns() ([]Jobs, error) {
 
 	var columns []Jobs
 	var column Jobs
+
 	for _, job := range jobs {
 		if len(job.AfterJobs) == 0 {
 			column = append(column, job)
@@ -48,6 +49,8 @@ func (jobs Jobs) SortByColumns() ([]Jobs, error) {
 	for {
 		var column Jobs
 		move := false
+
+		unblocked := make(map[*Job]struct{})
 		for job := range blocked {
 			stillBlocked := false
 			for _, afterJob := range job.AfterJobs {
@@ -65,8 +68,12 @@ func (jobs Jobs) SortByColumns() ([]Jobs, error) {
 				delete(mustHave, job)
 			}
 
-			delete(blocked, job)
+			unblocked[job] = struct{}{}
 			move = true
+		}
+
+		for job := range unblocked {
+			delete(blocked, job)
 		}
 
 		if len(column) > 0 {

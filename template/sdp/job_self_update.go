@@ -6,7 +6,7 @@ import (
 	"github.com/concourse-friends/concourse-builder/project"
 )
 
-func SelfUpdateJob(privateKey string, pipelineLocation project.IRun, flyImage project.ResourceName) *project.Job {
+func SelfUpdateJob(environment map[string]interface{}, concourse *library.Concourse, pipelineLocation project.IRun, flyImage project.ResourceName) *project.Job {
 	goImageResource := &project.JobResource{
 		Name:    library.GoImage.Name,
 		Trigger: true,
@@ -21,14 +21,13 @@ func SelfUpdateJob(privateKey string, pipelineLocation project.IRun, flyImage pr
 		Name:     "prepare pipelines",
 		Image:    goImageResource,
 		Run:      pipelineLocation,
-		Params: map[string]interface{}{
-			"CONCOURCE_BUILDER_GIT_PRIVATE_KEY": privateKey,
-			"PIPELINES":                         "pipelines",
-		},
+		Params:   environment,
 		Outputs: []project.IOutput{
 			pipelinesDir,
 		},
 	}
+
+	taskPrepare.Params["PIPELINES"] = "pipelines"
 
 	taskUpdate := &project.TaskStep{
 		Platform: model.LinuxPlatform,
@@ -48,6 +47,9 @@ func SelfUpdateJob(privateKey string, pipelineLocation project.IRun, flyImage pr
 			"PIPELINES": &library.Location{
 				Volume: pipelinesDir,
 			},
+			"CONCOURSE_URL":      concourse.URL,
+			"CONCOURSE_USER":     concourse.User,
+			"CONCOURSE_PASSWORD": concourse.Password,
 		},
 	}
 
