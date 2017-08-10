@@ -155,6 +155,14 @@ jobs:
       - fly-image
     - get: go-image
       trigger: true
+  - task: check
+    image: fly-image
+    config:
+      platform: linux
+      inputs:
+      - name: concourse-builder-git
+      run:
+        path: concourse-builder-git/scripts/check_fly_version.sh
   - task: prepare pipelines
     image: go-image
     config:

@@ -7,6 +7,27 @@ import (
 )
 
 func SelfUpdateJob(environment map[string]interface{}, concourse *library.Concourse, pipelineLocation project.IRun, flyImage project.ResourceName) *project.Job {
+	flyImageResource := &project.JobResource{
+		Name:    flyImage,
+		Trigger: true,
+	}
+
+	taskCheck := &project.TaskStep{
+		Platform: model.LinuxPlatform,
+		Name:     "check",
+		Image:    flyImageResource,
+		Run: &library.Location{
+			Volume: &project.JobResource{
+				Name:    library.ConcourseBuilderGitName,
+				Trigger: true,
+			},
+			RelativePath: "scripts/check_fly_version.sh",
+		},
+		Params: map[string]interface{}{
+			"CONCOURSE_URL": concourse.URL,
+		},
+	}
+
 	goImageResource := &project.JobResource{
 		Name:    library.GoImage.Name,
 		Trigger: true,
@@ -32,10 +53,7 @@ func SelfUpdateJob(environment map[string]interface{}, concourse *library.Concou
 	taskUpdate := &project.TaskStep{
 		Platform: model.LinuxPlatform,
 		Name:     "update pipelines",
-		Image: &project.JobResource{
-			Name:    flyImage,
-			Trigger: true,
-		},
+		Image:    flyImageResource,
 		Run: &library.Location{
 			Volume: &project.JobResource{
 				Name:    library.ConcourseBuilderGitName,
@@ -57,6 +75,7 @@ func SelfUpdateJob(environment map[string]interface{}, concourse *library.Concou
 		Name:   project.JobName("self-update"),
 		Groups: project.JobGroups{},
 		Steps: project.ISteps{
+			taskCheck,
 			taskPrepare,
 			taskUpdate,
 		},
