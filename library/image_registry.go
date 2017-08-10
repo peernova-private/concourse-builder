@@ -1,7 +1,9 @@
 package library
 
 type ImageRegistry struct {
-	Domain string
+	Domain             string
+	AwsAccessKeyId     string
+	AwsSecretAccessKey string
 }
 
 var DockerHub = &ImageRegistry{

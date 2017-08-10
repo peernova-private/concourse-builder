@@ -23,6 +23,12 @@ type ImageSource struct {
 
 	// Is the repo insecure
 	Insecure bool `yaml:",omitempty"`
+
+	// Optional. AWS access key to use for acquiring ECR credentials.
+	AwsAccessKeyID string `yaml:"aws_access_key_id,omitempty"`
+
+	// Optional. AWS secret key to use for acquiring ECR credentials.
+	AwsSecretAccessKey string `yaml:"aws_secret_access_key,omitempty"`
 }
 
 type ImageGetParams struct {

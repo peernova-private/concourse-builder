@@ -4,6 +4,8 @@ import (
 	"path"
 	"time"
 
+	"fmt"
+
 	"github.com/concourse-friends/concourse-builder/model"
 	"github.com/concourse-friends/concourse-builder/project"
 	"github.com/concourse-friends/concourse-builder/resource"
@@ -21,10 +23,23 @@ func (im *ImageSource) ModelSource() interface{} {
 		repository = path.Join(im.Registry.Domain, repository)
 	}
 
-	return &resource.ImageSource{
+	source := &resource.ImageSource{
 		Repository: repository,
 		Tag:        im.Tag,
 	}
+
+	if im.Registry.AwsAccessKeyId != "" || im.Registry.AwsSecretAccessKey != "" {
+		if im.Registry.AwsAccessKeyId == "" || im.Registry.AwsSecretAccessKey == "" {
+			return fmt.Errorf(
+				"For ImageRegistry AwsAccessKeyId and AwsSecretAccessKey make sense only as pair",
+				im.Registry.Domain)
+		}
+
+		source.AwsAccessKeyID = im.Registry.AwsAccessKeyId
+		source.AwsSecretAccessKey = im.Registry.AwsSecretAccessKey
+	}
+
+	return source
 }
 
 var GoImage = &project.Resource{
