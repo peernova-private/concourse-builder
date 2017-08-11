@@ -1,9 +1,10 @@
 package sdp
 
 import (
+	"fmt"
+
 	"github.com/concourse-friends/concourse-builder/library"
 	"github.com/concourse-friends/concourse-builder/project"
-	"fmt"
 )
 
 func FlyImageJob(concourse *library.Concourse, curlResource *project.Resource, flyImage project.ResourceName) *project.Job {
@@ -17,9 +18,9 @@ func FlyImageJob(concourse *library.Concourse, curlResource *project.Resource, f
 	var insecureArg string
 
 	if concourse.Insecure {
-		insecureArg = "-k"
+		insecureArg = " -k"
 	}
-	evalFlyVersion := fmt.Sprintf("echo ENV FLY_VERSION=`curl %s/api/v1/info %s | " +
+	evalFlyVersion := fmt.Sprintf("echo ENV FLY_VERSION=`curl %s/api/v1/info%s | "+
 		"awk -F ',' ' { print $1 } ' | awk -F ':' ' { print $2 } '`", concourse.URL, insecureArg)
 
 	job := library.BuildImage(

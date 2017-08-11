@@ -22,8 +22,12 @@ func (s *testSpecification) DeployImageRepository() (*library.ImageRegistry, err
 	}, nil
 }
 
-func (s *testSpecification) ConcourseBuilderGitPrivateKey() (string, error) {
-	return "private-key", nil
+func (s *testSpecification) ConcourseBuilderGitSource() (*library.GitSource, error) {
+	return &library.GitSource{
+		URI:        "git@github.com:concourse-friends/concourse-builder.git",
+		Branch:     "master",
+		PrivateKey: "private-key",
+	}, nil
 }
 
 func (s *testSpecification) GenerateMainPipelineLocation(resourceRegistry *project.ResourceRegistry) (project.IRun, error) {
@@ -38,6 +42,6 @@ func (s *testSpecification) GenerateMainPipelineLocation(resourceRegistry *proje
 
 func (s *testSpecification) Environment() (map[string]interface{}, error) {
 	return map[string]interface{}{
-		"FOO": "BAR",
+		"BRANCH": "branch",
 	}, nil
 }

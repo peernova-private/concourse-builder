@@ -9,7 +9,7 @@ import (
 type SdpSpecification interface {
 	Concourse() (*library.Concourse, error)
 	DeployImageRepository() (*library.ImageRegistry, error)
-	ConcourseBuilderGitPrivateKey() (string, error)
+	ConcourseBuilderGitSource() (*library.GitSource, error)
 	GenerateMainPipelineLocation(resourceRegistry *project.ResourceRegistry) (project.IRun, error)
 	Environment() (map[string]interface{}, error)
 }
@@ -22,19 +22,15 @@ func GenerateProject(specification SdpSpecification) (*project.Project, error) {
 	mainPipeline.ResourceRegistry.MustRegister(library.GoImage)
 	mainPipeline.ResourceRegistry.MustRegister(library.UbuntuImage)
 
-	privateKey, err := specification.ConcourseBuilderGitPrivateKey()
+	concourseBuilderGitSource, err := specification.ConcourseBuilderGitSource()
 	if err != nil {
 		return nil, err
 	}
 
 	concourseBuilderGit := &project.Resource{
-		Name: library.ConcourseBuilderGitName,
-		Type: resource.GitResourceType.Name,
-		Source: &library.GitSource{
-			URI:        "git@github.com:concourse-friends/concourse-builder.git",
-			Branch:     "master",
-			PrivateKey: privateKey,
-		},
+		Name:   library.ConcourseBuilderGitName,
+		Type:   resource.GitResourceType.Name,
+		Source: concourseBuilderGitSource,
 	}
 
 	mainPipeline.ResourceRegistry.MustRegister(concourseBuilderGit)

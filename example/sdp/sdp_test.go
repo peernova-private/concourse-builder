@@ -161,6 +161,8 @@ jobs:
       platform: linux
       inputs:
       - name: concourse-builder-git
+      params:
+        CONCOURSE_URL: http://concourse.com
       run:
         path: concourse-builder-git/scripts/check_fly_version.sh
   - task: prepare pipelines
@@ -170,7 +172,7 @@ jobs:
       inputs:
       - name: concourse-builder-git
       params:
-        FOO: BAR
+        BRANCH: branch
         PIPELINES: pipelines
       run:
         path: concourse-builder-git/foo
