@@ -16,7 +16,7 @@ func (s *testSpecification) Concourse() (*library.Concourse, error) {
 	}, nil
 }
 
-func (s *testSpecification) DeployImageRepository() (*library.ImageRegistry, error) {
+func (s *testSpecification) DeployImageRegistry() (*library.ImageRegistry, error) {
 	return &library.ImageRegistry{
 		Domain: "registry.com",
 	}, nil

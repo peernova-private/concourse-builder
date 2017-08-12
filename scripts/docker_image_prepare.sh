@@ -3,6 +3,8 @@
 set -ex
 
 mkdir -p prepared
+cp $DOCKERFILE_DIR/* prepared
+
 cd  prepared
 
 echo FROM $FROM_IMAGE > Dockerfile
@@ -14,6 +16,6 @@ then
 fi
 
 echo >> Dockerfile
-cat ../$DOCKER_STEPS >> Dockerfile
+cat ../$DOCKERFILE_DIR/steps >> Dockerfile
 
 cat Dockerfile

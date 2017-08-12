@@ -1,23 +1,22 @@
-package sdp
+package library
 
 import (
-	"github.com/concourse-friends/concourse-builder/library"
 	"github.com/concourse-friends/concourse-builder/project"
 )
 
 func GitImageJob(gitImage project.ResourceName) *project.Job {
-	dockerSteps := &library.Location{
+	dockerSteps := &Location{
 		Volume: &project.JobResource{
-			Name:    library.ConcourseBuilderGitName,
+			Name:    ConcourseBuilderGitName,
 			Trigger: true,
 		},
-		RelativePath: "docker/git_steps",
+		RelativePath: "docker/git",
 	}
 
-	return library.BuildImage(
-		library.UbuntuImage,
-		library.UbuntuImage,
-		&library.BuildImageArgs{
+	return BuildImage(
+		UbuntuImage,
+		UbuntuImage,
+		&BuildImageArgs{
 			Name:               "git",
 			DockerFileResource: dockerSteps,
 			Image:              gitImage,

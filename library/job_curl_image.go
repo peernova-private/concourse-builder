@@ -1,23 +1,22 @@
-package sdp
+package library
 
 import (
-	"github.com/concourse-friends/concourse-builder/library"
 	"github.com/concourse-friends/concourse-builder/project"
 )
 
 func CurlImageJob(curlImage project.ResourceName) *project.Job {
-	dockerSteps := &library.Location{
+	dockerSteps := &Location{
 		Volume: &project.JobResource{
-			Name:    library.ConcourseBuilderGitName,
+			Name:    ConcourseBuilderGitName,
 			Trigger: true,
 		},
-		RelativePath: "docker/curl_steps",
+		RelativePath: "docker/curl",
 	}
 
-	job := library.BuildImage(
-		library.UbuntuImage,
-		library.UbuntuImage,
-		&library.BuildImageArgs{
+	job := BuildImage(
+		UbuntuImage,
+		UbuntuImage,
+		&BuildImageArgs{
 			Name:               "curl",
 			DockerFileResource: dockerSteps,
 			Image:              curlImage,

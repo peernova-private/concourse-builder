@@ -8,7 +8,7 @@ import (
 
 type SdpSpecification interface {
 	Concourse() (*library.Concourse, error)
-	DeployImageRepository() (*library.ImageRegistry, error)
+	DeployImageRegistry() (*library.ImageRegistry, error)
 	ConcourseBuilderGitSource() (*library.GitSource, error)
 	GenerateMainPipelineLocation(resourceRegistry *project.ResourceRegistry) (project.IRun, error)
 	Environment() (map[string]interface{}, error)
@@ -17,7 +17,7 @@ type SdpSpecification interface {
 func GenerateProject(specification SdpSpecification) (*project.Project, error) {
 	mainPipeline := project.NewPipeline()
 	mainPipeline.Name = "sdp"
-	mainPipeline.AllJobsGroup = project.AllJobsGroupLast
+	mainPipeline.AllJobsGroup = project.AllJobsGroupFirst
 
 	mainPipeline.ResourceRegistry.MustRegister(library.GoImage)
 	mainPipeline.ResourceRegistry.MustRegister(library.UbuntuImage)
@@ -35,7 +35,7 @@ func GenerateProject(specification SdpSpecification) (*project.Project, error) {
 
 	mainPipeline.ResourceRegistry.MustRegister(concourseBuilderGit)
 
-	dockerRepository, err := specification.DeployImageRepository()
+	dockerRegistry, err := specification.DeployImageRegistry()
 	if err != nil {
 		return nil, err
 	}
@@ -45,21 +45,21 @@ func GenerateProject(specification SdpSpecification) (*project.Project, error) {
 		Name: "curl-image",
 		Type: resource.ImageResourceType.Name,
 		Source: &library.ImageSource{
-			Registry: dockerRepository,
-			Location: "concourse-builder/curl-image",
+			Registry:   dockerRegistry,
+			Repository: "concourse-builder/curl-image",
 		},
 	}
 	mainPipeline.ResourceRegistry.MustRegister(curlImage)
 
-	curlImageJob := CurlImageJob(curlImage.Name)
+	curlImageJob := library.CurlImageJob(curlImage.Name)
 
 	// Prepare fly image job
 	flyImage := &project.Resource{
 		Name: "fly-image",
 		Type: resource.ImageResourceType.Name,
 		Source: &library.ImageSource{
-			Registry: dockerRepository,
-			Location: "concourse-builder/fly-image",
+			Registry:   dockerRegistry,
+			Repository: "concourse-builder/fly-image",
 		},
 	}
 	mainPipeline.ResourceRegistry.MustRegister(flyImage)
@@ -69,7 +69,7 @@ func GenerateProject(specification SdpSpecification) (*project.Project, error) {
 		return nil, err
 	}
 
-	flyImageJob := FlyImageJob(concourse, curlImage, flyImage.Name)
+	flyImageJob := library.FlyImageJob(concourse, curlImage, flyImage.Name)
 	flyImageJob.AddJobToRunAfter(curlImageJob)
 
 	// Prepare git image job
@@ -77,13 +77,13 @@ func GenerateProject(specification SdpSpecification) (*project.Project, error) {
 		Name: "git-image",
 		Type: resource.ImageResourceType.Name,
 		Source: &library.ImageSource{
-			Registry: dockerRepository,
-			Location: "concourse-builder/git-image",
+			Registry:   dockerRegistry,
+			Repository: "concourse-builder/git-image",
 		},
 	}
 	mainPipeline.ResourceRegistry.MustRegister(gitImage)
 
-	gitImageJob := GitImageJob(gitImage.Name)
+	gitImageJob := library.GitImageJob(gitImage.Name)
 
 	// Prepare self update job
 	generateMainPipelineLocation, err := specification.GenerateMainPipelineLocation(mainPipeline.ResourceRegistry)
@@ -96,7 +96,12 @@ func GenerateProject(specification SdpSpecification) (*project.Project, error) {
 		return nil, err
 	}
 
-	selfUpdateJob := SelfUpdateJob(environment, concourse, generateMainPipelineLocation, flyImage.Name)
+	selfUpdateJob := library.SelfUpdateJob(&library.SelfUpdateJobArgs{
+		Environment:      environment,
+		Concourse:        concourse,
+		PipelineLocation: generateMainPipelineLocation,
+		FlyImage:         flyImage.Name,
+	})
 	selfUpdateJob.AddJobToRunAfter(flyImageJob)
 
 	mainPipeline.Jobs = project.Jobs{

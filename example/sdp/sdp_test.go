@@ -10,6 +10,12 @@ import (
 )
 
 var expected = `groups:
+- name: all
+  jobs:
+  - curl-image
+  - fly-image
+  - git-image
+  - self-update
 - name: images
   jobs:
   - curl-image
@@ -19,12 +25,6 @@ var expected = `groups:
   jobs:
   - curl-image
   - fly-image
-- name: all
-  jobs:
-  - curl-image
-  - fly-image
-  - git-image
-  - self-update
 resources:
 - name: concourse-builder-git
   type: git
@@ -71,7 +71,7 @@ jobs:
       inputs:
       - name: concourse-builder-git
       params:
-        DOCKER_STEPS: concourse-builder-git/docker/curl_steps
+        DOCKERFILE_DIR: concourse-builder-git/docker/curl
         FROM_IMAGE: ubuntu:16.04
       run:
         path: concourse-builder-git/scripts/docker_image_prepare.sh
@@ -97,7 +97,7 @@ jobs:
       inputs:
       - name: concourse-builder-git
       params:
-        DOCKER_STEPS: concourse-builder-git/docker/git_steps
+        DOCKERFILE_DIR: concourse-builder-git/docker/git
         FROM_IMAGE: ubuntu:16.04
       run:
         path: concourse-builder-git/scripts/docker_image_prepare.sh
@@ -128,7 +128,7 @@ jobs:
       inputs:
       - name: concourse-builder-git
       params:
-        DOCKER_STEPS: concourse-builder-git/docker/fly_steps
+        DOCKERFILE_DIR: concourse-builder-git/docker/fly
         EVAL: echo ENV FLY_VERSION=` + "`" + `curl http://concourse.com/api/v1/info | awk -F
           ',' ' { print $1 } ' | awk -F ':' ' { print $2 } '` + "`" + `
         FROM_IMAGE: registry.com/concourse-builder/curl-image
@@ -159,12 +159,10 @@ jobs:
     image: fly-image
     config:
       platform: linux
-      inputs:
-      - name: concourse-builder-git
       params:
         CONCOURSE_URL: http://concourse.com
       run:
-        path: concourse-builder-git/scripts/check_fly_version.sh
+        path: /bin/check_version.sh
   - task: prepare pipelines
     image: go-image
     config:
@@ -184,7 +182,6 @@ jobs:
     config:
       platform: linux
       inputs:
-      - name: concourse-builder-git
       - name: pipelines
       params:
         CONCOURSE_PASSWORD: password
@@ -192,7 +189,7 @@ jobs:
         CONCOURSE_USER: user
         PIPELINES: pipelines
       run:
-        path: concourse-builder-git/scripts/set_pipelines.sh
+        path: /bin/set_pipelines.sh
 `
 
 func ContextDiff(a, b string) string {

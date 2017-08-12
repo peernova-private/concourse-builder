@@ -47,8 +47,8 @@ func BuildImage(prepare *project.Resource, from *project.Resource, args *BuildIm
 			RelativePath: "scripts/docker_image_prepare.sh",
 		},
 		Params: map[string]interface{}{
-			"DOCKER_STEPS": args.DockerFileResource,
-			"FROM_IMAGE":   (*FromParam)(from),
+			"DOCKERFILE_DIR": args.DockerFileResource,
+			"FROM_IMAGE":     (*FromParam)(from),
 		},
 		Outputs: []project.IOutput{
 			preparedDir,

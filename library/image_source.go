@@ -11,13 +11,13 @@ import (
 )
 
 type ImageSource struct {
-	Registry *ImageRegistry
-	Location string
-	Tag      string
+	Registry   *ImageRegistry
+	Repository string
+	Tag        string
 }
 
 func (im *ImageSource) ModelSource() interface{} {
-	repository := im.Location
+	repository := im.Repository
 	if im.Registry.Domain != "" {
 		repository = path.Join(im.Registry.Domain, repository)
 	}
@@ -45,9 +45,9 @@ var GoImage = &project.Resource{
 	Name: "go-image",
 	Type: resource.ImageResourceType.Name,
 	Source: &ImageSource{
-		Registry: DockerHub,
-		Location: "golang",
-		Tag:      "1.8",
+		Registry:   DockerHub,
+		Repository: "golang",
+		Tag:        "1.8",
 	},
 	CheckEvery: model.Duration(24 * time.Hour),
 }
@@ -56,9 +56,9 @@ var UbuntuImage = &project.Resource{
 	Name: "ubuntu-image",
 	Type: resource.ImageResourceType.Name,
 	Source: &ImageSource{
-		Registry: DockerHub,
-		Location: "ubuntu",
-		Tag:      "16.04",
+		Registry:   DockerHub,
+		Repository: "ubuntu",
+		Tag:        "16.04",
 	},
 	CheckEvery: model.Duration(24 * time.Hour),
 }

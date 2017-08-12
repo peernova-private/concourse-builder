@@ -1,14 +1,20 @@
-package sdp
+package library
 
 import (
-	"github.com/concourse-friends/concourse-builder/library"
 	"github.com/concourse-friends/concourse-builder/model"
 	"github.com/concourse-friends/concourse-builder/project"
 )
 
-func SelfUpdateJob(environment map[string]interface{}, concourse *library.Concourse, pipelineLocation project.IRun, flyImage project.ResourceName) *project.Job {
+type SelfUpdateJobArgs struct {
+	Environment      map[string]interface{}
+	Concourse        *Concourse
+	PipelineLocation project.IRun
+	FlyImage         project.ResourceName
+}
+
+func SelfUpdateJob(args *SelfUpdateJobArgs) *project.Job {
 	flyImageResource := &project.JobResource{
-		Name:    flyImage,
+		Name:    args.FlyImage,
 		Trigger: true,
 	}
 
@@ -16,24 +22,23 @@ func SelfUpdateJob(environment map[string]interface{}, concourse *library.Concou
 		Platform: model.LinuxPlatform,
 		Name:     "check",
 		Image:    flyImageResource,
-		Run: &library.Location{
-			Volume: &project.JobResource{
-				Name:    library.ConcourseBuilderGitName,
-				Trigger: true,
+		Run: &Location{
+			Volume: &Directory{
+				Root: "/bin",
 			},
-			RelativePath: "scripts/check_fly_version.sh",
+			RelativePath: "check_version.sh",
 		},
 		Params: map[string]interface{}{
-			"CONCOURSE_URL": concourse.URL,
+			"CONCOURSE_URL": args.Concourse.URL,
 		},
 	}
 
 	goImageResource := &project.JobResource{
-		Name:    library.GoImage.Name,
+		Name:    GoImage.Name,
 		Trigger: true,
 	}
 
-	pipelinesDir := &library.TaskOutput{
+	pipelinesDir := &TaskOutput{
 		Directory: "pipelines",
 	}
 
@@ -41,8 +46,8 @@ func SelfUpdateJob(environment map[string]interface{}, concourse *library.Concou
 		Platform: model.LinuxPlatform,
 		Name:     "prepare pipelines",
 		Image:    goImageResource,
-		Run:      pipelineLocation,
-		Params:   environment,
+		Run:      args.PipelineLocation,
+		Params:   args.Environment,
 		Outputs: []project.IOutput{
 			pipelinesDir,
 		},
@@ -54,20 +59,19 @@ func SelfUpdateJob(environment map[string]interface{}, concourse *library.Concou
 		Platform: model.LinuxPlatform,
 		Name:     "update pipelines",
 		Image:    flyImageResource,
-		Run: &library.Location{
-			Volume: &project.JobResource{
-				Name:    library.ConcourseBuilderGitName,
-				Trigger: true,
+		Run: &Location{
+			Volume: &Directory{
+				Root: "/bin",
 			},
-			RelativePath: "scripts/set_pipelines.sh",
+			RelativePath: "set_pipelines.sh",
 		},
 		Params: map[string]interface{}{
-			"PIPELINES": &library.Location{
+			"PIPELINES": &Location{
 				Volume: pipelinesDir,
 			},
-			"CONCOURSE_URL":      concourse.URL,
-			"CONCOURSE_USER":     concourse.User,
-			"CONCOURSE_PASSWORD": concourse.Password,
+			"CONCOURSE_URL":      args.Concourse.URL,
+			"CONCOURSE_USER":     args.Concourse.User,
+			"CONCOURSE_PASSWORD": args.Concourse.Password,
 		},
 	}
 

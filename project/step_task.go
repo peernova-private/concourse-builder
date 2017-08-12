@@ -5,7 +5,7 @@ import (
 )
 
 type IRun interface {
-	InputResource() *JobResource
+	InputResources() JobResources
 	Path() string
 }
 
@@ -47,8 +47,8 @@ func (ts *TaskStep) Model() (model.IStep, error) {
 		task.Image = model.ResourceName(ts.Image.Name)
 	}
 
-	runInputResource := ts.Run.InputResource()
-	if runInputResource != nil {
+	runInputResources := ts.Run.InputResources()
+	for _, runInputResource := range runInputResources {
 		task.Config.Inputs = append(task.Config.Inputs, &model.TaskInput{
 			Name: model.ResourceName(runInputResource.Name),
 		})
@@ -90,10 +90,8 @@ func (ts *TaskStep) InputResources() (JobResources, error) {
 		resources = append(resources, ts.Image)
 	}
 
-	locationResource := ts.Run.InputResource()
-	if locationResource != nil {
-		resources = append(resources, locationResource)
-	}
+	locationResources := ts.Run.InputResources()
+	resources = append(resources, locationResources...)
 
 	return resources.Deduplicate(), nil
 }

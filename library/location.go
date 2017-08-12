@@ -19,11 +19,12 @@ func (l *Location) Path() string {
 	return l.RelativePath
 }
 
-func (l *Location) InputResource() *project.JobResource {
+func (l *Location) InputResources() project.JobResources {
+	var resources project.JobResources
 	if res, ok := l.Volume.(*project.JobResource); ok {
-		return res
+		resources = append(resources, res)
 	}
-	return nil
+	return resources
 }
 
 func (l *Location) OutputName() string {
