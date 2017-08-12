@@ -7,7 +7,7 @@ import (
 
 type IBuild interface {
 	Path() string
-	InputResource() *project.JobResource
+	InputResources() project.JobResources
 }
 
 type ImagePutParams struct {
@@ -26,10 +26,8 @@ func (ipp *ImagePutParams) ModelParams() interface{} {
 func (ipp *ImagePutParams) InputResources() (project.JobResources, error) {
 	var resources project.JobResources
 
-	res := ipp.Build.InputResource()
-	if res != nil {
-		resources = append(resources, res)
-	}
+	res := ipp.Build.InputResources()
+	resources = append(resources, res...)
 
 	if ipp.FromImage != nil {
 		resources = append(resources, ipp.FromImage)

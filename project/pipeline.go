@@ -8,8 +8,6 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
-type PipelineName string
-
 type AllJobsGroupOption int
 
 const (
