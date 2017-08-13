@@ -13,7 +13,7 @@ type Job struct {
 	Steps         ISteps
 	OnSuccess     IStep
 	OnFailure     IStep
-	AfterJobs     Jobs
+	AfterJobs     map[*Job]struct{}
 }
 
 func (job *Job) AddToGroup(groups ...*JobGroup) {
@@ -21,7 +21,13 @@ func (job *Job) AddToGroup(groups ...*JobGroup) {
 }
 
 func (job *Job) AddJobToRunAfter(jobs ...*Job) {
-	job.AfterJobs = append(job.AfterJobs, jobs...)
+	if job.AfterJobs == nil {
+		job.AfterJobs = make(map[*Job]struct{})
+	}
+
+	for _, afterJob := range jobs {
+		job.AfterJobs[afterJob] = struct{}{}
+	}
 }
 
 func (job *Job) InputResources() (JobResources, error) {

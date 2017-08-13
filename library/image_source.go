@@ -49,7 +49,7 @@ var GoImage = &project.Resource{
 		Repository: "golang",
 		Tag:        "1.8",
 	},
-	CheckEvery: model.Duration(24 * time.Hour),
+	CheckInterval: model.Duration(24 * time.Hour),
 }
 
 var UbuntuImage = &project.Resource{
@@ -60,5 +60,5 @@ var UbuntuImage = &project.Resource{
 		Repository: "ubuntu",
 		Tag:        "16.04",
 	},
-	CheckEvery: model.Duration(24 * time.Hour),
+	CheckInterval: model.Duration(24 * time.Hour),
 }

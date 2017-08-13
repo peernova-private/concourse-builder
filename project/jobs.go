@@ -36,7 +36,7 @@ func (jobs Jobs) SortByColumns() ([]Jobs, error) {
 
 		mustHave[job] = struct{}{}
 		blocked[job] = struct{}{}
-		for _, afterJob := range job.AfterJobs {
+		for afterJob := range job.AfterJobs {
 			if len(afterJob.AfterJobs) > 0 {
 				blocked[afterJob] = struct{}{}
 			}
@@ -53,7 +53,7 @@ func (jobs Jobs) SortByColumns() ([]Jobs, error) {
 		unblocked := make(map[*Job]struct{})
 		for job := range blocked {
 			stillBlocked := false
-			for _, afterJob := range job.AfterJobs {
+			for afterJob := range job.AfterJobs {
 				if _, ok := blocked[afterJob]; ok {
 					stillBlocked = true
 					break
@@ -112,4 +112,14 @@ func (jobs Jobs) NamesOfUsingResourceJobs(resource *JobResource) (model.JobNames
 	}
 
 	return jobNames, nil
+}
+
+type JobsSet map[*Job]struct{}
+
+func (hs JobsSet) Pop() *Job {
+	for job := range hs {
+		delete(hs, job)
+		return job
+	}
+	return nil
 }

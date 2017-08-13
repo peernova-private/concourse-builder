@@ -14,13 +14,11 @@ var expected = `groups:
   jobs:
   - curl-image
   - fly-image
-  - git-image
   - self-update
 - name: images
   jobs:
   - curl-image
   - fly-image
-  - git-image
 - name: sys
   jobs:
   - curl-image
@@ -41,11 +39,6 @@ resources:
   type: docker-image
   source:
     repository: registry.com/concourse-builder/fly-image
-    tag: master
-- name: git-image
-  type: docker-image
-  source:
-    repository: registry.com/concourse-builder/git-image
     tag: master
 - name: go-image
   type: docker-image
@@ -86,32 +79,6 @@ jobs:
       build: prepared
     get_params:
       skip_download: true
-- name: git-image
-  plan:
-  - aggregate:
-    - get: concourse-builder-git
-      trigger: true
-    - get: ubuntu-image
-      trigger: true
-  - task: prepare
-    image: ubuntu-image
-    config:
-      platform: linux
-      inputs:
-      - name: concourse-builder-git
-      params:
-        DOCKERFILE_DIR: concourse-builder-git/docker/git
-        FROM_IMAGE: ubuntu:16.04
-      run:
-        path: concourse-builder-git/scripts/docker_image_prepare.sh
-      outputs:
-      - name: prepared
-        path: prepared
-  - put: git-image
-    params:
-      build: prepared
-    get_params:
-      skip_download: true
 - name: fly-image
   plan:
   - aggregate:
@@ -119,7 +86,6 @@ jobs:
       trigger: true
       passed:
       - curl-image
-      - git-image
     - get: curl-image
       trigger: true
       passed:

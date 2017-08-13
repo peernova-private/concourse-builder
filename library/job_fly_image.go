@@ -8,16 +8,29 @@ import (
 )
 
 type FlyImageJobArgs struct {
-	ImageRegistry    *ImageRegistry
-	ResourceRegistry *project.ResourceRegistry
-	Tag              ImageTag
-	Concourse        *Concourse
-	CurlResource     *project.Resource
+	Concourse                 *Concourse
+	ConcourseBuilderGitSource *GitSource
+	ImageRegistry             *ImageRegistry
+	ResourceRegistry          *project.ResourceRegistry
+	Tag                       ImageTag
 }
 
 func FlyImageJob(args *FlyImageJobArgs) (*project.Resource, *project.Job) {
-	image := &project.Resource{
-		Name: "fly-image",
+	resourceName := project.ResourceName("fly-image")
+	image := args.ResourceRegistry.GetResource(resourceName)
+	if image != nil {
+		return image, image.NeededJobs[0]
+	}
+
+	curlImage, _ := CurlImageJob(&CurlImageJobArgs{
+		ConcourseBuilderGitSource: args.ConcourseBuilderGitSource,
+		ImageRegistry:             args.ImageRegistry,
+		ResourceRegistry:          args.ResourceRegistry,
+		Tag:                       args.Tag,
+	})
+
+	image = &project.Resource{
+		Name: resourceName,
 		Type: resource.ImageResourceType.Name,
 		Source: &ImageSource{
 			Tag:        args.Tag,
@@ -25,7 +38,8 @@ func FlyImageJob(args *FlyImageJobArgs) (*project.Resource, *project.Job) {
 			Repository: "concourse-builder/fly-image",
 		},
 	}
-	args.ResourceRegistry.MustRegister(image)
+
+	RegisterConcourseBuilderGit(args.ResourceRegistry, args.ConcourseBuilderGitSource)
 
 	dockerSteps := &Location{
 		Volume: &project.JobResource{
@@ -43,15 +57,18 @@ func FlyImageJob(args *FlyImageJobArgs) (*project.Resource, *project.Job) {
 		"awk -F ',' ' { print $1 } ' | awk -F ':' ' { print $2 } '`", args.Concourse.URL, insecureArg)
 
 	job := BuildImage(
-		args.CurlResource,
-		args.CurlResource,
+		curlImage,
+		curlImage,
 		&BuildImageArgs{
 			Name:               "fly",
 			DockerFileResource: dockerSteps,
 			Image:              image.Name,
 			Eval:               evalFlyVersion,
 		})
-
 	job.AddToGroup(project.SystemGroup)
+
+	image.NeededJobs = project.Jobs{job}
+	args.ResourceRegistry.MustRegister(image)
+
 	return image, job
 }

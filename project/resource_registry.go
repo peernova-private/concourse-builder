@@ -2,16 +2,7 @@ package project
 
 import (
 	"fmt"
-
-	"github.com/concourse-friends/concourse-builder/model"
 )
-
-type Resource struct {
-	Name       ResourceName
-	Type       model.ResourceTypeName
-	Source     IJobResourceSource
-	CheckEvery model.Duration
-}
 
 // An object that tracks collection of resources by name
 type ResourceRegistry struct {
@@ -32,6 +23,13 @@ func (r *ResourceRegistry) MustRegister(resource *Resource) {
 	}
 
 	r.resources[resource.Name] = resource
+}
+
+func (r *ResourceRegistry) GetResource(name ResourceName) *Resource {
+	if res, ok := r.resources[name]; ok {
+		return res
+	}
+	return nil
 }
 
 func (r *ResourceRegistry) MustGetResource(name ResourceName) *Resource {

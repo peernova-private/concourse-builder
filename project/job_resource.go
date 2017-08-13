@@ -27,7 +27,7 @@ func (jr *JobResource) Model(registry *ResourceRegistry) *model.Resource {
 	modelResource := &model.Resource{
 		Name:       model.ResourceName(jr.Name),
 		Type:       res.Type,
-		CheckEvery: res.CheckEvery,
+		CheckEvery: res.CheckInterval,
 	}
 
 	if res.Source != nil {

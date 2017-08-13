@@ -6,8 +6,14 @@ import (
 )
 
 func GitImageJob(imageRegistry *ImageRegistry, resourceRegistry *project.ResourceRegistry, tag ImageTag) (*project.Resource, *project.Job) {
-	image := &project.Resource{
-		Name: "git-image",
+	resourceName := project.ResourceName("git-image")
+	image := resourceRegistry.GetResource(resourceName)
+	if image != nil {
+		return image, image.NeededJobs[0]
+	}
+
+	image = &project.Resource{
+		Name: resourceName,
 		Type: resource.ImageResourceType.Name,
 		Source: &ImageSource{
 			Tag:        tag,
@@ -15,7 +21,6 @@ func GitImageJob(imageRegistry *ImageRegistry, resourceRegistry *project.Resourc
 			Repository: "concourse-builder/git-image",
 		},
 	}
-	resourceRegistry.MustRegister(image)
 
 	dockerSteps := &Location{
 		Volume: &project.JobResource{
@@ -25,6 +30,8 @@ func GitImageJob(imageRegistry *ImageRegistry, resourceRegistry *project.Resourc
 		RelativePath: "docker/git",
 	}
 
+	resourceRegistry.MustRegister(UbuntuImage)
+
 	job := BuildImage(
 		UbuntuImage,
 		UbuntuImage,
@@ -33,6 +40,9 @@ func GitImageJob(imageRegistry *ImageRegistry, resourceRegistry *project.Resourc
 			DockerFileResource: dockerSteps,
 			Image:              image.Name,
 		})
+
+	image.NeededJobs = project.Jobs{job}
+	resourceRegistry.MustRegister(image)
 
 	return image, job
 }

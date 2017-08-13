@@ -33,11 +33,53 @@ func NewPipeline() *Pipeline {
 	}
 }
 
+func (p *Pipeline) AllJobs() (Jobs, error) {
+	checkJobs := make(JobsSet)
+
+	for _, job := range p.Jobs {
+		checkJobs[job] = struct{}{}
+	}
+
+	jobs := make(map[JobName]*Job)
+	for job := checkJobs.Pop(); job != nil; job = checkJobs.Pop() {
+		jobs[job.Name] = job
+
+		resources, err := job.Resources()
+		if err != nil {
+			return nil, err
+		}
+
+		for _, resource := range resources {
+			projResource := p.ResourceRegistry.MustGetResource(resource.Name)
+			for _, resJob := range projResource.NeededJobs {
+				if _, exists := jobs[resJob.Name]; exists {
+					continue
+				}
+				checkJobs[resJob] = struct{}{}
+				jobs[resJob.Name] = resJob
+				job.AddJobToRunAfter(resJob)
+			}
+		}
+	}
+
+	sliceJobs := make(Jobs, 0, len(jobs))
+	for _, job := range jobs {
+		sliceJobs = append(sliceJobs, job)
+	}
+
+	return sliceJobs, nil
+}
+
 func (p *Pipeline) ModelGroups() (model.Groups, error) {
 	groups := make(map[*JobGroup][]string)
 
-	allJobNames := make([]string, 0, len(p.Jobs))
-	for _, job := range p.Jobs {
+	allJobs, err := p.AllJobs()
+	if err != nil {
+		return nil, err
+	}
+
+	allJobNames := make([]string, 0, len(allJobs))
+	for _, job := range allJobs {
 		allJobNames = append(allJobNames, string(job.Name))
 		for _, group := range job.Groups {
 			groups[group] = append(groups[group], string(job.Name))
@@ -50,7 +92,7 @@ func (p *Pipeline) ModelGroups() (model.Groups, error) {
 		groupsByOrder = append(groupsByOrder, group)
 	}
 
-	groupsByOrder, err := SortJobGroups(groupsByOrder)
+	groupsByOrder, err = SortJobGroups(groupsByOrder)
 	if err != nil {
 		return nil, err
 	}
@@ -94,8 +136,13 @@ func (p *Pipeline) ModelResourceTypes() (model.ResourceTypes, error) {
 }
 
 func (p *Pipeline) ModelResources() (model.Resources, error) {
+	allJobs, err := p.AllJobs()
+	if err != nil {
+		return nil, err
+	}
+
 	var jobResources JobResources
-	for _, job := range p.Jobs {
+	for _, job := range allJobs {
 		resources, err := job.Resources()
 		if err != nil {
 			return nil, err
@@ -115,12 +162,17 @@ func (p *Pipeline) ModelResources() (model.Resources, error) {
 }
 
 func (p *Pipeline) ModelJobs() (model.Jobs, error) {
-	columns, err := p.Jobs.SortByColumns()
+	jobs, err := p.AllJobs()
 	if err != nil {
 		return nil, err
 	}
 
-	modelJobs := make(model.Jobs, 0, len(p.Jobs))
+	columns, err := jobs.SortByColumns()
+	if err != nil {
+		return nil, err
+	}
+
+	modelJobs := make(model.Jobs, 0, len(jobs))
 
 	var previousColumn Jobs
 	for _, column := range columns {
