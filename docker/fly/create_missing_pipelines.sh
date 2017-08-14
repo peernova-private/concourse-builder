@@ -6,11 +6,16 @@ fly --target trgt login --insecure --concourse-url $CONCOURSE_URL --username $CO
 
 cd $PIPELINES
 
+EXIST_PIPELINES=$(fly --target trgt pipelines -a | awk '{ print $1 }')
+
 for yml in *
 do
     name=$(echo $yml | cut -f 1 -d '.')
-    # TODO: check if the pipeline if the pipeline exist.
-    # If exists we are good, we should not update it, because it might be already in better
-    # shape, based on self-update feature.
-    # If it does not exists, we need to create it.
+
+    if echo $EXIST_PIPELINES | grep -w $name
+    then
+        echo "'$name' pipeline already exists, skipping"
+    else
+        fly --target trgt --pipeline $name -c $yml --non-interactive && echo "$name created"
+    fi
 done
