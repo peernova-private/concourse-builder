@@ -1,6 +1,8 @@
 package project
 
 import (
+	"log"
+
 	"github.com/concourse-friends/concourse-builder/model"
 )
 
@@ -26,7 +28,10 @@ func (job *Job) AddJobToRunAfter(jobs ...*Job) {
 	}
 
 	for _, afterJob := range jobs {
-		job.AfterJobs[afterJob] = struct{}{}
+		if _, ok := job.AfterJobs[afterJob]; !ok {
+			log.Printf("Run job %s after %s", job.Name, afterJob.Name)
+			job.AfterJobs[afterJob] = struct{}{}
+		}
 	}
 }
 

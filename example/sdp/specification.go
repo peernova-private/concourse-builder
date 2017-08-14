@@ -30,7 +30,7 @@ func (s *testSpecification) ConcourseBuilderGitSource() (*library.GitSource, err
 	}, nil
 }
 
-func (s *testSpecification) GenerateMainPipelineLocation(resourceRegistry *project.ResourceRegistry) (project.IRun, error) {
+func (s *testSpecification) GenerateProjectLocation(resourceRegistry *project.ResourceRegistry, overrideBranch string) (project.IRun, error) {
 	return &library.Location{
 		Volume: &project.JobResource{
 			Name:    library.ConcourseBuilderGitName,
@@ -44,4 +44,8 @@ func (s *testSpecification) Environment() (map[string]interface{}, error) {
 	return map[string]interface{}{
 		"BRANCH": "branch",
 	}, nil
+}
+
+func (s *testSpecification) BootstrapBranches() []string {
+	return nil
 }

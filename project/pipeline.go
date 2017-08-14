@@ -2,6 +2,7 @@ package project
 
 import (
 	"io"
+	"log"
 	"sort"
 
 	"github.com/concourse-friends/concourse-builder/model"
@@ -42,9 +43,10 @@ func (p *Pipeline) AllJobs() (Jobs, error) {
 
 	jobs := make(map[JobName]*Job)
 	for job := checkJobs.Pop(); job != nil; job = checkJobs.Pop() {
+		log.Printf("Check job %s resources", job.Name)
 		jobs[job.Name] = job
 
-		resources, err := job.Resources()
+		resources, err := job.InputResources()
 		if err != nil {
 			return nil, err
 		}
@@ -52,12 +54,12 @@ func (p *Pipeline) AllJobs() (Jobs, error) {
 		for _, resource := range resources {
 			projResource := p.ResourceRegistry.MustGetResource(resource.Name)
 			for _, resJob := range projResource.NeededJobs {
+				job.AddJobToRunAfter(resJob)
 				if _, exists := jobs[resJob.Name]; exists {
 					continue
 				}
 				checkJobs[resJob] = struct{}{}
 				jobs[resJob.Name] = resJob
-				job.AddJobToRunAfter(resJob)
 			}
 		}
 	}
@@ -70,13 +72,8 @@ func (p *Pipeline) AllJobs() (Jobs, error) {
 	return sliceJobs, nil
 }
 
-func (p *Pipeline) ModelGroups() (model.Groups, error) {
+func (p *Pipeline) ModelGroups(allJobs Jobs) (model.Groups, error) {
 	groups := make(map[*JobGroup][]string)
-
-	allJobs, err := p.AllJobs()
-	if err != nil {
-		return nil, err
-	}
 
 	allJobNames := make([]string, 0, len(allJobs))
 	for _, job := range allJobs {
@@ -92,7 +89,7 @@ func (p *Pipeline) ModelGroups() (model.Groups, error) {
 		groupsByOrder = append(groupsByOrder, group)
 	}
 
-	groupsByOrder, err = SortJobGroups(groupsByOrder)
+	groupsByOrder, err := SortJobGroups(groupsByOrder)
 	if err != nil {
 		return nil, err
 	}
@@ -135,12 +132,7 @@ func (p *Pipeline) ModelResourceTypes() (model.ResourceTypes, error) {
 	return nil, nil
 }
 
-func (p *Pipeline) ModelResources() (model.Resources, error) {
-	allJobs, err := p.AllJobs()
-	if err != nil {
-		return nil, err
-	}
-
+func (p *Pipeline) ModelResources(allJobs Jobs) (model.Resources, error) {
 	var jobResources JobResources
 	for _, job := range allJobs {
 		resources, err := job.Resources()
@@ -161,18 +153,13 @@ func (p *Pipeline) ModelResources() (model.Resources, error) {
 	return resources, nil
 }
 
-func (p *Pipeline) ModelJobs() (model.Jobs, error) {
-	jobs, err := p.AllJobs()
+func (p *Pipeline) ModelJobs(allJobs Jobs) (model.Jobs, error) {
+	columns, err := allJobs.SortByColumns()
 	if err != nil {
 		return nil, err
 	}
 
-	columns, err := jobs.SortByColumns()
-	if err != nil {
-		return nil, err
-	}
-
-	modelJobs := make(model.Jobs, 0, len(jobs))
+	modelJobs := make(model.Jobs, 0, len(allJobs))
 
 	var previousColumn Jobs
 	for _, column := range columns {
@@ -190,7 +177,12 @@ func (p *Pipeline) ModelJobs() (model.Jobs, error) {
 }
 
 func (p *Pipeline) Save(writer io.Writer) error {
-	groups, err := p.ModelGroups()
+	allJobs, err := p.AllJobs()
+	if err != nil {
+		return err
+	}
+
+	groups, err := p.ModelGroups(allJobs)
 	if err != nil {
 		return err
 	}
@@ -200,12 +192,12 @@ func (p *Pipeline) Save(writer io.Writer) error {
 		return err
 	}
 
-	resources, err := p.ModelResources()
+	resources, err := p.ModelResources(allJobs)
 	if err != nil {
 		return err
 	}
 
-	jobs, err := p.ModelJobs()
+	jobs, err := p.ModelJobs(allJobs)
 	if err != nil {
 		return err
 	}

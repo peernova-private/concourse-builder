@@ -6,23 +6,13 @@ import (
 )
 
 type SelfUpdateJobArgs struct {
-	Concourse                 *Concourse
-	ConcourseBuilderGitSource *GitSource
-	Environment               map[string]interface{}
-	ImageRegistry             *ImageRegistry
-	PipelineLocation          project.IRun
-	ResourceRegistry          *project.ResourceRegistry
-	Tag                       ImageTag
+	*FlyImageJobArgs
+	Environment             map[string]interface{}
+	GenerateProjectLocation project.IRun
 }
 
 func SelfUpdateJob(args *SelfUpdateJobArgs) *project.Job {
-	flyImage, _ := FlyImageJob(&FlyImageJobArgs{
-		Concourse:                 args.Concourse,
-		ConcourseBuilderGitSource: args.ConcourseBuilderGitSource,
-		ImageRegistry:             args.ImageRegistry,
-		ResourceRegistry:          args.ResourceRegistry,
-		Tag:                       args.Tag,
-	})
+	flyImage, _ := FlyImageJob(args.FlyImageJobArgs)
 
 	flyImageResource := &project.JobResource{
 		Name:    flyImage.Name,
@@ -59,7 +49,7 @@ func SelfUpdateJob(args *SelfUpdateJobArgs) *project.Job {
 		Platform: model.LinuxPlatform,
 		Name:     "prepare pipelines",
 		Image:    goImageResource,
-		Run:      args.PipelineLocation,
+		Run:      args.GenerateProjectLocation,
 		Params:   args.Environment,
 		Outputs: []project.IOutput{
 			pipelinesDir,

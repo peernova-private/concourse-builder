@@ -52,6 +52,10 @@ func (jr JobResources) Less(i, j int) bool {
 }
 
 func (jr JobResources) Deduplicate() JobResources {
+	if len(jr) == 0 {
+		return jr
+	}
+
 	sort.Sort(jr)
 
 	pos := 0

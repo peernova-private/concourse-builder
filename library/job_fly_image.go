@@ -8,11 +8,8 @@ import (
 )
 
 type FlyImageJobArgs struct {
-	Concourse                 *Concourse
-	ConcourseBuilderGitSource *GitSource
-	ImageRegistry             *ImageRegistry
-	ResourceRegistry          *project.ResourceRegistry
-	Tag                       ImageTag
+	*CurlImageJobArgs
+	Concourse *Concourse
 }
 
 func FlyImageJob(args *FlyImageJobArgs) (*project.Resource, *project.Job) {
@@ -22,12 +19,7 @@ func FlyImageJob(args *FlyImageJobArgs) (*project.Resource, *project.Job) {
 		return image, image.NeededJobs[0]
 	}
 
-	curlImage, _ := CurlImageJob(&CurlImageJobArgs{
-		ConcourseBuilderGitSource: args.ConcourseBuilderGitSource,
-		ImageRegistry:             args.ImageRegistry,
-		ResourceRegistry:          args.ResourceRegistry,
-		Tag:                       args.Tag,
-	})
+	curlImage, _ := CurlImageJob(args.CurlImageJobArgs)
 
 	image = &project.Resource{
 		Name: resourceName,
@@ -57,7 +49,7 @@ func FlyImageJob(args *FlyImageJobArgs) (*project.Resource, *project.Job) {
 		"awk -F ',' ' { print $1 } ' | awk -F ':' ' { print $2 } '`", args.Concourse.URL, insecureArg)
 
 	job := BuildImage(
-		curlImage,
+		curlImage, // We need curlImage for prepare for eval to works
 		curlImage,
 		&BuildImageArgs{
 			Name:               "fly",

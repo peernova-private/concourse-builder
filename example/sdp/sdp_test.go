@@ -2,6 +2,8 @@ package sdpExample
 
 import (
 	"bytes"
+	"log"
+	"strings"
 	"testing"
 
 	"github.com/concourse-friends/concourse-builder/template/sdp"
@@ -12,13 +14,16 @@ import (
 var expected = `groups:
 - name: all
   jobs:
+  - branches
   - curl-image
   - fly-image
+  - git-image
   - self-update
 - name: images
   jobs:
   - curl-image
   - fly-image
+  - git-image
 - name: sys
   jobs:
   - curl-image
@@ -39,6 +44,11 @@ resources:
   type: docker-image
   source:
     repository: registry.com/concourse-builder/fly-image
+    tag: master
+- name: git-image
+  type: docker-image
+  source:
+    repository: registry.com/concourse-builder/git-image
     tag: master
 - name: go-image
   type: docker-image
@@ -111,6 +121,40 @@ jobs:
       build: prepared
     get_params:
       skip_download: true
+- name: git-image
+  plan:
+  - aggregate:
+    - get: concourse-builder-git
+      trigger: true
+      passed:
+      - curl-image
+    - get: curl-image
+      trigger: true
+      passed:
+      - curl-image
+    - get: ubuntu-image
+      trigger: true
+      passed:
+      - curl-image
+  - task: prepare
+    image: ubuntu-image
+    config:
+      platform: linux
+      inputs:
+      - name: concourse-builder-git
+      params:
+        DOCKERFILE_DIR: concourse-builder-git/docker/git
+        FROM_IMAGE: registry.com/concourse-builder/curl-image:master
+      run:
+        path: concourse-builder-git/scripts/docker_image_prepare.sh
+      outputs:
+      - name: prepared
+        path: prepared
+  - put: git-image
+    params:
+      build: prepared
+    get_params:
+      skip_download: true
 - name: self-update
   plan:
   - aggregate:
@@ -118,6 +162,7 @@ jobs:
       trigger: true
       passed:
       - fly-image
+      - git-image
     - get: fly-image
       trigger: true
       passed:
@@ -159,6 +204,40 @@ jobs:
         PIPELINES: pipelines
       run:
         path: /bin/set_pipelines.sh
+- name: branches
+  plan:
+  - aggregate:
+    - get: fly-image
+      trigger: true
+      passed:
+      - self-update
+    - get: git-image
+      trigger: true
+  - task: obtain branches
+    image: git-image
+    config:
+      platform: linux
+      params:
+        BRANCH: branch
+        PIPELINES: pipelines
+      run:
+        path: /bin/obtain_branches.sh
+      outputs:
+      - name: branches
+        path: branches
+  - task: create missing pipelines
+    image: fly-image
+    config:
+      platform: linux
+      inputs:
+      - name: pipelines
+      params:
+        CONCOURSE_PASSWORD: password
+        CONCOURSE_URL: http://concourse.com
+        CONCOURSE_USER: user
+        PIPELINES: pipelines
+      run:
+        path: /bin/create_missing_pipelines.sh
 `
 
 func ContextDiff(a, b string) string {
@@ -167,7 +246,7 @@ func ContextDiff(a, b string) string {
 		B:        difflib.SplitLines(b),
 		FromFile: "actual",
 		ToFile:   "expected",
-		Context:  10,
+		Context:  20,
 		Eol:      "\n",
 	}
 	result, _ := difflib.GetContextDiffString(diff)
@@ -182,6 +261,10 @@ func TestSdp(t *testing.T) {
 
 	err = prj.Pipelines[0].Save(yml)
 	assert.NoError(t, err)
+
+	if expected != yml.String() {
+		log.Printf("\n" + strings.Replace(yml.String(), "`", "`+\"`\"+`", -1))
+	}
 
 	assert.Equal(t, expected, yml.String(), ContextDiff(expected, yml.String()))
 }
