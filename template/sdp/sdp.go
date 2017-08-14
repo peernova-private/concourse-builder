@@ -3,17 +3,33 @@ package sdp
 import (
 	"github.com/concourse-friends/concourse-builder/library"
 	"github.com/concourse-friends/concourse-builder/project"
+	"github.com/concourse-friends/concourse-builder/template/sdp_branch"
 )
 
-type SdpSpecification interface {
+type Specification interface {
 	Concourse() (*library.Concourse, error)
 	DeployImageRegistry() (*library.ImageRegistry, error)
 	ConcourseBuilderGitSource() (*library.GitSource, error)
-	GenerateMainPipelineLocation(resourceRegistry *project.ResourceRegistry) (project.IRun, error)
+	GenerateProjectLocation(resourceRegistry *project.ResourceRegistry, overrideBranch string) (project.IRun, error)
 	Environment() (map[string]interface{}, error)
+	BootstrapBranches() []string
 }
 
-func GenerateProject(specification SdpSpecification) (*project.Project, error) {
+func GenerateProject(specification Specification) (*project.Project, error) {
+	prj := &project.Project{}
+
+	for _, branch := range specification.BootstrapBranches() {
+		branchSpecification := &BranchBootstrapSpecification{
+			Specification: specification,
+			Branch:        branch,
+		}
+		project, err := sdpBranch.GenerateBootstarpProject(branchSpecification)
+		if err != nil {
+			return nil, err
+		}
+		prj.Pipelines = append(prj.Pipelines, project.Pipelines...)
+	}
+
 	mainPipeline := project.NewPipeline()
 	mainPipeline.AllJobsGroup = project.AllJobsGroupFirst
 
@@ -34,8 +50,7 @@ func GenerateProject(specification SdpSpecification) (*project.Project, error) {
 		return nil, err
 	}
 
-	// Prepare self update job
-	generateMainPipelineLocation, err := specification.GenerateMainPipelineLocation(mainPipeline.ResourceRegistry)
+	generateProjectLocation, err := specification.GenerateProjectLocation(mainPipeline.ResourceRegistry, "")
 	if err != nil {
 		return nil, err
 	}
@@ -46,24 +61,35 @@ func GenerateProject(specification SdpSpecification) (*project.Project, error) {
 	}
 
 	selfUpdateJob := library.SelfUpdateJob(&library.SelfUpdateJobArgs{
-		Concourse:                 concourse,
-		ConcourseBuilderGitSource: concourseBuilderGitSource,
-		Environment:               environment,
-		ImageRegistry:             imageRegistry,
-		PipelineLocation:          generateMainPipelineLocation,
-		ResourceRegistry:          mainPipeline.ResourceRegistry,
-		Tag:                       library.ConvertToImageTag(concourseBuilderGitSource.Branch),
+		FlyImageJobArgs: &library.FlyImageJobArgs{
+			CurlImageJobArgs: &library.CurlImageJobArgs{
+				ConcourseBuilderGitSource: concourseBuilderGitSource,
+				ImageRegistry:             imageRegistry,
+				ResourceRegistry:          mainPipeline.ResourceRegistry,
+				Tag:                       library.ConvertToImageTag(concourseBuilderGitSource.Branch),
+			},
+			Concourse: concourse,
+		},
+		Environment:             environment,
+		GenerateProjectLocation: generateProjectLocation,
 	})
+
+	branchesJob := BranchesJob(&BranchesJobArgs{
+		GitImageJobArgs: &library.GitImageJobArgs{
+			ImageRegistry:    imageRegistry,
+			ResourceRegistry: mainPipeline.ResourceRegistry,
+			Tag:              library.ConvertToImageTag(concourseBuilderGitSource.Branch),
+		},
+		Environment:             environment,
+		GenerateProjectLocation: generateProjectLocation,
+	})
+	branchesJob.AddJobToRunAfter(selfUpdateJob)
 
 	mainPipeline.Jobs = project.Jobs{
 		selfUpdateJob,
+		branchesJob,
 	}
 
-	prj := &project.Project{
-		Pipelines: project.Pipelines{
-			mainPipeline,
-		},
-	}
-
+	prj.Pipelines = append(prj.Pipelines, mainPipeline)
 	return prj, nil
 }

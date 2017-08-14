@@ -5,9 +5,15 @@ import (
 	"github.com/concourse-friends/concourse-builder/resource"
 )
 
-func GitImageJob(imageRegistry *ImageRegistry, resourceRegistry *project.ResourceRegistry, tag ImageTag) (*project.Resource, *project.Job) {
+type GitImageJobArgs struct {
+	ImageRegistry             *ImageRegistry
+	ResourceRegistry          *project.ResourceRegistry
+	Tag                       ImageTag
+}
+
+func GitImageJob(args *GitImageJobArgs) (*project.Resource, *project.Job) {
 	resourceName := project.ResourceName("git-image")
-	image := resourceRegistry.GetResource(resourceName)
+	image := args.ResourceRegistry.GetResource(resourceName)
 	if image != nil {
 		return image, image.NeededJobs[0]
 	}
@@ -16,8 +22,8 @@ func GitImageJob(imageRegistry *ImageRegistry, resourceRegistry *project.Resourc
 		Name: resourceName,
 		Type: resource.ImageResourceType.Name,
 		Source: &ImageSource{
-			Tag:        tag,
-			Registry:   imageRegistry,
+			Tag:        args.Tag,
+			Registry:   args.ImageRegistry,
 			Repository: "concourse-builder/git-image",
 		},
 	}
@@ -30,7 +36,7 @@ func GitImageJob(imageRegistry *ImageRegistry, resourceRegistry *project.Resourc
 		RelativePath: "docker/git",
 	}
 
-	resourceRegistry.MustRegister(UbuntuImage)
+	args.ResourceRegistry.MustRegister(UbuntuImage)
 
 	job := BuildImage(
 		UbuntuImage,
@@ -42,7 +48,7 @@ func GitImageJob(imageRegistry *ImageRegistry, resourceRegistry *project.Resourc
 		})
 
 	image.NeededJobs = project.Jobs{job}
-	resourceRegistry.MustRegister(image)
+	args.ResourceRegistry.MustRegister(image)
 
 	return image, job
 }
