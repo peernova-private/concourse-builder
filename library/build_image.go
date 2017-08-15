@@ -59,15 +59,25 @@ func BuildImage(prepare *project.Resource, from *project.Resource, args *BuildIm
 		taskPrepare.Params["EVAL"] = args.Eval
 	}
 
+	imageSource := from.Source.(*ImageSource)
+	public := imageSource.Registry.Public()
+
 	fromImageResource := &project.JobResource{
 		Name:    from.Name,
 		Trigger: true,
+	}
+
+	if !public {
+		fromImageResource.GetParams = &resource.ImageGetParams{
+			Save: true,
+		}
 	}
 
 	putImage := &project.PutStep{
 		JobResource: imageResource,
 		Params: &ImagePutParams{
 			FromImage: fromImageResource,
+			Load:      !public,
 			Build: &Location{
 				RelativePath: preparedDir.Path(),
 			},

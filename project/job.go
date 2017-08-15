@@ -94,6 +94,7 @@ func (job *Job) Model(previousColumns []Jobs) (*model.Job, error) {
 		step := &model.Get{
 			Get:     model.ResourceName(input.Name),
 			Trigger: input.Trigger,
+			Params:  input.GetParams,
 		}
 
 		for c := len(previousColumns) - 1; c >= 0; c-- {

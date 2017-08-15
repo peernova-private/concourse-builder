@@ -25,5 +25,5 @@ type Get struct {
 	Passed JobNames `yaml:",omitempty"`
 
 	// Additional resource specific parameters
-	Params map[string]interface{} `yaml:",omitempty"`
+	Params interface{} `yaml:",omitempty"`
 }

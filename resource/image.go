@@ -32,12 +32,14 @@ type ImageSource struct {
 }
 
 type ImageGetParams struct {
+	Save         bool `yaml:",omitempty"`
 	SkipDownload bool `yaml:"skip_download,omitempty"`
 }
 
 type ImagePutParams struct {
-	Build     string
+	Build     string                 `yaml:",omitempty"`
 	BuildArgs map[string]interface{} `yaml:"build_args,omitempty"`
+	LoadBase  string                 `yaml:"load_base,omitempty"`
 }
 
 func init() {
