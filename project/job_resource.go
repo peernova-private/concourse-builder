@@ -13,8 +13,9 @@ type IJobResourceSource interface {
 }
 
 type JobResource struct {
-	Name    ResourceName
-	Trigger bool
+	Name      ResourceName
+	Trigger   bool
+	GetParams interface{}
 }
 
 func (jr *JobResource) Path() string {

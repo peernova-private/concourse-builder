@@ -6,6 +6,10 @@ type ImageRegistry struct {
 	AwsSecretAccessKey string
 }
 
+func (ir *ImageRegistry) Public() bool {
+	return ir.AwsAccessKeyId == "" && ir.AwsSecretAccessKey == ""
+}
+
 var DockerHub = &ImageRegistry{
 	Domain: "",
 }

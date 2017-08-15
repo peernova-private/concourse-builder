@@ -18,7 +18,9 @@ func (s *testSpecification) Concourse() (*library.Concourse, error) {
 
 func (s *testSpecification) DeployImageRegistry() (*library.ImageRegistry, error) {
 	return &library.ImageRegistry{
-		Domain: "registry.com",
+		Domain:             "registry.com",
+		AwsAccessKeyId:     "key",
+		AwsSecretAccessKey: "secret",
 	}, nil
 }
 

@@ -40,16 +40,22 @@ resources:
   source:
     repository: registry.com/concourse-builder/curl-image
     tag: master
+    aws_access_key_id: key
+    aws_secret_access_key: secret
 - name: fly-image
   type: docker-image
   source:
     repository: registry.com/concourse-builder/fly-image
     tag: master
+    aws_access_key_id: key
+    aws_secret_access_key: secret
 - name: git-image
   type: docker-image
   source:
     repository: registry.com/concourse-builder/git-image
     tag: master
+    aws_access_key_id: key
+    aws_secret_access_key: secret
 - name: go-image
   type: docker-image
   source:
@@ -100,6 +106,8 @@ jobs:
       trigger: true
       passed:
       - curl-image
+      params:
+        save: true
   - task: prepare
     image: curl-image
     config:
@@ -108,8 +116,8 @@ jobs:
       - name: concourse-builder-git
       params:
         DOCKERFILE_DIR: concourse-builder-git/docker/fly
-        EVAL: echo ENV FLY_VERSION=` + "`" + `curl http://concourse.com/api/v1/info | awk -F
-          ',' ' { print $1 } ' | awk -F ':' ' { print $2 } '` + "`" + `
+        EVAL: echo ENV FLY_VERSION=`+"`"+`curl http://concourse.com/api/v1/info | awk -F
+          ',' ' { print $1 } ' | awk -F ':' ' { print $2 } '`+"`"+`
         FROM_IMAGE: registry.com/concourse-builder/curl-image:master
       run:
         path: concourse-builder-git/scripts/docker_image_prepare.sh
@@ -119,6 +127,7 @@ jobs:
   - put: fly-image
     params:
       build: prepared
+      load_base: curl-image
     get_params:
       skip_download: true
 - name: git-image
@@ -132,6 +141,8 @@ jobs:
       trigger: true
       passed:
       - curl-image
+      params:
+        save: true
     - get: ubuntu-image
       trigger: true
       passed:
@@ -153,8 +164,45 @@ jobs:
   - put: git-image
     params:
       build: prepared
+      load_base: curl-image
     get_params:
       skip_download: true
+- name: branches
+  plan:
+  - aggregate:
+    - get: fly-image
+      trigger: true
+      passed:
+      - fly-image
+    - get: git-image
+      trigger: true
+      passed:
+      - git-image
+  - task: obtain branches
+    image: git-image
+    config:
+      platform: linux
+      params:
+        BRANCH: branch
+        PIPELINES: pipelines
+      run:
+        path: /bin/obtain_branches.sh
+      outputs:
+      - name: branches
+        path: branches
+  - task: create missing pipelines
+    image: fly-image
+    config:
+      platform: linux
+      inputs:
+      - name: pipelines
+      params:
+        CONCOURSE_PASSWORD: password
+        CONCOURSE_URL: http://concourse.com
+        CONCOURSE_USER: user
+        PIPELINES: pipelines
+      run:
+        path: /bin/create_missing_pipelines.sh
 - name: self-update
   plan:
   - aggregate:
@@ -204,42 +252,6 @@ jobs:
         PIPELINES: pipelines
       run:
         path: /bin/set_pipelines.sh
-- name: branches
-  plan:
-  - aggregate:
-    - get: fly-image
-      trigger: true
-      passed:
-      - self-update
-    - get: git-image
-      trigger: true
-      passed:
-      - git-image
-  - task: obtain branches
-    image: git-image
-    config:
-      platform: linux
-      params:
-        BRANCH: branch
-        PIPELINES: pipelines
-      run:
-        path: /bin/obtain_branches.sh
-      outputs:
-      - name: branches
-        path: branches
-  - task: create missing pipelines
-    image: fly-image
-    config:
-      platform: linux
-      inputs:
-      - name: pipelines
-      params:
-        CONCOURSE_PASSWORD: password
-        CONCOURSE_URL: http://concourse.com
-        CONCOURSE_USER: user
-        PIPELINES: pipelines
-      run:
-        path: /bin/create_missing_pipelines.sh
 `
 
 func ContextDiff(a, b string) string {
