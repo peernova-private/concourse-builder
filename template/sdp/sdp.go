@@ -86,7 +86,6 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 		Environment:             environment,
 		GenerateProjectLocation: generateProjectLocation,
 	})
-	branchesJob.AddJobToRunAfter(selfUpdateJob)
 
 	mainPipeline.Jobs = project.Jobs{
 		selfUpdateJob,

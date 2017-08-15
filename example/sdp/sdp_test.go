@@ -213,6 +213,8 @@ jobs:
       - self-update
     - get: git-image
       trigger: true
+      passed:
+      - git-image
   - task: obtain branches
     image: git-image
     config:

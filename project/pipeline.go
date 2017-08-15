@@ -161,16 +161,14 @@ func (p *Pipeline) ModelJobs(allJobs Jobs) (model.Jobs, error) {
 
 	modelJobs := make(model.Jobs, 0, len(allJobs))
 
-	var previousColumn Jobs
-	for _, column := range columns {
+	for i, column := range columns {
 		for _, job := range column {
-			modelJob, err := job.Model(previousColumn)
+			modelJob, err := job.Model(columns[:i])
 			if err != nil {
 				return nil, err
 			}
 			modelJobs = append(modelJobs, modelJob)
 		}
-		previousColumn = column
 	}
 
 	return modelJobs, nil

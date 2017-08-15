@@ -79,7 +79,7 @@ func (job *Job) Resources() (JobResources, error) {
 	return resources.Deduplicate(), nil
 }
 
-func (job *Job) Model(previousColumn Jobs) (*model.Job, error) {
+func (job *Job) Model(previousColumns []Jobs) (*model.Job, error) {
 	var err error
 
 	var modelSteps model.ISteps
@@ -96,9 +96,15 @@ func (job *Job) Model(previousColumn Jobs) (*model.Job, error) {
 			Trigger: input.Trigger,
 		}
 
-		step.Passed, err = previousColumn.NamesOfUsingResourceJobs(input)
-		if err != nil {
-			return nil, err
+		for c := len(previousColumns) - 1; c >= 0; c-- {
+			step.Passed, err = previousColumns[c].NamesOfUsingResourceJobs(input)
+			if err != nil {
+				return nil, err
+			}
+
+			if step.Passed != nil {
+				break
+			}
 		}
 
 		modelGetSteps = append(modelGetSteps, step)
