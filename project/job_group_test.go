@@ -23,11 +23,23 @@ func TestSortJobGroupsA(t *testing.T) {
 	assert.NoError(t, err)
 	assert.EqualValues(t, slice, sorted)
 }
-func TestSortJobGroupsACircle(t *testing.T) {
+
+func TestSortJobGroupsACircleAfter(t *testing.T) {
 	a := &JobGroup{
 		Name: "A",
 	}
 	a.After = JobGroups{a}
+
+	slice := JobGroups{a}
+	_, err := SortJobGroups(slice)
+	assert.Error(t, err)
+}
+
+func TestSortJobGroupsACircleBefore(t *testing.T) {
+	a := &JobGroup{
+		Name: "A",
+	}
+	a.Before = JobGroups{a}
 
 	slice := JobGroups{a}
 	_, err := SortJobGroups(slice)
