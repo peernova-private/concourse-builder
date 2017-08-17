@@ -32,7 +32,7 @@ func taskObtainBranches(args *BranchesJobArgs, branchesDir *library.TaskOutput) 
 		},
 	}
 
-	targetGitResource = args.GitImageJobArgs.ResourceRegistry.MustRegister(targetGitResource)
+	args.GitImageJobArgs.ResourceRegistry.MustRegister(targetGitResource)
 
 	targetGitJobResource := &project.JobResource{
 		Name:    targetGitResource.Name,
@@ -66,10 +66,10 @@ func taskObtainBranches(args *BranchesJobArgs, branchesDir *library.TaskOutput) 
 }
 
 func taskPreparePipelines(args *BranchesJobArgs, branchesDir *library.TaskOutput, pipelinesDir *library.TaskOutput) *project.TaskStep {
-	goImage := args.GitImageJobArgs.ResourceRegistry.MustRegister(library.GoImage)
+	args.GitImageJobArgs.ResourceRegistry.MustRegister(library.GoImage)
 
 	goImageResource := &project.JobResource{
-		Name:    goImage.Name,
+		Name:    library.GoImage.Name,
 		Trigger: true,
 	}
 

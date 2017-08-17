@@ -60,7 +60,7 @@ func FlyImageJob(args *FlyImageJobArgs) (*project.Resource, *project.Job) {
 	job.AddToGroup(project.SystemGroup)
 
 	image.NeededJobs = project.Jobs{job}
-	image = args.ResourceRegistry.MustRegister(image)
+	args.ResourceRegistry.MustRegister(image)
 
 	return image, job
 }
