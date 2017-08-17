@@ -13,20 +13,21 @@ func NewResourceRegistry() *ResourceRegistry {
 	}
 }
 
-func (rr *ResourceRegistry) MustRegister(resource *Resource) *Resource {
+func (rr *ResourceRegistry) MustRegister(resource *Resource) {
 	if hash, ok := rr.cross[resource.Name]; ok {
-		return rr.resources[hash]
+		resource.Name = rr.resources[hash].Name
+		return
 	}
 
 	hash := resource.MustHash()
 	rr.cross[resource.Name] = hash
 
 	if res, ok := rr.resources[hash]; ok {
-		return res
+		resource.Name = res.Name
+		return
 	}
 
 	rr.resources[hash] = resource
-	return resource
 }
 
 func (rr *ResourceRegistry) GetResource(name ResourceName) *Resource {

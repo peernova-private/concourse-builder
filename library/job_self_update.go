@@ -34,10 +34,10 @@ func SelfUpdateJob(args *SelfUpdateJobArgs) *project.Job {
 		},
 	}
 
-	goImage := args.ResourceRegistry.MustRegister(GoImage)
+	args.ResourceRegistry.MustRegister(GoImage)
 
 	goImageResource := &project.JobResource{
-		Name:    goImage.Name,
+		Name:    GoImage.Name,
 		Trigger: true,
 	}
 
