@@ -6,7 +6,9 @@ import (
 )
 
 type Specification interface {
-	BootstarpSpecification
+	BootstrapSpecification
+	ModifyJobs(resourceRegistry *project.ResourceRegistry) (project.Jobs, error)
+	VerifyJobs(resourceRegistry *project.ResourceRegistry) (project.Jobs, error)
 }
 
 func GenerateProject(specification Specification) (*project.Project, error) {
@@ -57,6 +59,13 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 	mainPipeline.Jobs = project.Jobs{
 		selfUpdateJob,
 	}
+
+	modifyJobs, err := specification.ModifyJobs(mainPipeline.ResourceRegistry)
+	if err != nil {
+		return nil, err
+	}
+
+	mainPipeline.Jobs = append(mainPipeline.Jobs, modifyJobs...)
 
 	prj := &project.Project{
 		Pipelines: project.Pipelines{

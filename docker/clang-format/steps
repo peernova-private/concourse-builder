@@ -1,0 +1,10 @@
+RUN set -ex \
+    # install clang-format \
+    && apt-get update \
+    && apt-get install -y clang-format \
+    \
+    # cleanup \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY *.sh /bin/
