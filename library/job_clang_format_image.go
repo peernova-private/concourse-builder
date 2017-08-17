@@ -5,15 +5,15 @@ import (
 	"github.com/concourse-friends/concourse-builder/resource"
 )
 
-type CurlImageJobArgs struct {
+type CLangFormatImageJobArgs struct {
 	ConcourseBuilderGitSource *GitSource
 	ImageRegistry             *ImageRegistry
 	ResourceRegistry          *project.ResourceRegistry
 	Tag                       ImageTag
 }
 
-func CurlImageJob(args *CurlImageJobArgs) (*project.Resource, *project.Job) {
-	resourceName := project.ResourceName("curl-image")
+func CLangFormatImageJob(args *CLangFormatImageJobArgs) (*project.Resource, *project.Job) {
+	resourceName := project.ResourceName("clang_format-image")
 	image := args.ResourceRegistry.GetResource(resourceName)
 	if image != nil {
 		return image, image.NeededJobs[0]
@@ -25,7 +25,7 @@ func CurlImageJob(args *CurlImageJobArgs) (*project.Resource, *project.Job) {
 		Source: &ImageSource{
 			Tag:        args.Tag,
 			Registry:   args.ImageRegistry,
-			Repository: "concourse-builder/curl-image",
+			Repository: "concourse-builder/clang_format-image",
 		},
 	}
 
@@ -34,7 +34,7 @@ func CurlImageJob(args *CurlImageJobArgs) (*project.Resource, *project.Job) {
 			Name:    ConcourseBuilderGitName,
 			Trigger: true,
 		},
-		RelativePath: "docker/curl",
+		RelativePath: "docker/clang-format",
 	}
 
 	args.ResourceRegistry.MustRegister(UbuntuImage)
@@ -43,7 +43,7 @@ func CurlImageJob(args *CurlImageJobArgs) (*project.Resource, *project.Job) {
 		UbuntuImage,
 		UbuntuImage,
 		&BuildImageArgs{
-			Name:               "curl",
+			Name:               "clang-format",
 			DockerFileResource: dockerSteps,
 			Image:              image.Name,
 		})

@@ -1,14 +1,13 @@
 package project
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"strings"
 
-	"crypto/sha256"
-
 	"github.com/concourse-friends/concourse-builder/model"
 	"gopkg.in/yaml.v2"
-	"encoding/hex"
 )
 
 type Resource struct {

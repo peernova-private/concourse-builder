@@ -5,7 +5,7 @@ import (
 	"github.com/concourse-friends/concourse-builder/project"
 )
 
-type BootstarpSpecification interface {
+type BootstrapSpecification interface {
 	Concourse() (*library.Concourse, error)
 	DeployImageRegistry() (*library.ImageRegistry, error)
 	ConcourseBuilderGitSource() (*library.GitSource, error)
@@ -13,7 +13,7 @@ type BootstarpSpecification interface {
 	Environment() (map[string]interface{}, error)
 }
 
-func GenerateBootstarpProject(specification BootstarpSpecification) (*project.Project, error) {
+func GenerateBootstrapProject(specification BootstrapSpecification) (*project.Project, error) {
 	mainPipeline := project.NewPipeline()
 	mainPipeline.AllJobsGroup = project.AllJobsGroupLast
 

@@ -46,7 +46,7 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 			Specification: specification,
 			Branch:        branch,
 		}
-		project, err := sdpBranch.GenerateBootstarpProject(branchSpecification)
+		project, err := sdpBranch.GenerateBootstrapProject(branchSpecification)
 		if err != nil {
 			return nil, err
 		}
