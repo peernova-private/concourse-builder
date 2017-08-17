@@ -1,41 +1,43 @@
 package project
 
-import (
-	"fmt"
-)
-
 // An object that tracks collection of resources by name
 type ResourceRegistry struct {
-	resources map[ResourceName]*Resource
+	cross     map[ResourceName]ResourceHash
+	resources map[ResourceHash]*Resource
 }
 
 func NewResourceRegistry() *ResourceRegistry {
 	return &ResourceRegistry{
-		resources: make(map[ResourceName]*Resource),
+		cross:     make(map[ResourceName]ResourceHash),
+		resources: make(map[ResourceHash]*Resource),
 	}
 }
 
-func (r *ResourceRegistry) MustRegister(resource *Resource) {
-	_, ok := r.resources[resource.Name]
-	if ok {
-		// TODO: check if register more than once, the registered is the same
-		return
+func (rr *ResourceRegistry) MustRegister(resource *Resource) *Resource {
+	if hash, ok := rr.cross[resource.Name]; ok {
+		return rr.resources[hash]
 	}
 
-	r.resources[resource.Name] = resource
-}
+	hash := resource.MustHash()
+	rr.cross[resource.Name] = hash
 
-func (r *ResourceRegistry) GetResource(name ResourceName) *Resource {
-	if res, ok := r.resources[name]; ok {
+	if res, ok := rr.resources[hash]; ok {
 		return res
+	}
+
+	rr.resources[hash] = resource
+	return resource
+}
+
+func (rr *ResourceRegistry) GetResource(name ResourceName) *Resource {
+	if hash, ok := rr.cross[name]; ok {
+		if res, ok := rr.resources[hash]; ok {
+			return res
+		}
 	}
 	return nil
 }
 
-func (r *ResourceRegistry) MustGetResource(name ResourceName) *Resource {
-	res, ok := r.resources[name]
-	if !ok {
-		panic(fmt.Sprintf("Resource %s is not found in the registry", name))
-	}
-	return res
+func (rr *ResourceRegistry) MustGetResource(name ResourceName) *Resource {
+	return rr.resources[rr.cross[name]]
 }

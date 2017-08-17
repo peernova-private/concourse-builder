@@ -200,7 +200,6 @@ jobs:
       inputs:
       - name: target-git
       params:
-        GIT_PRIVATE_KEY: private-key
         GIT_REPO_DIR: target-git
         OUTPUT_DIR: branches
       run:
@@ -213,11 +212,11 @@ jobs:
     config:
       platform: linux
       inputs:
+      - name: branches
       - name: concourse-builder-git
-      - name: pipelines
       params:
         BRANCH: branch
-        BRANCH_FILE: pipelines/branches
+        BRANCHES_FILE: branches/branches
         PIPELINES: pipelines
       run:
         path: concourse-builder-git/foo
