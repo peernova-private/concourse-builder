@@ -36,10 +36,10 @@ func GitImageJob(args *GitImageJobArgs) (*project.Resource, *project.Job) {
 		RelativePath: "docker/git",
 	}
 
-	args.ResourceRegistry.MustRegister(UbuntuImage)
+	ubuntuImage := args.ResourceRegistry.MustRegister(UbuntuImage)
 
 	job := BuildImage(
-		UbuntuImage,
+		ubuntuImage,
 		curlImage,
 		&BuildImageArgs{
 			Name:               "git",
@@ -48,7 +48,7 @@ func GitImageJob(args *GitImageJobArgs) (*project.Resource, *project.Job) {
 		})
 
 	image.NeededJobs = project.Jobs{job}
-	args.ResourceRegistry.MustRegister(image)
+	image = args.ResourceRegistry.MustRegister(image)
 
 	return image, job
 }
