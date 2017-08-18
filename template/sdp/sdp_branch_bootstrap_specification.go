@@ -7,7 +7,11 @@ import (
 
 type BranchBootstrapSpecification struct {
 	Specification Specification
-	Branch        string
+	TargetBranch  string
+}
+
+func (bbs *BranchBootstrapSpecification) Branch() string {
+	return bbs.TargetBranch
 }
 
 func (bbs *BranchBootstrapSpecification) Concourse() (*library.Concourse, error) {
@@ -23,7 +27,7 @@ func (bbs *BranchBootstrapSpecification) ConcourseBuilderGitSource() (*library.G
 }
 
 func (bbs *BranchBootstrapSpecification) GenerateProjectLocation(resourceRegistry *project.ResourceRegistry) (project.IRun, error) {
-	return bbs.Specification.GenerateProjectLocation(resourceRegistry, bbs.Branch)
+	return bbs.Specification.GenerateProjectLocation(resourceRegistry, bbs.TargetBranch)
 }
 
 func (bbs *BranchBootstrapSpecification) Environment() (map[string]interface{}, error) {

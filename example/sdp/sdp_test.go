@@ -70,6 +70,7 @@ resources:
   source:
     uri: git@github.com:target.git
     private_key: private-key
+    branches: master|release[/].*|feature[/].*|task[/].*
 - name: ubuntu-image
   type: docker-image
   source:
@@ -202,6 +203,7 @@ jobs:
       inputs:
       - name: target-git
       params:
+        GIT_PRIVATE_KEY: private-key
         GIT_REPO_DIR: target-git
         OUTPUT_DIR: branches
       run:
@@ -238,6 +240,21 @@ jobs:
         PIPELINES: pipelines
       run:
         path: /bin/create_missing_pipelines.sh
+  - task: remove not needed pipelines
+    image: fly-image
+    config:
+      platform: linux
+      inputs:
+      - name: pipelines
+      params:
+        BRANCHES_DIR: branches
+        CONCOURSE_PASSWORD: password
+        CONCOURSE_URL: http://concourse.com
+        CONCOURSE_USER: user
+        PIPELINE_REGEX: .*-sdpb$
+        PIPELINES: pipelines
+      run:
+        path: /bin/remove_not_needed_pipelines.sh
 - name: self-update
   plan:
   - aggregate:

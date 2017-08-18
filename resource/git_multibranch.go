@@ -8,6 +8,11 @@ type GitMultibranchSource struct {
 
 	// Private key the has access to the repo
 	PrivateKey string `yaml:"private_key,omitempty"`
+
+	// Optional. Turns on multi-branch mode; takes a regular expression as argument --
+	// branches matching the regular expression on origin will all be checked for changes.
+	// Uses grep-style regular expression syntax
+	Branches string
 }
 
 // The git multibranch resource type

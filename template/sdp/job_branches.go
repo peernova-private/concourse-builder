@@ -27,7 +27,8 @@ func taskObtainBranches(args *BranchesJobArgs, branchesDir *library.TaskOutput) 
 		Name: "target-git",
 		Type: resource.GitMultibranchResourceType.Name,
 		Source: &library.GitMultiSource{
-			Repo: args.TargetGitRepo,
+			Repo:     args.TargetGitRepo,
+			Branches: "master|release[/].*|feature[/].*|task[/].*",
 		},
 	}
 
@@ -38,11 +39,13 @@ func taskObtainBranches(args *BranchesJobArgs, branchesDir *library.TaskOutput) 
 		Trigger: true,
 	}
 
-	params := make(map[string]interface{})
-	params["GIT_REPO_DIR"] = &library.Location{
-		Volume: targetGitJobResource,
+	params := map[string]interface{}{
+		"GIT_REPO_DIR": &library.Location{
+			Volume: targetGitJobResource,
+		},
+		"GIT_PRIVATE_KEY": args.TargetGitRepo.PrivateKey,
+		"OUTPUT_DIR":      branchesDir.Path(),
 	}
-	params["OUTPUT_DIR"] = branchesDir.Path()
 
 	task := &project.TaskStep{
 		Platform: model.LinuxPlatform,
@@ -124,6 +127,10 @@ func taskCreateMissingPipelines(args *BranchesJobArgs, pipelinesDir *library.Tas
 		},
 	}
 
+	if args.Concourse.Insecure {
+		task.Params["INSECURE"] = "true"
+	}
+
 	return task
 }
 
@@ -153,8 +160,12 @@ func taskRemoveNotNeededPipelines(args *BranchesJobArgs, pipelinesDir *library.T
 			"CONCOURSE_USER":     args.Concourse.User,
 			"CONCOURSE_PASSWORD": args.Concourse.Password,
 			"BRANCHES_DIR":       branchesDir.Path(),
-			"PIPELINE_REGEX":	  ".*-sdpd$",
+			"PIPELINE_REGEX":     ".*-sdpb$",
 		},
+	}
+
+	if args.Concourse.Insecure {
+		task.Params["INSECURE"] = "true"
 	}
 
 	return task

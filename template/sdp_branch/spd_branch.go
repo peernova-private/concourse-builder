@@ -67,6 +67,13 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 
 	mainPipeline.Jobs = append(mainPipeline.Jobs, modifyJobs...)
 
+	verifyJobs, err := specification.ModifyJobs(mainPipeline.ResourceRegistry)
+	if err != nil {
+		return nil, err
+	}
+
+	mainPipeline.Jobs = append(mainPipeline.Jobs, verifyJobs...)
+
 	prj := &project.Project{
 		Pipelines: project.Pipelines{
 			mainPipeline,
