@@ -6,6 +6,7 @@ import (
 )
 
 type BootstrapSpecification interface {
+	Branch() string
 	Concourse() (*library.Concourse, error)
 	DeployImageRegistry() (*library.ImageRegistry, error)
 	ConcourseBuilderGitSource() (*library.GitSource, error)
@@ -16,13 +17,12 @@ type BootstrapSpecification interface {
 func GenerateBootstrapProject(specification BootstrapSpecification) (*project.Project, error) {
 	mainPipeline := project.NewPipeline()
 	mainPipeline.AllJobsGroup = project.AllJobsGroupLast
+	mainPipeline.Name = project.ConvertToPipelineName(specification.Branch() + "-sdpb")
 
 	concourseBuilderGitSource, err := specification.ConcourseBuilderGitSource()
 	if err != nil {
 		return nil, err
 	}
-
-	mainPipeline.Name = project.ConvertToPipelineName(concourseBuilderGitSource.Branch + "-sdpb")
 
 	imageRegistry, err := specification.DeployImageRegistry()
 	if err != nil {

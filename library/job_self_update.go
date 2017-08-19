@@ -34,6 +34,10 @@ func SelfUpdateJob(args *SelfUpdateJobArgs) *project.Job {
 		},
 	}
 
+	if args.Concourse.Insecure {
+		taskCheck.Params["INSECURE"] = "true"
+	}
+
 	args.ResourceRegistry.MustRegister(GoImage)
 
 	goImageResource := &project.JobResource{
@@ -76,6 +80,10 @@ func SelfUpdateJob(args *SelfUpdateJobArgs) *project.Job {
 			"CONCOURSE_USER":     args.Concourse.User,
 			"CONCOURSE_PASSWORD": args.Concourse.Password,
 		},
+	}
+
+	if args.Concourse.Insecure {
+		taskUpdate.Params["INSECURE"] = "true"
 	}
 
 	updateJob := &project.Job{

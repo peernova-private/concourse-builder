@@ -8,6 +8,10 @@ import (
 type testSpecification struct {
 }
 
+func (s *testSpecification) Branch() string {
+	return "target_branch"
+}
+
 func (s *testSpecification) Concourse() (*library.Concourse, error) {
 	return &library.Concourse{
 		URL:      "http://concourse.com",

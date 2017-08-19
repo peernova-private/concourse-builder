@@ -2,13 +2,14 @@ package sdp
 
 import (
 	"io/ioutil"
+	"log"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/concourse-friends/concourse-builder/library"
 	"github.com/concourse-friends/concourse-builder/project"
 	"github.com/concourse-friends/concourse-builder/template/sdp_branch"
-	"regexp"
 )
 
 type Specification interface {
@@ -45,18 +46,22 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 	re := regexp.MustCompile("master|release/.*|feature/.*|task/.*")
 
 	for _, branch := range branches {
-
-		if re.MatchString(branch) {
-			branchSpecification := &BranchBootstrapSpecification{
-				Specification: specification,
-				Branch:        branch,
-			}
-			project, err := sdpBranch.GenerateBootstrapProject(branchSpecification)
-			if err != nil {
-				return nil, err
-			}
-			prj.Pipelines = append(prj.Pipelines, project.Pipelines...)
+		if !re.MatchString(branch) {
+			continue
 		}
+		log.Printf("Preparing pipeline for branch %s", branch)
+
+		branchSpecification := &BranchBootstrapSpecification{
+			Specification: specification,
+			TargetBranch:  branch,
+		}
+
+		project, err := sdpBranch.GenerateBootstrapProject(branchSpecification)
+		if err != nil {
+			return nil, err
+		}
+
+		prj.Pipelines = append(prj.Pipelines, project.Pipelines...)
 	}
 
 	mainPipeline := project.NewPipeline()

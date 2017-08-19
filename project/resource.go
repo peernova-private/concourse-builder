@@ -17,7 +17,7 @@ type Resource struct {
 	// The type of the resource
 	Type model.ResourceTypeName
 
-	// The sourse of the resource
+	// The source of the resource
 	Source IJobResourceSource
 
 	// On what interval the resource to be pooled for updates
