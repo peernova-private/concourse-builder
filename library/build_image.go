@@ -15,7 +15,7 @@ var ImagesGroup = &project.JobGroup{
 
 type BuildImageArgs struct {
 	Name               string
-	DockerFileResource project.IParamValue
+	DockerFileResource project.IEnvironmentValue
 	Image              project.ResourceName
 	BuildArgs          map[string]interface{}
 	Eval               string
@@ -46,7 +46,7 @@ func BuildImage(prepare *project.Resource, from *project.Resource, args *BuildIm
 			},
 			RelativePath: "scripts/docker_image_prepare.sh",
 		},
-		Params: map[string]interface{}{
+		Environment: map[string]interface{}{
 			"DOCKERFILE_DIR": args.DockerFileResource,
 			"FROM_IMAGE":     (*FromParam)(from),
 		},
@@ -56,7 +56,7 @@ func BuildImage(prepare *project.Resource, from *project.Resource, args *BuildIm
 	}
 
 	if args.Eval != "" {
-		taskPrepare.Params["EVAL"] = args.Eval
+		taskPrepare.Environment["EVAL"] = args.Eval
 	}
 
 	imageSource := from.Source.(*ImageSource)

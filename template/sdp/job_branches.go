@@ -39,7 +39,7 @@ func taskObtainBranches(args *BranchesJobArgs, branchesDir *library.TaskOutput) 
 		Trigger: true,
 	}
 
-	params := map[string]interface{}{
+	environment := map[string]interface{}{
 		"GIT_REPO_DIR": &library.Location{
 			Volume: targetGitJobResource,
 		},
@@ -58,7 +58,7 @@ func taskObtainBranches(args *BranchesJobArgs, branchesDir *library.TaskOutput) 
 			RelativePath: "obtain_branches.sh",
 		},
 
-		Params: params,
+		Environment: environment,
 		Outputs: []project.IOutput{
 			branchesDir,
 		},
@@ -86,11 +86,11 @@ func taskPreparePipelines(args *BranchesJobArgs, branchesDir *library.TaskOutput
 	}
 
 	task := &project.TaskStep{
-		Platform: model.LinuxPlatform,
-		Name:     "prepare pipelines",
-		Image:    goImageResource,
-		Run:      args.GenerateProjectLocation,
-		Params:   params,
+		Platform:    model.LinuxPlatform,
+		Name:        "prepare pipelines",
+		Image:       goImageResource,
+		Run:         args.GenerateProjectLocation,
+		Environment: params,
 		Outputs: []project.IOutput{
 			pipelinesDir,
 		},
@@ -117,7 +117,7 @@ func taskCreateMissingPipelines(args *BranchesJobArgs, pipelinesDir *library.Tas
 			},
 			RelativePath: "create_missing_pipelines.sh",
 		},
-		Params: map[string]interface{}{
+		Environment: map[string]interface{}{
 			"PIPELINES": &library.Location{
 				Volume: pipelinesDir,
 			},
@@ -128,7 +128,7 @@ func taskCreateMissingPipelines(args *BranchesJobArgs, pipelinesDir *library.Tas
 	}
 
 	if args.Concourse.Insecure {
-		task.Params["INSECURE"] = "true"
+		task.Environment["INSECURE"] = "true"
 	}
 
 	return task
@@ -152,7 +152,7 @@ func taskRemoveNotNeededPipelines(args *BranchesJobArgs, pipelinesDir *library.T
 			},
 			RelativePath: "remove_not_needed_pipelines.sh",
 		},
-		Params: map[string]interface{}{
+		Environment: map[string]interface{}{
 			"PIPELINES": &library.Location{
 				Volume: pipelinesDir,
 			},
@@ -165,7 +165,7 @@ func taskRemoveNotNeededPipelines(args *BranchesJobArgs, pipelinesDir *library.T
 	}
 
 	if args.Concourse.Insecure {
-		task.Params["INSECURE"] = "true"
+		task.Environment["INSECURE"] = "true"
 	}
 
 	return task

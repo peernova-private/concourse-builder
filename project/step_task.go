@@ -1,6 +1,7 @@
 package project
 
 import (
+	"fmt"
 	"sort"
 
 	"github.com/concourse-friends/concourse-builder/model"
@@ -16,25 +17,39 @@ type IOutput interface {
 	Path() string
 }
 
-type IParamValue interface {
+type IEnvironmentValue interface {
 	Value() interface{}
 }
 
-type IParamInput interface {
+type IEnvironmentInput interface {
 	OutputName() string
 }
 
-type IParamResource interface {
+type IEnvironmentResource interface {
+	InputResources() JobResources
+}
+
+type ITaskDirectory interface {
+	Path() string
+}
+
+type ITaskDirectoryResource interface {
+	InputResources() JobResources
+}
+
+type IArgumentResource interface {
 	InputResources() JobResources
 }
 
 type TaskStep struct {
-	Platform model.Platform
-	Name     model.TaskName
-	Image    *JobResource
-	Run      IRun
-	Outputs  []IOutput
-	Params   map[string]interface{}
+	Platform    model.Platform
+	Name        model.TaskName
+	Image       *JobResource
+	Run         IRun
+	Outputs     []IOutput
+	Environment map[string]interface{}
+	Directory   ITaskDirectory
+	Arguments   []interface{}
 }
 
 func (ts *TaskStep) Model() (model.IStep, error) {
@@ -49,19 +64,36 @@ func (ts *TaskStep) Model() (model.IStep, error) {
 		},
 	}
 
+	if ts.Directory != nil {
+		task.Config.Run.Dir = ts.Directory.Path()
+	}
+
+	for _, argument := range ts.Arguments {
+		switch value := argument.(type) {
+		case string:
+			task.Config.Run.Args = append(task.Config.Run.Args, value)
+		default:
+			panic(fmt.Sprintf("%v is unsuported type", argument))
+		}
+	}
+
 	if ts.Image != nil {
 		task.Image = model.ResourceName(ts.Image.Name)
 	}
 
-	runInputResources := ts.Run.InputResources()
-
-	inputsMap := make(map[string]struct{})
-	for _, runInputResource := range runInputResources {
-		inputsMap[string(runInputResource.Name)] = struct{}{}
+	inputResources, err := ts.ExecutionResources()
+	if err != nil {
+		return nil, err
 	}
 
-	for _, value := range ts.Params {
-		if param, ok := value.(IParamInput); ok {
+	inputsMap := make(map[string]struct{})
+	for _, inputResource := range inputResources {
+		inputsMap[string(inputResource.Name)] = struct{}{}
+	}
+
+	// TODO: revisit this one
+	for _, value := range ts.Environment {
+		if param, ok := value.(IEnvironmentInput); ok {
 			name := param.OutputName()
 			if name != "" {
 				inputsMap[name] = struct{}{}
@@ -88,8 +120,8 @@ func (ts *TaskStep) Model() (model.IStep, error) {
 		})
 	}
 
-	for name, value := range ts.Params {
-		if param, ok := value.(IParamValue); ok {
+	for name, value := range ts.Environment {
+		if param, ok := value.(IEnvironmentValue); ok {
 			task.Config.Params[name] = param.Value()
 		} else {
 			task.Config.Params[name] = value
@@ -99,6 +131,31 @@ func (ts *TaskStep) Model() (model.IStep, error) {
 	return task, nil
 }
 
+func (ts *TaskStep) ExecutionResources() (JobResources, error) {
+	var resources JobResources
+
+	locationResources := ts.Run.InputResources()
+	resources = append(resources, locationResources...)
+
+	for _, value := range ts.Environment {
+		if variable, ok := value.(IEnvironmentResource); ok {
+			resources = append(resources, variable.InputResources()...)
+		}
+	}
+
+	if directory, ok := ts.Directory.(ITaskDirectoryResource); ok {
+		resources = append(resources, directory.InputResources()...)
+	}
+
+	for _, argument := range ts.Arguments {
+		if argResource, ok := argument.(IArgumentResource); ok {
+			resources = append(resources, argResource.InputResources()...)
+		}
+	}
+
+	return resources.Deduplicate(), nil
+}
+
 func (ts *TaskStep) InputResources() (JobResources, error) {
 	var resources JobResources
 
@@ -106,15 +163,12 @@ func (ts *TaskStep) InputResources() (JobResources, error) {
 		resources = append(resources, ts.Image)
 	}
 
-	locationResources := ts.Run.InputResources()
-	resources = append(resources, locationResources...)
-
-	for _, value := range ts.Params {
-		if param, ok := value.(IParamResource); ok {
-			resources = append(resources, param.InputResources()...)
-		}
+	executionResources, err := ts.ExecutionResources()
+	if err != nil {
+		return nil, err
 	}
 
+	resources = append(resources, executionResources...)
 	return resources.Deduplicate(), nil
 }
 

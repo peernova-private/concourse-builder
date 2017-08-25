@@ -29,13 +29,13 @@ func SelfUpdateJob(args *SelfUpdateJobArgs) *project.Job {
 			},
 			RelativePath: "check_version.sh",
 		},
-		Params: map[string]interface{}{
+		Environment: map[string]interface{}{
 			"CONCOURSE_URL": args.Concourse.URL,
 		},
 	}
 
 	if args.Concourse.Insecure {
-		taskCheck.Params["INSECURE"] = "true"
+		taskCheck.Environment["INSECURE"] = "true"
 	}
 
 	args.ResourceRegistry.MustRegister(GoImage)
@@ -50,17 +50,17 @@ func SelfUpdateJob(args *SelfUpdateJobArgs) *project.Job {
 	}
 
 	taskPrepare := &project.TaskStep{
-		Platform: model.LinuxPlatform,
-		Name:     "prepare pipelines",
-		Image:    goImageResource,
-		Run:      args.GenerateProjectLocation,
-		Params:   args.Environment,
+		Platform:    model.LinuxPlatform,
+		Name:        "prepare pipelines",
+		Image:       goImageResource,
+		Run:         args.GenerateProjectLocation,
+		Environment: args.Environment,
 		Outputs: []project.IOutput{
 			pipelinesDir,
 		},
 	}
 
-	taskPrepare.Params["PIPELINES"] = "pipelines"
+	taskPrepare.Environment["PIPELINES"] = "pipelines"
 
 	taskUpdate := &project.TaskStep{
 		Platform: model.LinuxPlatform,
@@ -72,7 +72,7 @@ func SelfUpdateJob(args *SelfUpdateJobArgs) *project.Job {
 			},
 			RelativePath: "set_pipelines.sh",
 		},
-		Params: map[string]interface{}{
+		Environment: map[string]interface{}{
 			"PIPELINES": &Location{
 				Volume: pipelinesDir,
 			},
@@ -83,7 +83,7 @@ func SelfUpdateJob(args *SelfUpdateJobArgs) *project.Job {
 	}
 
 	if args.Concourse.Insecure {
-		taskUpdate.Params["INSECURE"] = "true"
+		taskUpdate.Environment["INSECURE"] = "true"
 	}
 
 	updateJob := &project.Job{
