@@ -53,7 +53,7 @@ func taskObtainBranches(args *BranchesJobArgs, branchesDir *library.TaskOutput) 
 		Image:    gitImageResource,
 		Run: &library.Location{
 			Volume: &library.Directory{
-				Root: "/bin",
+				Root: "/bin/git",
 			},
 			RelativePath: "obtain_branches.sh",
 		},
@@ -113,7 +113,7 @@ func taskCreateMissingPipelines(args *BranchesJobArgs, pipelinesDir *library.Tas
 		Image:    flyImageResource,
 		Run: &library.Location{
 			Volume: &library.Directory{
-				Root: "/bin",
+				Root: "/bin/fly",
 			},
 			RelativePath: "create_missing_pipelines.sh",
 		},
@@ -121,15 +121,10 @@ func taskCreateMissingPipelines(args *BranchesJobArgs, pipelinesDir *library.Tas
 			"PIPELINES": &library.Location{
 				Volume: pipelinesDir,
 			},
-			"CONCOURSE_URL":      args.Concourse.URL,
-			"CONCOURSE_USER":     args.Concourse.User,
-			"CONCOURSE_PASSWORD": args.Concourse.Password,
 		},
 	}
 
-	if args.Concourse.Insecure {
-		task.Environment["INSECURE"] = "true"
-	}
+	args.Concourse.Environment(task.Environment)
 
 	return task
 }
@@ -148,7 +143,7 @@ func taskRemoveNotNeededPipelines(args *BranchesJobArgs, pipelinesDir *library.T
 		Image:    flyImageResource,
 		Run: &library.Location{
 			Volume: &library.Directory{
-				Root: "/bin",
+				Root: "/bin/fly",
 			},
 			RelativePath: "remove_not_needed_pipelines.sh",
 		},
@@ -156,17 +151,12 @@ func taskRemoveNotNeededPipelines(args *BranchesJobArgs, pipelinesDir *library.T
 			"PIPELINES": &library.Location{
 				Volume: pipelinesDir,
 			},
-			"CONCOURSE_URL":      args.Concourse.URL,
-			"CONCOURSE_USER":     args.Concourse.User,
-			"CONCOURSE_PASSWORD": args.Concourse.Password,
-			"BRANCHES_DIR":       branchesDir.Path(),
-			"PIPELINE_REGEX":     ".*-sdpb$",
+			"BRANCHES_DIR":   branchesDir.Path(),
+			"PIPELINE_REGEX": ".*-sdpb$",
 		},
 	}
 
-	if args.Concourse.Insecure {
-		task.Environment["INSECURE"] = "true"
-	}
+	args.Concourse.Environment(task.Environment)
 
 	return task
 }

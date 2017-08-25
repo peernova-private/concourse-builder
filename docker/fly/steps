@@ -9,4 +9,4 @@ RUN set -ex \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-COPY *.sh /bin/
+COPY *.sh /bin/fly/
