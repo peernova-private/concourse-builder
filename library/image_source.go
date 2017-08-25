@@ -62,3 +62,13 @@ var UbuntuImage = &project.Resource{
 	},
 	CheckInterval: model.Duration(24 * time.Hour),
 }
+
+var GradleImage = &project.Resource{
+	Name: "gradle-image",
+	Type: resource.ImageResourceType.Name,
+	Source: &ImageSource{
+		Registry:   DockerHub,
+		Repository: "gradle",
+	},
+	CheckInterval: model.Duration(24 * time.Hour),
+}

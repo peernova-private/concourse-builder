@@ -65,11 +65,20 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 		return nil, err
 	}
 
+	for _, job := range modifyJobs {
+		job.AddJobToRunAfter(selfUpdateJob)
+	}
+
 	mainPipeline.Jobs = append(mainPipeline.Jobs, modifyJobs...)
 
-	verifyJobs, err := specification.ModifyJobs(mainPipeline.ResourceRegistry)
+	verifyJobs, err := specification.VerifyJobs(mainPipeline.ResourceRegistry)
 	if err != nil {
 		return nil, err
+	}
+
+	for _, job := range verifyJobs {
+		job.AddJobToRunAfter(selfUpdateJob)
+		job.AddJobToRunAfter(modifyJobs...)
 	}
 
 	mainPipeline.Jobs = append(mainPipeline.Jobs, verifyJobs...)
