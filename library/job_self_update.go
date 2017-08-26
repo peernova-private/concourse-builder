@@ -25,18 +25,14 @@ func SelfUpdateJob(args *SelfUpdateJobArgs) *project.Job {
 		Image:    flyImageResource,
 		Run: &Location{
 			Volume: &Directory{
-				Root: "/bin",
+				Root: "/bin/fly",
 			},
 			RelativePath: "check_version.sh",
 		},
-		Environment: map[string]interface{}{
-			"CONCOURSE_URL": args.Concourse.URL,
-		},
+		Environment: map[string]interface{}{},
 	}
 
-	if args.Concourse.Insecure {
-		taskCheck.Environment["INSECURE"] = "true"
-	}
+	args.Concourse.PublicAccessEnvironment(taskCheck.Environment)
 
 	args.ResourceRegistry.MustRegister(GoImage)
 
@@ -68,7 +64,7 @@ func SelfUpdateJob(args *SelfUpdateJobArgs) *project.Job {
 		Image:    flyImageResource,
 		Run: &Location{
 			Volume: &Directory{
-				Root: "/bin",
+				Root: "/bin/fly",
 			},
 			RelativePath: "set_pipelines.sh",
 		},
@@ -76,15 +72,9 @@ func SelfUpdateJob(args *SelfUpdateJobArgs) *project.Job {
 			"PIPELINES": &Location{
 				Volume: pipelinesDir,
 			},
-			"CONCOURSE_URL":      args.Concourse.URL,
-			"CONCOURSE_USER":     args.Concourse.User,
-			"CONCOURSE_PASSWORD": args.Concourse.Password,
 		},
 	}
-
-	if args.Concourse.Insecure {
-		taskUpdate.Environment["INSECURE"] = "true"
-	}
+	args.Concourse.Environment(taskUpdate.Environment)
 
 	updateJob := &project.Job{
 		Name:   project.JobName("self-update"),

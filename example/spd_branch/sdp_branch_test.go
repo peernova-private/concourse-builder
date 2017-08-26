@@ -138,7 +138,7 @@ jobs:
       params:
         CONCOURSE_URL: http://concourse.com
       run:
-        path: /bin/check_version.sh
+        path: /bin/fly/check_version.sh
   - task: prepare pipelines
     image: go-image
     config:
@@ -165,7 +165,7 @@ jobs:
         CONCOURSE_USER: user
         PIPELINES: pipelines
       run:
-        path: /bin/set_pipelines.sh
+        path: /bin/fly/set_pipelines.sh
 `
 
 func TestSdpBranch(t *testing.T) {

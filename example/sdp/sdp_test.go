@@ -207,7 +207,7 @@ jobs:
         GIT_REPO_DIR: target-git
         OUTPUT_DIR: branches
       run:
-        path: /bin/obtain_branches.sh
+        path: /bin/git/obtain_branches.sh
       outputs:
       - name: branches
         path: branches
@@ -239,7 +239,7 @@ jobs:
         CONCOURSE_USER: user
         PIPELINES: pipelines
       run:
-        path: /bin/create_missing_pipelines.sh
+        path: /bin/fly/create_missing_pipelines.sh
   - task: remove not needed pipelines
     image: fly-image
     config:
@@ -254,7 +254,7 @@ jobs:
         PIPELINE_REGEX: .*-sdpb$
         PIPELINES: pipelines
       run:
-        path: /bin/remove_not_needed_pipelines.sh
+        path: /bin/fly/remove_not_needed_pipelines.sh
 - name: self-update
   plan:
   - aggregate:
@@ -276,7 +276,7 @@ jobs:
       params:
         CONCOURSE_URL: http://concourse.com
       run:
-        path: /bin/check_version.sh
+        path: /bin/fly/check_version.sh
   - task: prepare pipelines
     image: go-image
     config:
@@ -303,7 +303,7 @@ jobs:
         CONCOURSE_USER: user
         PIPELINES: pipelines
       run:
-        path: /bin/set_pipelines.sh
+        path: /bin/fly/set_pipelines.sh
 `
 
 func TestSdp(t *testing.T) {
