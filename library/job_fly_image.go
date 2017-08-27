@@ -3,13 +3,14 @@ package library
 import (
 	"fmt"
 
+	"github.com/concourse-friends/concourse-builder/library/primitive"
 	"github.com/concourse-friends/concourse-builder/project"
 	"github.com/concourse-friends/concourse-builder/resource"
 )
 
 type FlyImageJobArgs struct {
 	*CurlImageJobArgs
-	Concourse *Concourse
+	Concourse *primitive.Concourse
 }
 
 func FlyImageJob(args *FlyImageJobArgs) (*project.Resource, *project.Job) {
@@ -33,7 +34,7 @@ func FlyImageJob(args *FlyImageJobArgs) (*project.Resource, *project.Job) {
 
 	RegisterConcourseBuilderGit(args.ResourceRegistry, args.ConcourseBuilderGitSource)
 
-	dockerSteps := &Location{
+	dockerSteps := &primitive.Location{
 		Volume: &project.JobResource{
 			Name:    ConcourseBuilderGitName,
 			Trigger: true,

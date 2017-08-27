@@ -2,18 +2,21 @@ package sdpBranchExample
 
 import (
 	"github.com/concourse-friends/concourse-builder/library"
+	"github.com/concourse-friends/concourse-builder/library/primitive"
 	"github.com/concourse-friends/concourse-builder/project"
 )
 
 type testSpecification struct {
 }
 
-func (s *testSpecification) Branch() string {
-	return "target_branch"
+func (s *testSpecification) Branch() *primitive.GitBranch {
+	return &primitive.GitBranch{
+		Branch: "target_branch",
+	}
 }
 
-func (s *testSpecification) Concourse() (*library.Concourse, error) {
-	return &library.Concourse{
+func (s *testSpecification) Concourse() (*primitive.Concourse, error) {
+	return &primitive.Concourse{
 		URL:      "http://concourse.com",
 		User:     "user",
 		Password: "password",
@@ -39,7 +42,7 @@ func (s *testSpecification) ConcourseBuilderGitSource() (*library.GitSource, err
 }
 
 func (s *testSpecification) GenerateProjectLocation(resourceRegistry *project.ResourceRegistry) (project.IRun, error) {
-	return &library.Location{
+	return &primitive.Location{
 		Volume: &project.JobResource{
 			Name:    library.ConcourseBuilderGitName,
 			Trigger: true,

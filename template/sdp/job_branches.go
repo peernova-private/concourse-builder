@@ -2,6 +2,7 @@ package sdp
 
 import (
 	"github.com/concourse-friends/concourse-builder/library"
+	"github.com/concourse-friends/concourse-builder/library/primitive"
 	"github.com/concourse-friends/concourse-builder/model"
 	"github.com/concourse-friends/concourse-builder/project"
 	"github.com/concourse-friends/concourse-builder/resource"
@@ -15,7 +16,7 @@ type BranchesJobArgs struct {
 	GenerateProjectLocation project.IRun
 }
 
-func taskObtainBranches(args *BranchesJobArgs, branchesDir *library.TaskOutput) *project.TaskStep {
+func taskObtainBranches(args *BranchesJobArgs, branchesDir *project.TaskOutput) *project.TaskStep {
 	gitImage, _ := library.GitImageJob(args.GitImageJobArgs)
 
 	gitImageResource := &project.JobResource{
@@ -40,7 +41,7 @@ func taskObtainBranches(args *BranchesJobArgs, branchesDir *library.TaskOutput) 
 	}
 
 	environment := map[string]interface{}{
-		"GIT_REPO_DIR": &library.Location{
+		"GIT_REPO_DIR": &primitive.Location{
 			Volume: targetGitJobResource,
 		},
 		"GIT_PRIVATE_KEY": args.TargetGitRepo.PrivateKey,
@@ -51,8 +52,8 @@ func taskObtainBranches(args *BranchesJobArgs, branchesDir *library.TaskOutput) 
 		Platform: model.LinuxPlatform,
 		Name:     "obtain branches",
 		Image:    gitImageResource,
-		Run: &library.Location{
-			Volume: &library.Directory{
+		Run: &primitive.Location{
+			Volume: &primitive.Directory{
 				Root: "/bin/git",
 			},
 			RelativePath: "obtain_branches.sh",
@@ -67,7 +68,7 @@ func taskObtainBranches(args *BranchesJobArgs, branchesDir *library.TaskOutput) 
 	return task
 }
 
-func taskPreparePipelines(args *BranchesJobArgs, branchesDir *library.TaskOutput, pipelinesDir *library.TaskOutput) *project.TaskStep {
+func taskPreparePipelines(args *BranchesJobArgs, branchesDir *project.TaskOutput, pipelinesDir *project.TaskOutput) *project.TaskStep {
 	args.GitImageJobArgs.ResourceRegistry.MustRegister(library.GoImage)
 
 	goImageResource := &project.JobResource{
@@ -80,7 +81,7 @@ func taskPreparePipelines(args *BranchesJobArgs, branchesDir *library.TaskOutput
 		params[k] = v
 	}
 
-	params[BranchesFileEnvVar] = &library.Location{
+	params[BranchesFileEnvVar] = &primitive.Location{
 		Volume:       branchesDir,
 		RelativePath: "branches",
 	}
@@ -99,7 +100,7 @@ func taskPreparePipelines(args *BranchesJobArgs, branchesDir *library.TaskOutput
 	return task
 }
 
-func taskCreateMissingPipelines(args *BranchesJobArgs, pipelinesDir *library.TaskOutput) *project.TaskStep {
+func taskCreateMissingPipelines(args *BranchesJobArgs, pipelinesDir *project.TaskOutput) *project.TaskStep {
 	flyImage, _ := library.FlyImageJob(args.FlyImageJobArgs)
 
 	flyImageResource := &project.JobResource{
@@ -111,14 +112,14 @@ func taskCreateMissingPipelines(args *BranchesJobArgs, pipelinesDir *library.Tas
 		Platform: model.LinuxPlatform,
 		Name:     "create missing pipelines",
 		Image:    flyImageResource,
-		Run: &library.Location{
-			Volume: &library.Directory{
+		Run: &primitive.Location{
+			Volume: &primitive.Directory{
 				Root: "/bin/fly",
 			},
 			RelativePath: "create_missing_pipelines.sh",
 		},
 		Environment: map[string]interface{}{
-			"PIPELINES": &library.Location{
+			"PIPELINES": &primitive.Location{
 				Volume: pipelinesDir,
 			},
 		},
@@ -129,7 +130,7 @@ func taskCreateMissingPipelines(args *BranchesJobArgs, pipelinesDir *library.Tas
 	return task
 }
 
-func taskRemoveNotNeededPipelines(args *BranchesJobArgs, pipelinesDir *library.TaskOutput, branchesDir *library.TaskOutput) *project.TaskStep {
+func taskRemoveNotNeededPipelines(args *BranchesJobArgs, pipelinesDir *project.TaskOutput, branchesDir *project.TaskOutput) *project.TaskStep {
 	flyImage, _ := library.FlyImageJob(args.FlyImageJobArgs)
 
 	flyImageResource := &project.JobResource{
@@ -141,14 +142,14 @@ func taskRemoveNotNeededPipelines(args *BranchesJobArgs, pipelinesDir *library.T
 		Platform: model.LinuxPlatform,
 		Name:     "remove not needed pipelines",
 		Image:    flyImageResource,
-		Run: &library.Location{
-			Volume: &library.Directory{
+		Run: &primitive.Location{
+			Volume: &primitive.Directory{
 				Root: "/bin/fly",
 			},
 			RelativePath: "remove_not_needed_pipelines.sh",
 		},
 		Environment: map[string]interface{}{
-			"PIPELINES": &library.Location{
+			"PIPELINES": &primitive.Location{
 				Volume: pipelinesDir,
 			},
 			"BRANCHES_DIR":   branchesDir.Path(),
@@ -162,13 +163,13 @@ func taskRemoveNotNeededPipelines(args *BranchesJobArgs, pipelinesDir *library.T
 }
 
 func BranchesJob(args *BranchesJobArgs) *project.Job {
-	branchesDir := &library.TaskOutput{
+	branchesDir := &project.TaskOutput{
 		Directory: "branches",
 	}
 
 	taskObtainBranches := taskObtainBranches(args, branchesDir)
 
-	pipelinesDir := &library.TaskOutput{
+	pipelinesDir := &project.TaskOutput{
 		Directory: "pipelines",
 	}
 

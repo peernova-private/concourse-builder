@@ -10,6 +10,11 @@ import (
 )
 
 var expected = `groups:
+- name: all
+  jobs:
+  - curl-image
+  - fly-image
+  - self-update
 - name: images
   jobs:
   - curl-image
@@ -18,11 +23,6 @@ var expected = `groups:
   jobs:
   - curl-image
   - fly-image
-- name: all
-  jobs:
-  - curl-image
-  - fly-image
-  - self-update
 resources:
 - name: concourse-builder-git
   type: git

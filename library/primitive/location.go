@@ -1,4 +1,4 @@
-package library
+package primitive
 
 import (
 	"path"
@@ -28,7 +28,7 @@ func (l *Location) InputResources() project.JobResources {
 }
 
 func (l *Location) OutputName() string {
-	if output, ok := l.Volume.(*TaskOutput); ok {
+	if output, ok := l.Volume.(*project.TaskOutput); ok {
 		return output.Name()
 	}
 	if res, ok := l.Volume.(*project.JobResource); ok {

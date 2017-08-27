@@ -13,14 +13,13 @@ type Specification interface {
 
 func GenerateProject(specification Specification) (*project.Project, error) {
 	mainPipeline := project.NewPipeline()
-	mainPipeline.AllJobsGroup = project.AllJobsGroupLast
+	mainPipeline.AllJobsGroup = project.AllJobsGroupFirst
+	mainPipeline.Name = project.ConvertToPipelineName(specification.Branch().Name() + "-sdpb")
 
 	concourseBuilderGitSource, err := specification.ConcourseBuilderGitSource()
 	if err != nil {
 		return nil, err
 	}
-
-	mainPipeline.Name = project.ConvertToPipelineName(concourseBuilderGitSource.Branch + "-sdpb")
 
 	imageRegistry, err := specification.DeployImageRegistry()
 	if err != nil {

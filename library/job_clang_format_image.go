@@ -1,6 +1,7 @@
 package library
 
 import (
+	"github.com/concourse-friends/concourse-builder/library/primitive"
 	"github.com/concourse-friends/concourse-builder/project"
 	"github.com/concourse-friends/concourse-builder/resource"
 )
@@ -29,7 +30,7 @@ func CLangFormatImageJob(args *CLangFormatImageJobArgs) (*project.Resource, *pro
 		},
 	}
 
-	dockerSteps := &Location{
+	dockerSteps := &primitive.Location{
 		Volume: &project.JobResource{
 			Name:    ConcourseBuilderGitName,
 			Trigger: true,

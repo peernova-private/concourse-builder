@@ -1,4 +1,4 @@
-package library
+package primitive
 
 type Concourse struct {
 	// The URL of the concourse instance

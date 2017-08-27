@@ -1,6 +1,7 @@
 package library
 
 import (
+	"github.com/concourse-friends/concourse-builder/library/primitive"
 	"github.com/concourse-friends/concourse-builder/project"
 	"github.com/concourse-friends/concourse-builder/resource"
 )
@@ -28,7 +29,7 @@ func GitImageJob(args *GitImageJobArgs) (*project.Resource, *project.Job) {
 		},
 	}
 
-	dockerSteps := &Location{
+	dockerSteps := &primitive.Location{
 		Volume: &project.JobResource{
 			Name:    ConcourseBuilderGitName,
 			Trigger: true,

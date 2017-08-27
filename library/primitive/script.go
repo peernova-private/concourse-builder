@@ -1,4 +1,4 @@
-package library
+package primitive
 
 import "github.com/concourse-friends/concourse-builder/project"
 
