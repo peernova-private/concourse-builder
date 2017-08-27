@@ -8,15 +8,16 @@ import (
 	"strings"
 
 	"github.com/concourse-friends/concourse-builder/library"
+	"github.com/concourse-friends/concourse-builder/library/primitive"
 	"github.com/concourse-friends/concourse-builder/project"
 	"github.com/concourse-friends/concourse-builder/template/sdp_branch"
 )
 
 type Specification interface {
-	Concourse() (*library.Concourse, error)
+	Concourse() (*primitive.Concourse, error)
 	DeployImageRegistry() (*library.ImageRegistry, error)
 	ConcourseBuilderGitSource() (*library.GitSource, error)
-	GenerateProjectLocation(resourceRegistry *project.ResourceRegistry, overrideBranch string) (project.IRun, error)
+	GenerateProjectLocation(resourceRegistry *project.ResourceRegistry, branch *primitive.GitBranch) (project.IRun, error)
 	TargetGitRepo() (*library.GitRepo, error)
 	Environment() (map[string]interface{}, error)
 }
@@ -43,17 +44,18 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 		return nil, err
 	}
 
-	re := regexp.MustCompile("master|release/.*|feature/.*|task/.*")
+	re := regexp.MustCompile(`master|release/.*|feature/.*|task/.*`)
 
 	for _, branch := range branches {
 		if !re.MatchString(branch) {
+			log.Printf("Branch %s does not match the expected protocol %s", branch, re.String())
 			continue
 		}
 		log.Printf("Preparing pipeline for branch %s", branch)
 
 		branchSpecification := &BranchBootstrapSpecification{
 			Specification: specification,
-			TargetBranch:  branch,
+			TargetBranch:  &primitive.GitBranch{Branch: branch},
 		}
 
 		project, err := sdpBranch.GenerateBootstrapProject(branchSpecification)
@@ -84,7 +86,7 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 		return nil, err
 	}
 
-	generateProjectLocation, err := specification.GenerateProjectLocation(mainPipeline.ResourceRegistry, "")
+	generateProjectLocation, err := specification.GenerateProjectLocation(mainPipeline.ResourceRegistry, nil)
 	if err != nil {
 		return nil, err
 	}

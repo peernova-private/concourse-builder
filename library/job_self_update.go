@@ -1,6 +1,7 @@
 package library
 
 import (
+	"github.com/concourse-friends/concourse-builder/library/primitive"
 	"github.com/concourse-friends/concourse-builder/model"
 	"github.com/concourse-friends/concourse-builder/project"
 )
@@ -23,8 +24,8 @@ func SelfUpdateJob(args *SelfUpdateJobArgs) *project.Job {
 		Platform: model.LinuxPlatform,
 		Name:     "check",
 		Image:    flyImageResource,
-		Run: &Location{
-			Volume: &Directory{
+		Run: &primitive.Location{
+			Volume: &primitive.Directory{
 				Root: "/bin/fly",
 			},
 			RelativePath: "check_version.sh",
@@ -41,7 +42,7 @@ func SelfUpdateJob(args *SelfUpdateJobArgs) *project.Job {
 		Trigger: true,
 	}
 
-	pipelinesDir := &TaskOutput{
+	pipelinesDir := &project.TaskOutput{
 		Directory: "pipelines",
 	}
 
@@ -62,14 +63,14 @@ func SelfUpdateJob(args *SelfUpdateJobArgs) *project.Job {
 		Platform: model.LinuxPlatform,
 		Name:     "update pipelines",
 		Image:    flyImageResource,
-		Run: &Location{
-			Volume: &Directory{
+		Run: &primitive.Location{
+			Volume: &primitive.Directory{
 				Root: "/bin/fly",
 			},
 			RelativePath: "set_pipelines.sh",
 		},
 		Environment: map[string]interface{}{
-			"PIPELINES": &Location{
+			"PIPELINES": &primitive.Location{
 				Volume: pipelinesDir,
 			},
 		},

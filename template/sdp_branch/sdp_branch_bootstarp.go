@@ -2,12 +2,13 @@ package sdpBranch
 
 import (
 	"github.com/concourse-friends/concourse-builder/library"
+	"github.com/concourse-friends/concourse-builder/library/primitive"
 	"github.com/concourse-friends/concourse-builder/project"
 )
 
 type BootstrapSpecification interface {
-	Branch() string
-	Concourse() (*library.Concourse, error)
+	Branch() *primitive.GitBranch
+	Concourse() (*primitive.Concourse, error)
 	DeployImageRegistry() (*library.ImageRegistry, error)
 	ConcourseBuilderGitSource() (*library.GitSource, error)
 	GenerateProjectLocation(resourceRegistry *project.ResourceRegistry) (project.IRun, error)
@@ -16,8 +17,8 @@ type BootstrapSpecification interface {
 
 func GenerateBootstrapProject(specification BootstrapSpecification) (*project.Project, error) {
 	mainPipeline := project.NewPipeline()
-	mainPipeline.AllJobsGroup = project.AllJobsGroupLast
-	mainPipeline.Name = project.ConvertToPipelineName(specification.Branch() + "-sdpb")
+	mainPipeline.AllJobsGroup = project.AllJobsGroupFirst
+	mainPipeline.Name = project.ConvertToPipelineName(specification.Branch().Name() + "-sdpb")
 
 	concourseBuilderGitSource, err := specification.ConcourseBuilderGitSource()
 	if err != nil {

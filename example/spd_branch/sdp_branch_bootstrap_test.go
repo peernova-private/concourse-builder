@@ -10,7 +10,11 @@ import (
 )
 
 var expectedBootstrap = `groups:
-- name: images
+- name: all
+  jobs:
+  - curl-image
+  - fly-image
+  - self-update- name: images
   jobs:
   - curl-image
   - fly-image
@@ -18,11 +22,6 @@ var expectedBootstrap = `groups:
   jobs:
   - curl-image
   - fly-image
-- name: all
-  jobs:
-  - curl-image
-  - fly-image
-  - self-update
 resources:
 - name: concourse-builder-git
   type: git

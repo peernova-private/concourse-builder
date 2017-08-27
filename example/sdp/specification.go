@@ -2,14 +2,15 @@ package sdpExample
 
 import (
 	"github.com/concourse-friends/concourse-builder/library"
+	"github.com/concourse-friends/concourse-builder/library/primitive"
 	"github.com/concourse-friends/concourse-builder/project"
 )
 
 type testSpecification struct {
 }
 
-func (s *testSpecification) Concourse() (*library.Concourse, error) {
-	return &library.Concourse{
+func (s *testSpecification) Concourse() (*primitive.Concourse, error) {
+	return &primitive.Concourse{
 		URL:      "http://concourse.com",
 		User:     "user",
 		Password: "password",
@@ -41,8 +42,8 @@ func (s *testSpecification) TargetGitRepo() (*library.GitRepo, error) {
 	}, nil
 }
 
-func (s *testSpecification) GenerateProjectLocation(resourceRegistry *project.ResourceRegistry, overrideBranch string) (project.IRun, error) {
-	return &library.Location{
+func (s *testSpecification) GenerateProjectLocation(resourceRegistry *project.ResourceRegistry, overrideBranch *primitive.GitBranch) (project.IRun, error) {
+	return &primitive.Location{
 		Volume: &project.JobResource{
 			Name:    library.ConcourseBuilderGitName,
 			Trigger: true,

@@ -1,6 +1,7 @@
 package library
 
 import (
+	"github.com/concourse-friends/concourse-builder/library/primitive"
 	"github.com/concourse-friends/concourse-builder/model"
 	"github.com/concourse-friends/concourse-builder/project"
 	"github.com/concourse-friends/concourse-builder/resource"
@@ -26,7 +27,7 @@ func BuildImage(prepare *project.Resource, from *project.Resource, args *BuildIm
 		Name: args.Image,
 	}
 
-	preparedDir := &TaskOutput{
+	preparedDir := &project.TaskOutput{
 		Directory: "prepared",
 	}
 
@@ -39,7 +40,7 @@ func BuildImage(prepare *project.Resource, from *project.Resource, args *BuildIm
 		Platform: model.LinuxPlatform,
 		Name:     "prepare",
 		Image:    prepareImageResource,
-		Run: &Location{
+		Run: &primitive.Location{
 			Volume: &project.JobResource{
 				Name:    ConcourseBuilderGitName,
 				Trigger: true,
@@ -78,7 +79,7 @@ func BuildImage(prepare *project.Resource, from *project.Resource, args *BuildIm
 		Params: &ImagePutParams{
 			FromImage: fromImageResource,
 			Load:      !public,
-			Build: &Location{
+			Build: &primitive.Location{
 				RelativePath: preparedDir.Path(),
 			},
 			BuildArgs: args.BuildArgs,

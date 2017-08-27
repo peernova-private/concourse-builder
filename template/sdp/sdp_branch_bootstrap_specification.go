@@ -2,19 +2,20 @@ package sdp
 
 import (
 	"github.com/concourse-friends/concourse-builder/library"
+	"github.com/concourse-friends/concourse-builder/library/primitive"
 	"github.com/concourse-friends/concourse-builder/project"
 )
 
 type BranchBootstrapSpecification struct {
 	Specification Specification
-	TargetBranch  string
+	TargetBranch  *primitive.GitBranch
 }
 
-func (bbs *BranchBootstrapSpecification) Branch() string {
+func (bbs *BranchBootstrapSpecification) Branch() *primitive.GitBranch {
 	return bbs.TargetBranch
 }
 
-func (bbs *BranchBootstrapSpecification) Concourse() (*library.Concourse, error) {
+func (bbs *BranchBootstrapSpecification) Concourse() (*primitive.Concourse, error) {
 	return bbs.Specification.Concourse()
 }
 
@@ -31,5 +32,10 @@ func (bbs *BranchBootstrapSpecification) GenerateProjectLocation(resourceRegistr
 }
 
 func (bbs *BranchBootstrapSpecification) Environment() (map[string]interface{}, error) {
-	return bbs.Specification.Environment()
+	enviroment, err := bbs.Specification.Environment()
+	if err != nil {
+		return nil, err
+	}
+	enviroment["BRANCH"] = bbs.TargetBranch.Name()
+	return enviroment, nil
 }

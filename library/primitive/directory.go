@@ -1,4 +1,4 @@
-package library
+package primitive
 
 type Directory struct {
 	Root string

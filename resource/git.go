@@ -20,6 +20,10 @@ type GitSource struct {
 
 	// Which paths to be excluded from being checked
 	IgnorePaths []string `yaml:"ignore_paths,omitempty"`
+
+	// Optional. If specified as (list of pairs name and value) it will configure git global options,
+	// setting each name with each value.
+	GitConfig map[string]interface{} `yaml:"git_config,omitempty"`
 }
 
 // Git resource type
