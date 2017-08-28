@@ -4,16 +4,24 @@ import (
 	"github.com/concourse-friends/concourse-builder/library/primitive"
 	"github.com/concourse-friends/concourse-builder/model"
 	"github.com/concourse-friends/concourse-builder/project"
+	"github.com/jinzhu/copier"
 )
 
 type SelfUpdateJobArgs struct {
-	*FlyImageJobArgs
-	Environment             map[string]interface{}
-	GenerateProjectLocation project.IRun
+	ConcourseBuilderGitSource *GitSource
+	ImageRegistry             *ImageRegistry
+	ResourceRegistry          *project.ResourceRegistry
+	Tag                       ImageTag
+	Concourse                 *primitive.Concourse
+	Environment               map[string]interface{}
+	GenerateProjectLocation   project.IRun
 }
 
 func SelfUpdateJob(args *SelfUpdateJobArgs) *project.Job {
-	flyImage, _ := FlyImageJob(args.FlyImageJobArgs)
+	flyImageJobArgs := &FlyImageJobArgs{}
+	copier.Copy(flyImageJobArgs, args)
+
+	flyImage, _ := FlyImageJob(flyImageJobArgs)
 
 	flyImageResource := &project.JobResource{
 		Name:    flyImage.Name,

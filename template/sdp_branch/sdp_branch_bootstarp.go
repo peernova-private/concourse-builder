@@ -46,17 +46,13 @@ func GenerateBootstrapProject(specification BootstrapSpecification) (*project.Pr
 	}
 
 	selfUpdateJob := library.SelfUpdateJob(&library.SelfUpdateJobArgs{
-		FlyImageJobArgs: &library.FlyImageJobArgs{
-			CurlImageJobArgs: &library.CurlImageJobArgs{
-				ConcourseBuilderGitSource: concourseBuilderGitSource,
-				ImageRegistry:             imageRegistry,
-				ResourceRegistry:          mainPipeline.ResourceRegistry,
-				Tag:                       library.ConvertToImageTag(concourseBuilderGitSource.Branch),
-			},
-			Concourse: concourse,
-		},
-		Environment:             environment,
-		GenerateProjectLocation: generateProjectLocation,
+		ConcourseBuilderGitSource: concourseBuilderGitSource,
+		ImageRegistry:             imageRegistry,
+		ResourceRegistry:          mainPipeline.ResourceRegistry,
+		Tag:                       library.ConvertToImageTag(concourseBuilderGitSource.Branch),
+		Concourse:                 concourse,
+		Environment:               environment,
+		GenerateProjectLocation:   generateProjectLocation,
 	})
 
 	mainPipeline.Jobs = project.Jobs{

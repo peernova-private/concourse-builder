@@ -44,11 +44,12 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 		return nil, err
 	}
 
-	re := regexp.MustCompile(`master|release/.*|feature/.*|task/.*`)
+	reInclude := regexp.MustCompile(`master|release/.*|feature/.*|task/.*`)
+	reExclude := regexp.MustCompile(`task/.*?-pr$`)
 
 	for _, branch := range branches {
-		if !re.MatchString(branch) {
-			log.Printf("Branch %s does not match the expected protocol %s", branch, re.String())
+		if !reInclude.MatchString(branch) || reExclude.MatchString(branch) {
+			log.Printf("Branch %s does not fit the expected name protocol", branch)
 			continue
 		}
 		log.Printf("Preparing pipeline for branch %s", branch)
@@ -96,22 +97,14 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 		return nil, err
 	}
 
-	curlImageJobArgs := &library.CurlImageJobArgs{
+	selfUpdateJob := library.SelfUpdateJob(&library.SelfUpdateJobArgs{
 		ConcourseBuilderGitSource: concourseBuilderGitSource,
 		ImageRegistry:             imageRegistry,
 		ResourceRegistry:          mainPipeline.ResourceRegistry,
 		Tag:                       library.ConvertToImageTag(concourseBuilderGitSource.Branch),
-	}
-
-	flyImageJobArgs := &library.FlyImageJobArgs{
-		CurlImageJobArgs: curlImageJobArgs,
-		Concourse:        concourse,
-	}
-
-	selfUpdateJob := library.SelfUpdateJob(&library.SelfUpdateJobArgs{
-		FlyImageJobArgs:         flyImageJobArgs,
-		Environment:             environment,
-		GenerateProjectLocation: generateProjectLocation,
+		Concourse:                 concourse,
+		Environment:               environment,
+		GenerateProjectLocation:   generateProjectLocation,
 	})
 
 	targetGit, err := specification.TargetGitRepo()
@@ -120,13 +113,14 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 	}
 
 	branchesJob := BranchesJob(&BranchesJobArgs{
-		GitImageJobArgs: &library.GitImageJobArgs{
-			CurlImageJobArgs: curlImageJobArgs,
-		},
-		FlyImageJobArgs:         flyImageJobArgs,
-		TargetGitRepo:           targetGit,
-		Environment:             environment,
-		GenerateProjectLocation: generateProjectLocation,
+		ConcourseBuilderGitSource: concourseBuilderGitSource,
+		ImageRegistry:             imageRegistry,
+		ResourceRegistry:          mainPipeline.ResourceRegistry,
+		Tag:                       library.ConvertToImageTag(concourseBuilderGitSource.Branch),
+		Concourse:                 concourse,
+		TargetGitRepo:             targetGit,
+		Environment:               environment,
+		GenerateProjectLocation:   generateProjectLocation,
 	})
 
 	mainPipeline.Jobs = project.Jobs{

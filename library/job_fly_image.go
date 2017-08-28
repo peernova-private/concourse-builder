@@ -6,11 +6,15 @@ import (
 	"github.com/concourse-friends/concourse-builder/library/primitive"
 	"github.com/concourse-friends/concourse-builder/project"
 	"github.com/concourse-friends/concourse-builder/resource"
+	"github.com/jinzhu/copier"
 )
 
 type FlyImageJobArgs struct {
-	*CurlImageJobArgs
-	Concourse *primitive.Concourse
+	ConcourseBuilderGitSource *GitSource
+	ImageRegistry             *ImageRegistry
+	ResourceRegistry          *project.ResourceRegistry
+	Tag                       ImageTag
+	Concourse                 *primitive.Concourse
 }
 
 func FlyImageJob(args *FlyImageJobArgs) (*project.Resource, *project.Job) {
@@ -20,7 +24,10 @@ func FlyImageJob(args *FlyImageJobArgs) (*project.Resource, *project.Job) {
 		return image, image.NeededJobs[0]
 	}
 
-	curlImage, _ := CurlImageJob(args.CurlImageJobArgs)
+	curlImageJobArgs := &CurlImageJobArgs{}
+	copier.Copy(curlImageJobArgs, args)
+
+	curlImage, _ := CurlImageJob(curlImageJobArgs)
 
 	image = &project.Resource{
 		Name: resourceName,
