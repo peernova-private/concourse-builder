@@ -10,6 +10,10 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+type IInputResource interface {
+	InputResources() JobResources
+}
+
 type Resource struct {
 	// The name of the resource
 	Name ResourceName

@@ -26,6 +26,11 @@ type GitSource struct {
 	GitConfig map[string]interface{} `yaml:"git_config,omitempty"`
 }
 
+type GitPutParams struct {
+	Repository string `yaml:",omitempty"`
+	Force      bool   `yaml:",omitempty"`
+}
+
 // Git resource type
 var GitResourceType = &model.ResourceType{
 	// The name

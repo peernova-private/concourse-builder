@@ -8,7 +8,6 @@ import (
 )
 
 type IRun interface {
-	InputResources() JobResources
 	Path() string
 }
 
@@ -17,28 +16,16 @@ type IOutput interface {
 	Path() string
 }
 
+type ITaskInput interface {
+	OutputName() string
+}
+
 type IEnvironmentValue interface {
 	Value() interface{}
 }
 
-type IEnvironmentInput interface {
-	OutputName() string
-}
-
-type IEnvironmentResource interface {
-	InputResources() JobResources
-}
-
 type ITaskDirectory interface {
 	Path() string
-}
-
-type ITaskDirectoryResource interface {
-	InputResources() JobResources
-}
-
-type IArgumentResource interface {
-	InputResources() JobResources
 }
 
 type TaskStep struct {
@@ -91,10 +78,17 @@ func (ts *TaskStep) Model() (model.IStep, error) {
 		inputsMap[string(inputResource.Name)] = struct{}{}
 	}
 
+	if directory, ok := ts.Directory.(ITaskInput); ok {
+		name := directory.OutputName()
+		if name != "" {
+			inputsMap[name] = struct{}{}
+		}
+	}
+
 	// TODO: revisit this one
 	for _, value := range ts.Environment {
-		if param, ok := value.(IEnvironmentInput); ok {
-			name := param.OutputName()
+		if variable, ok := value.(ITaskInput); ok {
+			name := variable.OutputName()
 			if name != "" {
 				inputsMap[name] = struct{}{}
 			}
@@ -134,21 +128,22 @@ func (ts *TaskStep) Model() (model.IStep, error) {
 func (ts *TaskStep) ExecutionResources() (JobResources, error) {
 	var resources JobResources
 
-	locationResources := ts.Run.InputResources()
-	resources = append(resources, locationResources...)
+	if locationResources, ok := ts.Run.(IInputResource); ok {
+		resources = append(resources, locationResources.InputResources()...)
+	}
 
 	for _, value := range ts.Environment {
-		if variable, ok := value.(IEnvironmentResource); ok {
+		if variable, ok := value.(IInputResource); ok {
 			resources = append(resources, variable.InputResources()...)
 		}
 	}
 
-	if directory, ok := ts.Directory.(ITaskDirectoryResource); ok {
+	if directory, ok := ts.Directory.(IInputResource); ok {
 		resources = append(resources, directory.InputResources()...)
 	}
 
 	for _, argument := range ts.Arguments {
-		if argResource, ok := argument.(IArgumentResource); ok {
+		if argResource, ok := argument.(IInputResource); ok {
 			resources = append(resources, argResource.InputResources()...)
 		}
 	}

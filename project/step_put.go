@@ -5,7 +5,6 @@ import (
 )
 
 type IPutParams interface {
-	InputResources() (JobResources, error)
 	ModelParams() interface{}
 }
 
@@ -37,11 +36,9 @@ func (ps *PutStep) InputResources() (JobResources, error) {
 	var resources JobResources
 
 	if ps.Params != nil {
-		inputResources, err := ps.Params.InputResources()
-		if err != nil {
-			return nil, err
+		if res, ok := ps.Params.(IInputResource); ok {
+			resources = append(resources, res.InputResources()...)
 		}
-		resources = append(resources, inputResources...)
 	}
 
 	return resources, nil

@@ -2,11 +2,17 @@ package project
 
 import (
 	"sort"
+	"strings"
 
 	"github.com/concourse-friends/concourse-builder/model"
 )
 
 type ResourceName string
+
+func ConvertToResourceName(raw string) ResourceName {
+	name := strings.Replace(raw, "/", "_", -1)
+	return ResourceName(name)
+}
 
 type IJobResourceSource interface {
 	ModelSource() interface{}

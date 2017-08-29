@@ -6,18 +6,25 @@ import (
 	"github.com/concourse-friends/concourse-builder/model"
 	"github.com/concourse-friends/concourse-builder/project"
 	"github.com/concourse-friends/concourse-builder/resource"
+	"github.com/jinzhu/copier"
 )
 
 type BranchesJobArgs struct {
-	*library.GitImageJobArgs
-	*library.FlyImageJobArgs
-	TargetGitRepo           *library.GitRepo
-	Environment             map[string]interface{}
-	GenerateProjectLocation project.IRun
+	ConcourseBuilderGitSource *library.GitSource
+	ImageRegistry             *library.ImageRegistry
+	ResourceRegistry          *project.ResourceRegistry
+	Tag                       library.ImageTag
+	Concourse                 *primitive.Concourse
+	TargetGitRepo             *library.GitRepo
+	Environment               map[string]interface{}
+	GenerateProjectLocation   project.IRun
 }
 
 func taskObtainBranches(args *BranchesJobArgs, branchesDir *project.TaskOutput) *project.TaskStep {
-	gitImage, _ := library.GitImageJob(args.GitImageJobArgs)
+	gitImageJobArgs := &library.GitImageJobArgs{}
+	copier.Copy(gitImageJobArgs, args)
+
+	gitImage, _ := library.GitImageJob(gitImageJobArgs)
 
 	gitImageResource := &project.JobResource{
 		Name:    gitImage.Name,
@@ -33,7 +40,7 @@ func taskObtainBranches(args *BranchesJobArgs, branchesDir *project.TaskOutput) 
 		},
 	}
 
-	args.GitImageJobArgs.ResourceRegistry.MustRegister(targetGitResource)
+	args.ResourceRegistry.MustRegister(targetGitResource)
 
 	targetGitJobResource := &project.JobResource{
 		Name:    targetGitResource.Name,
@@ -69,7 +76,7 @@ func taskObtainBranches(args *BranchesJobArgs, branchesDir *project.TaskOutput) 
 }
 
 func taskPreparePipelines(args *BranchesJobArgs, branchesDir *project.TaskOutput, pipelinesDir *project.TaskOutput) *project.TaskStep {
-	args.GitImageJobArgs.ResourceRegistry.MustRegister(library.GoImage)
+	args.ResourceRegistry.MustRegister(library.GoImage)
 
 	goImageResource := &project.JobResource{
 		Name:    library.GoImage.Name,
@@ -101,7 +108,10 @@ func taskPreparePipelines(args *BranchesJobArgs, branchesDir *project.TaskOutput
 }
 
 func taskCreateMissingPipelines(args *BranchesJobArgs, pipelinesDir *project.TaskOutput) *project.TaskStep {
-	flyImage, _ := library.FlyImageJob(args.FlyImageJobArgs)
+	flyImageJobArgs := &library.FlyImageJobArgs{}
+	copier.Copy(flyImageJobArgs, args)
+
+	flyImage, _ := library.FlyImageJob(flyImageJobArgs)
 
 	flyImageResource := &project.JobResource{
 		Name:    flyImage.Name,
@@ -131,7 +141,10 @@ func taskCreateMissingPipelines(args *BranchesJobArgs, pipelinesDir *project.Tas
 }
 
 func taskRemoveNotNeededPipelines(args *BranchesJobArgs, pipelinesDir *project.TaskOutput, branchesDir *project.TaskOutput) *project.TaskStep {
-	flyImage, _ := library.FlyImageJob(args.FlyImageJobArgs)
+	flyImageJobArgs := &library.FlyImageJobArgs{}
+	copier.Copy(flyImageJobArgs, args)
+
+	flyImage, _ := library.FlyImageJob(flyImageJobArgs)
 
 	flyImageResource := &project.JobResource{
 		Name:    flyImage.Name,
