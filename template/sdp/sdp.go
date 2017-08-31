@@ -18,7 +18,7 @@ type Specification interface {
 	DeployImageRegistry() (*library.ImageRegistry, error)
 	ConcourseBuilderGitSource() (*library.GitSource, error)
 	GenerateProjectLocation(resourceRegistry *project.ResourceRegistry, branch *primitive.GitBranch) (project.IRun, error)
-	TargetGitRepo() (*library.GitRepo, error)
+	TargetGitRepo() (*primitive.GitRepo, error)
 	Environment() (map[string]interface{}, error)
 }
 
@@ -56,7 +56,9 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 
 		branchSpecification := &BranchBootstrapSpecification{
 			Specification: specification,
-			TargetBranch:  &primitive.GitBranch{Branch: branch},
+			TargetBranch: &primitive.GitBranch{
+				Name: branch,
+			},
 		}
 
 		project, err := sdpBranch.GenerateBootstrapProject(branchSpecification)
@@ -75,7 +77,7 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 		return nil, err
 	}
 
-	mainPipeline.Name = project.ConvertToPipelineName(concourseBuilderGitSource.Branch + "-sdp")
+	mainPipeline.Name = project.ConvertToPipelineName(concourseBuilderGitSource.Branch.FriendlyName() + "-sdp")
 
 	imageRegistry, err := specification.DeployImageRegistry()
 	if err != nil {
@@ -101,7 +103,6 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 		ConcourseBuilderGitSource: concourseBuilderGitSource,
 		ImageRegistry:             imageRegistry,
 		ResourceRegistry:          mainPipeline.ResourceRegistry,
-		Tag:                       library.ConvertToImageTag(concourseBuilderGitSource.Branch),
 		Concourse:                 concourse,
 		Environment:               environment,
 		GenerateProjectLocation:   generateProjectLocation,
@@ -116,7 +117,6 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 		ConcourseBuilderGitSource: concourseBuilderGitSource,
 		ImageRegistry:             imageRegistry,
 		ResourceRegistry:          mainPipeline.ResourceRegistry,
-		Tag:                       library.ConvertToImageTag(concourseBuilderGitSource.Branch),
 		Concourse:                 concourse,
 		TargetGitRepo:             targetGit,
 		Environment:               environment,

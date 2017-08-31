@@ -1,12 +1,13 @@
 package library
 
 import (
+	"github.com/concourse-friends/concourse-builder/library/primitive"
 	"github.com/concourse-friends/concourse-builder/resource"
 )
 
 type GitMultiSource struct {
 	// Git repo and credentials
-	Repo *GitRepo
+	Repo *primitive.GitRepo
 
 	// Optional. Turns on multi-branch mode; takes a regular expression as argument --
 	// branches matching the regular expression on origin will all be checked for changes.

@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/concourse-friends/concourse-builder/model"
+	"github.com/concourse-friends/concourse-builder/test"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
 )
@@ -85,7 +86,7 @@ func TestConstructTask(t *testing.T) {
 
 	taskString, err := yaml.Marshal(simpleTask)
 	assert.NoError(t, err)
-	assert.Equal(t, expectedTask, string(taskString), ContextDiff(expectedTask, string(taskString)))
+	test.AssertEqual(t, expectedTask, string(taskString))
 
 }
 

@@ -36,6 +36,6 @@ func (bbs *BranchBootstrapSpecification) Environment() (map[string]interface{}, 
 	if err != nil {
 		return nil, err
 	}
-	enviroment["BRANCH"] = bbs.TargetBranch.Name()
+	enviroment["BRANCH"] = bbs.TargetBranch.CanonicalName()
 	return enviroment, nil
 }
