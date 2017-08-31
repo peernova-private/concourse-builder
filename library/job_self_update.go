@@ -11,7 +11,6 @@ type SelfUpdateJobArgs struct {
 	ConcourseBuilderGitSource *GitSource
 	ImageRegistry             *ImageRegistry
 	ResourceRegistry          *project.ResourceRegistry
-	Tag                       ImageTag
 	Concourse                 *primitive.Concourse
 	Environment               map[string]interface{}
 	GenerateProjectLocation   project.IRun
@@ -21,7 +20,7 @@ func SelfUpdateJob(args *SelfUpdateJobArgs) *project.Job {
 	flyImageJobArgs := &FlyImageJobArgs{}
 	copier.Copy(flyImageJobArgs, args)
 
-	flyImage, _ := FlyImageJob(flyImageJobArgs)
+	flyImage := FlyImageJob(flyImageJobArgs)
 
 	flyImageResource := &project.JobResource{
 		Name:    flyImage.Name,

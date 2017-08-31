@@ -14,7 +14,7 @@ type Specification interface {
 func GenerateProject(specification Specification) (*project.Project, error) {
 	mainPipeline := project.NewPipeline()
 	mainPipeline.AllJobsGroup = project.AllJobsGroupFirst
-	mainPipeline.Name = project.ConvertToPipelineName(specification.Branch().Name() + "-sdpb")
+	mainPipeline.Name = project.ConvertToPipelineName(specification.Branch().FriendlyName() + "-sdpb")
 
 	concourseBuilderGitSource, err := specification.ConcourseBuilderGitSource()
 	if err != nil {
@@ -45,7 +45,6 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 		ConcourseBuilderGitSource: concourseBuilderGitSource,
 		ImageRegistry:             imageRegistry,
 		ResourceRegistry:          mainPipeline.ResourceRegistry,
-		Tag:                       library.ConvertToImageTag(concourseBuilderGitSource.Branch),
 		Concourse:                 concourse,
 		Environment:               environment,
 		GenerateProjectLocation:   generateProjectLocation,

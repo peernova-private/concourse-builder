@@ -3,33 +3,65 @@ package primitive
 import "regexp"
 
 type GitBranch struct {
-	Branch string
+	Name string
 }
 
-func (gb *GitBranch) Name() string {
-	return gb.Branch
+var (
+	branchPattern     = regexp.MustCompile(`^(.+?)(#(.+)|)$`)
+	baseBranchPattern = regexp.MustCompile(`^.+#(.+)$`)
+	isMasterPattern   = regexp.MustCompile(`^master$`)
+	isReleasePattern  = regexp.MustCompile(`^release/.+`)
+	isFeaturePattern  = regexp.MustCompile(`^feature/.+`)
+	isTaskPattern     = regexp.MustCompile(`^task/.+`)
+	isImagePattern    = regexp.MustCompile(`image`)
+)
+
+func (gb *GitBranch) CanonicalName() string {
+	return gb.Name
 }
 
-var isMasterPattern = regexp.MustCompile(`^master$`)
+func (gb *GitBranch) FriendlyName() string {
+	matches := branchPattern.FindAllStringSubmatch(gb.Name, -1)
+	return matches[0][1]
+}
+
+func (gb *GitBranch) BaseBranch() string {
+	matches := baseBranchPattern.FindAllStringSubmatch(gb.Name, -1)
+	if matches != nil {
+		return matches[0][1]
+	}
+
+	return "master"
+}
+
+func (gb *GitBranch) PrBranch() *GitBranch {
+	name := gb.FriendlyName() + "-pr"
+	base := gb.BaseBranch()
+	if base != "" {
+		name += "#" + base
+	}
+
+	return &GitBranch{
+		Name: name,
+	}
+}
 
 func (gb *GitBranch) IsMaster() bool {
-	return isMasterPattern.Match([]byte(gb.Branch))
+	return isMasterPattern.MatchString(gb.Name)
 }
-
-var isReleasePattern = regexp.MustCompile(`^release/.+`)
 
 func (gb *GitBranch) IsRelease() bool {
-	return isReleasePattern.Match([]byte(gb.Branch))
+	return isReleasePattern.MatchString(gb.Name)
 }
-
-var isFeaturePattern = regexp.MustCompile(`^feature/.+`)
 
 func (gb *GitBranch) IsFeature() bool {
-	return isFeaturePattern.Match([]byte(gb.Branch))
+	return isFeaturePattern.MatchString(gb.Name)
 }
 
-var isTaskPattern = regexp.MustCompile(`^task/.+`)
-
 func (gb *GitBranch) IsTask() bool {
-	return isTaskPattern.Match([]byte(gb.Branch))
+	return isTaskPattern.MatchString(gb.Name)
+}
+
+func (gb *GitBranch) IsImage() bool {
+	return isImagePattern.MatchString(gb.Name)
 }

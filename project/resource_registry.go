@@ -1,5 +1,7 @@
 package project
 
+import "fmt"
+
 // An object that tracks collection of resources by name
 type ResourceRegistry struct {
 	cross     map[ResourceName]ResourceHash
@@ -40,5 +42,9 @@ func (rr *ResourceRegistry) GetResource(name ResourceName) *Resource {
 }
 
 func (rr *ResourceRegistry) MustGetResource(name ResourceName) *Resource {
-	return rr.resources[rr.cross[name]]
+	res := rr.resources[rr.cross[name]]
+	if res == nil {
+		panic(fmt.Sprintf("Rsource %s not found", name))
+	}
+	return res
 }

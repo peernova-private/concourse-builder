@@ -13,30 +13,37 @@ type FlyImageJobArgs struct {
 	ConcourseBuilderGitSource *GitSource
 	ImageRegistry             *ImageRegistry
 	ResourceRegistry          *project.ResourceRegistry
-	Tag                       ImageTag
 	Concourse                 *primitive.Concourse
 }
 
-func FlyImageJob(args *FlyImageJobArgs) (*project.Resource, *project.Job) {
+func FlyImageJob(args *FlyImageJobArgs) *project.Resource {
 	resourceName := project.ResourceName("fly-image")
 	image := args.ResourceRegistry.GetResource(resourceName)
 	if image != nil {
-		return image, image.NeededJobs[0]
+		return image
 	}
 
 	curlImageJobArgs := &CurlImageJobArgs{}
 	copier.Copy(curlImageJobArgs, args)
 
-	curlImage, _ := CurlImageJob(curlImageJobArgs)
+	curlImage := CurlImageJob(curlImageJobArgs)
+
+	tag, needJob := BranchImageTag(args.ConcourseBuilderGitSource.Branch)
 
 	image = &project.Resource{
 		Name: resourceName,
 		Type: resource.ImageResourceType.Name,
 		Source: &ImageSource{
-			Tag:        args.Tag,
+			Tag:        tag,
 			Registry:   args.ImageRegistry,
 			Repository: "concourse-builder/fly-image",
 		},
+	}
+
+	args.ResourceRegistry.MustRegister(image)
+
+	if !needJob {
+		return image
 	}
 
 	RegisterConcourseBuilderGit(args.ResourceRegistry, args.ConcourseBuilderGitSource)
@@ -68,7 +75,6 @@ func FlyImageJob(args *FlyImageJobArgs) (*project.Resource, *project.Job) {
 	job.AddToGroup(project.SystemGroup)
 
 	image.NeededJobs = project.Jobs{job}
-	args.ResourceRegistry.MustRegister(image)
 
-	return image, job
+	return image
 }

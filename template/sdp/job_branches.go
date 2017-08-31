@@ -13,9 +13,8 @@ type BranchesJobArgs struct {
 	ConcourseBuilderGitSource *library.GitSource
 	ImageRegistry             *library.ImageRegistry
 	ResourceRegistry          *project.ResourceRegistry
-	Tag                       library.ImageTag
 	Concourse                 *primitive.Concourse
-	TargetGitRepo             *library.GitRepo
+	TargetGitRepo             *primitive.GitRepo
 	Environment               map[string]interface{}
 	GenerateProjectLocation   project.IRun
 }
@@ -24,7 +23,7 @@ func taskObtainBranches(args *BranchesJobArgs, branchesDir *project.TaskOutput) 
 	gitImageJobArgs := &library.GitImageJobArgs{}
 	copier.Copy(gitImageJobArgs, args)
 
-	gitImage, _ := library.GitImageJob(gitImageJobArgs)
+	gitImage := library.GitImageJob(gitImageJobArgs)
 
 	gitImageResource := &project.JobResource{
 		Name:    gitImage.Name,
@@ -111,7 +110,7 @@ func taskCreateMissingPipelines(args *BranchesJobArgs, pipelinesDir *project.Tas
 	flyImageJobArgs := &library.FlyImageJobArgs{}
 	copier.Copy(flyImageJobArgs, args)
 
-	flyImage, _ := library.FlyImageJob(flyImageJobArgs)
+	flyImage := library.FlyImageJob(flyImageJobArgs)
 
 	flyImageResource := &project.JobResource{
 		Name:    flyImage.Name,
@@ -144,7 +143,7 @@ func taskRemoveNotNeededPipelines(args *BranchesJobArgs, pipelinesDir *project.T
 	flyImageJobArgs := &library.FlyImageJobArgs{}
 	copier.Copy(flyImageJobArgs, args)
 
-	flyImage, _ := library.FlyImageJob(flyImageJobArgs)
+	flyImage := library.FlyImageJob(flyImageJobArgs)
 
 	flyImageResource := &project.JobResource{
 		Name:    flyImage.Name,
