@@ -48,12 +48,11 @@ func CLangFormatImageJob(args *CLangFormatImageJobArgs) *project.Resource {
 		RelativePath: "docker/clang-format",
 	}
 
-	args.ResourceRegistry.MustRegister(image.Ubuntu)
-
 	job := BuildImage(
-		image.Ubuntu,
-		image.Ubuntu,
 		&BuildImageArgs{
+			ResourceRegistry:   args.ResourceRegistry,
+			Prepare:            image.Ubuntu,
+			From:               image.Ubuntu,
 			Name:               "clang-format",
 			DockerFileResource: dockerSteps,
 			Image:              imageResource.Name,

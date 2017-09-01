@@ -47,12 +47,11 @@ func CurlImageJob(args *CurlImageJobArgs) *project.Resource {
 		RelativePath: "docker/curl",
 	}
 
-	args.ResourceRegistry.MustRegister(image.Ubuntu)
-
 	job := BuildImage(
-		image.Ubuntu,
-		image.Ubuntu,
 		&BuildImageArgs{
+			ResourceRegistry:   args.ResourceRegistry,
+			Prepare:            image.Ubuntu,
+			From:               image.Ubuntu,
 			Name:               "curl",
 			DockerFileResource: dockerSteps,
 			Image:              imageResource.Name,

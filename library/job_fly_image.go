@@ -65,9 +65,10 @@ func FlyImageJob(args *FlyImageJobArgs) *project.Resource {
 		"awk -F ',' ' { print $1 } ' | awk -F ':' ' { print $2 } '`", args.Concourse.URL, insecureArg)
 
 	job := BuildImage(
-		curlImage, // We need curlImage for prepare for eval to works
-		curlImage,
 		&BuildImageArgs{
+			ResourceRegistry:   args.ResourceRegistry,
+			Prepare:            curlImage,
+			From:               curlImage,
 			Name:               "fly",
 			DockerFileResource: dockerSteps,
 			Image:              imageResource.Name,

@@ -16,14 +16,18 @@ var ImagesGroup = &project.JobGroup{
 }
 
 type BuildImageArgs struct {
+	ResourceRegistry   *project.ResourceRegistry
+	Prepare            *project.Resource
+	From               *project.Resource
 	Name               string
 	DockerFileResource project.IEnvironmentValue
 	Image              project.ResourceName
 	BuildArgs          map[string]interface{}
+	PreprepareSteps    project.ISteps
 	Eval               string
 }
 
-func BuildImage(prepare *project.Resource, from *project.Resource, args *BuildImageArgs) *project.Job {
+func BuildImage(args *BuildImageArgs) *project.Job {
 	imageResource := &project.JobResource{
 		Name: args.Image,
 	}
@@ -32,8 +36,11 @@ func BuildImage(prepare *project.Resource, from *project.Resource, args *BuildIm
 		Directory: "prepared",
 	}
 
+	args.ResourceRegistry.MustRegister(args.Prepare)
+	args.ResourceRegistry.MustRegister(args.From)
+
 	prepareImageResource := &project.JobResource{
-		Name:    prepare.Name,
+		Name:    args.Prepare.Name,
 		Trigger: true,
 	}
 
@@ -50,7 +57,7 @@ func BuildImage(prepare *project.Resource, from *project.Resource, args *BuildIm
 		},
 		Environment: map[string]interface{}{
 			"DOCKERFILE_DIR": args.DockerFileResource,
-			"FROM_IMAGE":     (*image.FromParam)(from),
+			"FROM_IMAGE":     (*image.FromParam)(args.From),
 		},
 		Outputs: []project.IOutput{
 			preparedDir,
@@ -61,11 +68,11 @@ func BuildImage(prepare *project.Resource, from *project.Resource, args *BuildIm
 		taskPrepare.Environment["EVAL"] = args.Eval
 	}
 
-	imageSource := from.Source.(*image.Source)
+	imageSource := args.From.Source.(*image.Source)
 	public := imageSource.Registry.Public()
 
 	fromImageResource := &project.JobResource{
-		Name:    from.Name,
+		Name:    args.From.Name,
 		Trigger: true,
 	}
 
@@ -95,10 +102,10 @@ func BuildImage(prepare *project.Resource, from *project.Resource, args *BuildIm
 		Groups: project.JobGroups{
 			ImagesGroup,
 		},
-		Steps: project.ISteps{
-			taskPrepare,
-			putImage,
-		},
+		Steps: args.PreprepareSteps,
 	}
+
+	imageJob.Steps = append(imageJob.Steps, taskPrepare, putImage)
+
 	return imageJob
 }
