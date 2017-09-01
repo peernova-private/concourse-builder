@@ -53,12 +53,11 @@ func GitImageJob(args *GitImageJobArgs) *project.Resource {
 		RelativePath: "docker/git",
 	}
 
-	args.ResourceRegistry.MustRegister(image.Ubuntu)
-
 	job := BuildImage(
-		image.Ubuntu,
-		curlImage,
 		&BuildImageArgs{
+			ResourceRegistry:   args.ResourceRegistry,
+			Prepare:            image.Ubuntu,
+			From:               curlImage,
 			Name:               "git",
 			DockerFileResource: dockerSteps,
 			Image:              imageResource.Name,
