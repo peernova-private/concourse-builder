@@ -26,6 +26,11 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 		return nil, err
 	}
 
+	goImage, err := specification.GoImage()
+	if err != nil {
+		return nil, err
+	}
+
 	concourse, err := specification.Concourse()
 	if err != nil {
 		return nil, err
@@ -44,7 +49,7 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 	selfUpdateJob := library.SelfUpdateJob(&library.SelfUpdateJobArgs{
 		ConcourseBuilderGitSource: concourseBuilderGitSource,
 		ImageRegistry:             imageRegistry,
-		GoImage:                   specification.GoImage(),
+		GoImage:                   goImage,
 		ResourceRegistry:          mainPipeline.ResourceRegistry,
 		Concourse:                 concourse,
 		Environment:               environment,
