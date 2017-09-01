@@ -11,7 +11,7 @@ type BootstrapSpecification interface {
 	Branch() *primitive.GitBranch
 	Concourse() (*primitive.Concourse, error)
 	DeployImageRegistry() (*image.Registry, error)
-	GoImage() *project.Resource
+	GoImage() (*project.Resource, error)
 	ConcourseBuilderGitSource() (*library.GitSource, error)
 	GenerateProjectLocation(resourceRegistry *project.ResourceRegistry) (project.IRun, error)
 	Environment() (map[string]interface{}, error)
@@ -28,6 +28,11 @@ func GenerateBootstrapProject(specification BootstrapSpecification) (*project.Pr
 	}
 
 	imageRegistry, err := specification.DeployImageRegistry()
+	if err != nil {
+		return nil, err
+	}
+
+	goImage, err := specification.GoImage()
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +55,7 @@ func GenerateBootstrapProject(specification BootstrapSpecification) (*project.Pr
 	selfUpdateJob := library.SelfUpdateJob(&library.SelfUpdateJobArgs{
 		ConcourseBuilderGitSource: concourseBuilderGitSource,
 		ImageRegistry:             imageRegistry,
-		GoImage:                   specification.GoImage(),
+		GoImage:                   goImage,
 		ResourceRegistry:          mainPipeline.ResourceRegistry,
 		Concourse:                 concourse,
 		Environment:               environment,
