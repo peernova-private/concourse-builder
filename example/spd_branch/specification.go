@@ -32,7 +32,7 @@ func (s *testSpecification) DeployImageRegistry() (*image.Registry, error) {
 	}, nil
 }
 
-func (s *testSpecification) GoImage() (*project.Resource, error) {
+func (s *testSpecification) GoImage(resourceRegistry *project.ResourceRegistry) (*project.Resource, error) {
 	return image.Go, nil
 }
 

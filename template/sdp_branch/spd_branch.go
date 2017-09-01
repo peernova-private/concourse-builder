@@ -26,7 +26,7 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 		return nil, err
 	}
 
-	goImage, err := specification.GoImage()
+	goImage, err := specification.GoImage(mainPipeline.ResourceRegistry)
 	if err != nil {
 		return nil, err
 	}
