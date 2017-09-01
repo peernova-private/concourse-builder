@@ -2,6 +2,7 @@ package sdp
 
 import (
 	"github.com/concourse-friends/concourse-builder/library"
+	"github.com/concourse-friends/concourse-builder/library/image"
 	"github.com/concourse-friends/concourse-builder/library/primitive"
 	"github.com/concourse-friends/concourse-builder/model"
 	"github.com/concourse-friends/concourse-builder/project"
@@ -11,7 +12,8 @@ import (
 
 type BranchesJobArgs struct {
 	ConcourseBuilderGitSource *library.GitSource
-	ImageRegistry             *library.ImageRegistry
+	ImageRegistry             *image.Registry
+	GoImage                   *project.Resource
 	ResourceRegistry          *project.ResourceRegistry
 	Concourse                 *primitive.Concourse
 	TargetGitRepo             *primitive.GitRepo
@@ -75,10 +77,10 @@ func taskObtainBranches(args *BranchesJobArgs, branchesDir *project.TaskOutput) 
 }
 
 func taskPreparePipelines(args *BranchesJobArgs, branchesDir *project.TaskOutput, pipelinesDir *project.TaskOutput) *project.TaskStep {
-	args.ResourceRegistry.MustRegister(library.GoImage)
+	args.ResourceRegistry.MustRegister(args.GoImage)
 
 	goImageResource := &project.JobResource{
-		Name:    library.GoImage.Name,
+		Name:    args.GoImage.Name,
 		Trigger: true,
 	}
 

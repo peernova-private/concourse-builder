@@ -1,6 +1,7 @@
 package library
 
 import (
+	"github.com/concourse-friends/concourse-builder/library/image"
 	"github.com/concourse-friends/concourse-builder/library/primitive"
 	"github.com/concourse-friends/concourse-builder/model"
 	"github.com/concourse-friends/concourse-builder/project"
@@ -49,7 +50,7 @@ func BuildImage(prepare *project.Resource, from *project.Resource, args *BuildIm
 		},
 		Environment: map[string]interface{}{
 			"DOCKERFILE_DIR": args.DockerFileResource,
-			"FROM_IMAGE":     (*FromParam)(from),
+			"FROM_IMAGE":     (*image.FromParam)(from),
 		},
 		Outputs: []project.IOutput{
 			preparedDir,
@@ -60,7 +61,7 @@ func BuildImage(prepare *project.Resource, from *project.Resource, args *BuildIm
 		taskPrepare.Environment["EVAL"] = args.Eval
 	}
 
-	imageSource := from.Source.(*ImageSource)
+	imageSource := from.Source.(*image.Source)
 	public := imageSource.Registry.Public()
 
 	fromImageResource := &project.JobResource{
@@ -76,7 +77,7 @@ func BuildImage(prepare *project.Resource, from *project.Resource, args *BuildIm
 
 	putImage := &project.PutStep{
 		JobResource: imageResource,
-		Params: &ImagePutParams{
+		Params: &image.PutParams{
 			FromImage: fromImageResource,
 			Load:      !public,
 			Build: &primitive.Location{

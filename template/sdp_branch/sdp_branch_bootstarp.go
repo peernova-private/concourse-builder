@@ -2,6 +2,7 @@ package sdpBranch
 
 import (
 	"github.com/concourse-friends/concourse-builder/library"
+	"github.com/concourse-friends/concourse-builder/library/image"
 	"github.com/concourse-friends/concourse-builder/library/primitive"
 	"github.com/concourse-friends/concourse-builder/project"
 )
@@ -9,7 +10,8 @@ import (
 type BootstrapSpecification interface {
 	Branch() *primitive.GitBranch
 	Concourse() (*primitive.Concourse, error)
-	DeployImageRegistry() (*library.ImageRegistry, error)
+	DeployImageRegistry() (*image.Registry, error)
+	GoImage() *project.Resource
 	ConcourseBuilderGitSource() (*library.GitSource, error)
 	GenerateProjectLocation(resourceRegistry *project.ResourceRegistry) (project.IRun, error)
 	Environment() (map[string]interface{}, error)
@@ -48,6 +50,7 @@ func GenerateBootstrapProject(specification BootstrapSpecification) (*project.Pr
 	selfUpdateJob := library.SelfUpdateJob(&library.SelfUpdateJobArgs{
 		ConcourseBuilderGitSource: concourseBuilderGitSource,
 		ImageRegistry:             imageRegistry,
+		GoImage:                   specification.GoImage(),
 		ResourceRegistry:          mainPipeline.ResourceRegistry,
 		Concourse:                 concourse,
 		Environment:               environment,

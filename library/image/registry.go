@@ -1,15 +1,15 @@
-package library
+package image
 
-type ImageRegistry struct {
+type Registry struct {
 	Domain             string
 	AwsAccessKeyId     string
 	AwsSecretAccessKey string
 }
 
-func (ir *ImageRegistry) Public() bool {
+func (ir *Registry) Public() bool {
 	return ir.AwsAccessKeyId == "" && ir.AwsSecretAccessKey == ""
 }
 
-var DockerHub = &ImageRegistry{
+var DockerHub = &Registry{
 	Domain: "",
 }

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/concourse-friends/concourse-builder/library"
+	"github.com/concourse-friends/concourse-builder/library/image"
 	"github.com/concourse-friends/concourse-builder/library/primitive"
 	"github.com/concourse-friends/concourse-builder/project"
 	"github.com/concourse-friends/concourse-builder/template/sdp_branch"
@@ -15,7 +16,8 @@ import (
 
 type Specification interface {
 	Concourse() (*primitive.Concourse, error)
-	DeployImageRegistry() (*library.ImageRegistry, error)
+	DeployImageRegistry() (*image.Registry, error)
+	GoImage() *project.Resource
 	ConcourseBuilderGitSource() (*library.GitSource, error)
 	GenerateProjectLocation(resourceRegistry *project.ResourceRegistry, branch *primitive.GitBranch) (project.IRun, error)
 	TargetGitRepo() (*primitive.GitRepo, error)
@@ -102,6 +104,7 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 	selfUpdateJob := library.SelfUpdateJob(&library.SelfUpdateJobArgs{
 		ConcourseBuilderGitSource: concourseBuilderGitSource,
 		ImageRegistry:             imageRegistry,
+		GoImage:                   specification.GoImage(),
 		ResourceRegistry:          mainPipeline.ResourceRegistry,
 		Concourse:                 concourse,
 		Environment:               environment,
@@ -116,6 +119,7 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 	branchesJob := BranchesJob(&BranchesJobArgs{
 		ConcourseBuilderGitSource: concourseBuilderGitSource,
 		ImageRegistry:             imageRegistry,
+		GoImage:                   specification.GoImage(),
 		ResourceRegistry:          mainPipeline.ResourceRegistry,
 		Concourse:                 concourse,
 		TargetGitRepo:             targetGit,

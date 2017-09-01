@@ -1,4 +1,4 @@
-package library
+package image
 
 import (
 	"fmt"
@@ -10,13 +10,13 @@ import (
 	"github.com/concourse-friends/concourse-builder/resource"
 )
 
-type ImageSource struct {
-	Registry   *ImageRegistry
+type Source struct {
+	Registry   *Registry
 	Repository string
-	Tag        ImageTag
+	Tag        Tag
 }
 
-func (im *ImageSource) ModelSource() interface{} {
+func (im *Source) ModelSource() interface{} {
 	repository := im.Repository
 	if im.Registry.Domain != "" {
 		repository = path.Join(im.Registry.Domain, repository)
@@ -41,32 +41,20 @@ func (im *ImageSource) ModelSource() interface{} {
 	return source
 }
 
-var GoImage = &project.Resource{
-	Name: "go-image",
-	Type: resource.ImageResourceType.Name,
-	Source: &ImageSource{
-		Registry:   DockerHub,
-		Repository: "golang",
-		Tag:        "1.8",
-	},
-	CheckInterval: model.Duration(24 * time.Hour),
-}
-
-var UbuntuImage = &project.Resource{
+var Ubuntu = &project.Resource{
 	Name: "ubuntu-image",
 	Type: resource.ImageResourceType.Name,
-	Source: &ImageSource{
+	Source: &Source{
 		Registry:   DockerHub,
 		Repository: "ubuntu",
-		Tag:        "16.04",
 	},
 	CheckInterval: model.Duration(24 * time.Hour),
 }
 
-var GradleImage = &project.Resource{
+var Gradle = &project.Resource{
 	Name: "gradle-image",
 	Type: resource.ImageResourceType.Name,
-	Source: &ImageSource{
+	Source: &Source{
 		Registry:   DockerHub,
 		Repository: "gradle",
 	},
