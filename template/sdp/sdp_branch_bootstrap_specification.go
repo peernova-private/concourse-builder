@@ -24,8 +24,8 @@ func (bbs *BranchBootstrapSpecification) DeployImageRegistry() (*image.Registry,
 	return bbs.Specification.DeployImageRegistry()
 }
 
-func (bbs *BranchBootstrapSpecification) GoImage() *project.Resource {
-	return bbs.Specification.GoImage()
+func (bbs *BranchBootstrapSpecification) GoImage(resourceRegistry *project.ResourceRegistry) (*project.Resource, error) {
+	return bbs.Specification.GoImage(resourceRegistry)
 }
 
 func (bbs *BranchBootstrapSpecification) ConcourseBuilderGitSource() (*library.GitSource, error) {

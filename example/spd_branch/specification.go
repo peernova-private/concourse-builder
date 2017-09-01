@@ -32,8 +32,8 @@ func (s *testSpecification) DeployImageRegistry() (*image.Registry, error) {
 	}, nil
 }
 
-func (s *testSpecification) GoImage() *project.Resource {
-	return image.Go
+func (s *testSpecification) GoImage(resourceRegistry *project.ResourceRegistry) (*project.Resource, error) {
+	return image.Go, nil
 }
 
 func (s *testSpecification) ConcourseBuilderGitSource() (*library.GitSource, error) {
