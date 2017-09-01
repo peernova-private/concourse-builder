@@ -1,6 +1,7 @@
 package library
 
 import (
+	"github.com/concourse-friends/concourse-builder/library/image"
 	"github.com/concourse-friends/concourse-builder/library/primitive"
 	"github.com/concourse-friends/concourse-builder/model"
 	"github.com/concourse-friends/concourse-builder/project"
@@ -9,7 +10,8 @@ import (
 
 type SelfUpdateJobArgs struct {
 	ConcourseBuilderGitSource *GitSource
-	ImageRegistry             *ImageRegistry
+	ImageRegistry             *image.Registry
+	GoImage                   *project.Resource
 	ResourceRegistry          *project.ResourceRegistry
 	Concourse                 *primitive.Concourse
 	Environment               map[string]interface{}
@@ -42,10 +44,10 @@ func SelfUpdateJob(args *SelfUpdateJobArgs) *project.Job {
 
 	args.Concourse.PublicAccessEnvironment(taskCheck.Environment)
 
-	args.ResourceRegistry.MustRegister(GoImage)
+	args.ResourceRegistry.MustRegister(args.GoImage)
 
 	goImageResource := &project.JobResource{
-		Name:    GoImage.Name,
+		Name:    args.GoImage.Name,
 		Trigger: true,
 	}
 

@@ -44,6 +44,7 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 	selfUpdateJob := library.SelfUpdateJob(&library.SelfUpdateJobArgs{
 		ConcourseBuilderGitSource: concourseBuilderGitSource,
 		ImageRegistry:             imageRegistry,
+		GoImage:                   specification.GoImage(),
 		ResourceRegistry:          mainPipeline.ResourceRegistry,
 		Concourse:                 concourse,
 		Environment:               environment,

@@ -63,7 +63,6 @@ resources:
   type: docker-image
   source:
     repository: golang
-    tag: "1.8"
   check_every: 24h
 - name: target-git
   type: git-multibranch
@@ -75,7 +74,6 @@ resources:
   type: docker-image
   source:
     repository: ubuntu
-    tag: "16.04"
   check_every: 24h
 jobs:
 - name: curl-image
@@ -93,7 +91,7 @@ jobs:
       - name: concourse-builder-git
       params:
         DOCKERFILE_DIR: concourse-builder-git/docker/curl
-        FROM_IMAGE: ubuntu:16.04
+        FROM_IMAGE: ubuntu
       run:
         path: concourse-builder-git/scripts/docker_image_prepare.sh
       outputs:

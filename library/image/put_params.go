@@ -1,4 +1,4 @@
-package library
+package image
 
 import (
 	"github.com/concourse-friends/concourse-builder/project"
@@ -9,14 +9,14 @@ type IBuild interface {
 	Path() string
 }
 
-type ImagePutParams struct {
+type PutParams struct {
 	Build     IBuild
 	BuildArgs map[string]interface{}
 	Load      bool
 	FromImage *project.JobResource
 }
 
-func (ipp *ImagePutParams) ModelParams() interface{} {
+func (ipp *PutParams) ModelParams() interface{} {
 	params := &resource.ImagePutParams{
 		Build:     ipp.Build.Path(),
 		BuildArgs: ipp.BuildArgs,
@@ -29,7 +29,7 @@ func (ipp *ImagePutParams) ModelParams() interface{} {
 	return params
 }
 
-func (ipp *ImagePutParams) InputResources() project.JobResources {
+func (ipp *PutParams) InputResources() project.JobResources {
 	var resources project.JobResources
 
 	if res, ok := ipp.Build.(project.IInputResource); ok {

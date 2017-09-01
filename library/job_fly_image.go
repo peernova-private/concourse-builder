@@ -3,6 +3,7 @@ package library
 import (
 	"fmt"
 
+	"github.com/concourse-friends/concourse-builder/library/image"
 	"github.com/concourse-friends/concourse-builder/library/primitive"
 	"github.com/concourse-friends/concourse-builder/project"
 	"github.com/concourse-friends/concourse-builder/resource"
@@ -11,16 +12,16 @@ import (
 
 type FlyImageJobArgs struct {
 	ConcourseBuilderGitSource *GitSource
-	ImageRegistry             *ImageRegistry
+	ImageRegistry             *image.Registry
 	ResourceRegistry          *project.ResourceRegistry
 	Concourse                 *primitive.Concourse
 }
 
 func FlyImageJob(args *FlyImageJobArgs) *project.Resource {
 	resourceName := project.ResourceName("fly-image")
-	image := args.ResourceRegistry.GetResource(resourceName)
-	if image != nil {
-		return image
+	imageResource := args.ResourceRegistry.GetResource(resourceName)
+	if imageResource != nil {
+		return imageResource
 	}
 
 	curlImageJobArgs := &CurlImageJobArgs{}
@@ -28,22 +29,22 @@ func FlyImageJob(args *FlyImageJobArgs) *project.Resource {
 
 	curlImage := CurlImageJob(curlImageJobArgs)
 
-	tag, needJob := BranchImageTag(args.ConcourseBuilderGitSource.Branch)
+	tag, needJob := image.BranchImageTag(args.ConcourseBuilderGitSource.Branch)
 
-	image = &project.Resource{
+	imageResource = &project.Resource{
 		Name: resourceName,
 		Type: resource.ImageResourceType.Name,
-		Source: &ImageSource{
+		Source: &image.Source{
 			Tag:        tag,
 			Registry:   args.ImageRegistry,
 			Repository: "concourse-builder/fly-image",
 		},
 	}
 
-	args.ResourceRegistry.MustRegister(image)
+	args.ResourceRegistry.MustRegister(imageResource)
 
 	if !needJob {
-		return image
+		return imageResource
 	}
 
 	RegisterConcourseBuilderGit(args.ResourceRegistry, args.ConcourseBuilderGitSource)
@@ -69,12 +70,12 @@ func FlyImageJob(args *FlyImageJobArgs) *project.Resource {
 		&BuildImageArgs{
 			Name:               "fly",
 			DockerFileResource: dockerSteps,
-			Image:              image.Name,
+			Image:              imageResource.Name,
 			Eval:               evalFlyVersion,
 		})
 	job.AddToGroup(project.SystemGroup)
 
-	image.NeededJobs = project.Jobs{job}
+	imageResource.NeededJobs = project.Jobs{job}
 
-	return image
+	return imageResource
 }
