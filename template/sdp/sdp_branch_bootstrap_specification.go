@@ -2,6 +2,7 @@ package sdp
 
 import (
 	"github.com/concourse-friends/concourse-builder/library"
+	"github.com/concourse-friends/concourse-builder/library/image"
 	"github.com/concourse-friends/concourse-builder/library/primitive"
 	"github.com/concourse-friends/concourse-builder/project"
 )
@@ -19,8 +20,12 @@ func (bbs *BranchBootstrapSpecification) Concourse() (*primitive.Concourse, erro
 	return bbs.Specification.Concourse()
 }
 
-func (bbs *BranchBootstrapSpecification) DeployImageRegistry() (*library.ImageRegistry, error) {
+func (bbs *BranchBootstrapSpecification) DeployImageRegistry() (*image.Registry, error) {
 	return bbs.Specification.DeployImageRegistry()
+}
+
+func (bbs *BranchBootstrapSpecification) GoImage() *project.Resource {
+	return bbs.Specification.GoImage()
 }
 
 func (bbs *BranchBootstrapSpecification) ConcourseBuilderGitSource() (*library.GitSource, error) {

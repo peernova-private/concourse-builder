@@ -1,6 +1,7 @@
 package library
 
 import (
+	"github.com/concourse-friends/concourse-builder/library/image"
 	"github.com/concourse-friends/concourse-builder/library/primitive"
 	"github.com/concourse-friends/concourse-builder/project"
 	"github.com/concourse-friends/concourse-builder/resource"
@@ -8,33 +9,33 @@ import (
 
 type CLangFormatImageJobArgs struct {
 	ConcourseBuilderGitSource *GitSource
-	ImageRegistry             *ImageRegistry
+	ImageRegistry             *image.Registry
 	ResourceRegistry          *project.ResourceRegistry
 }
 
 func CLangFormatImageJob(args *CLangFormatImageJobArgs) *project.Resource {
 	resourceName := project.ResourceName("clang_format-image")
-	image := args.ResourceRegistry.GetResource(resourceName)
-	if image != nil {
-		return image
+	imageResource := args.ResourceRegistry.GetResource(resourceName)
+	if imageResource != nil {
+		return imageResource
 	}
 
-	tag, needJob := BranchImageTag(args.ConcourseBuilderGitSource.Branch)
+	tag, needJob := image.BranchImageTag(args.ConcourseBuilderGitSource.Branch)
 
-	image = &project.Resource{
+	imageResource = &project.Resource{
 		Name: resourceName,
 		Type: resource.ImageResourceType.Name,
-		Source: &ImageSource{
+		Source: &image.Source{
 			Tag:        tag,
 			Registry:   args.ImageRegistry,
 			Repository: "concourse-builder/clang_format-image",
 		},
 	}
 
-	args.ResourceRegistry.MustRegister(image)
+	args.ResourceRegistry.MustRegister(imageResource)
 
 	if !needJob {
-		return image
+		return imageResource
 	}
 
 	RegisterConcourseBuilderGit(args.ResourceRegistry, args.ConcourseBuilderGitSource)
@@ -47,19 +48,19 @@ func CLangFormatImageJob(args *CLangFormatImageJobArgs) *project.Resource {
 		RelativePath: "docker/clang-format",
 	}
 
-	args.ResourceRegistry.MustRegister(UbuntuImage)
+	args.ResourceRegistry.MustRegister(image.Ubuntu)
 
 	job := BuildImage(
-		UbuntuImage,
-		UbuntuImage,
 		&BuildImageArgs{
+			Prepare:            image.Ubuntu,
+			From:               image.Ubuntu,
 			Name:               "clang-format",
 			DockerFileResource: dockerSteps,
-			Image:              image.Name,
+			Image:              imageResource.Name,
 		})
 	job.AddToGroup(project.SystemGroup)
 
-	image.NeededJobs = project.Jobs{job}
+	imageResource.NeededJobs = project.Jobs{job}
 
-	return image
+	return imageResource
 }

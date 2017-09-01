@@ -2,6 +2,7 @@ package sdpExample
 
 import (
 	"github.com/concourse-friends/concourse-builder/library"
+	"github.com/concourse-friends/concourse-builder/library/image"
 	"github.com/concourse-friends/concourse-builder/library/primitive"
 	"github.com/concourse-friends/concourse-builder/project"
 )
@@ -17,12 +18,16 @@ func (s *testSpecification) Concourse() (*primitive.Concourse, error) {
 	}, nil
 }
 
-func (s *testSpecification) DeployImageRegistry() (*library.ImageRegistry, error) {
-	return &library.ImageRegistry{
+func (s *testSpecification) DeployImageRegistry() (*image.Registry, error) {
+	return &image.Registry{
 		Domain:             "registry.com",
 		AwsAccessKeyId:     "key",
 		AwsSecretAccessKey: "secret",
 	}, nil
+}
+
+func (s *testSpecification) GoImage() *project.Resource {
+	return image.Go
 }
 
 func (s *testSpecification) ConcourseBuilderGitSource() (*library.GitSource, error) {

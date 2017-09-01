@@ -1,6 +1,7 @@
 package library
 
 import (
+	"github.com/concourse-friends/concourse-builder/library/image"
 	"github.com/concourse-friends/concourse-builder/library/primitive"
 	"github.com/concourse-friends/concourse-builder/project"
 	"github.com/concourse-friends/concourse-builder/resource"
@@ -9,15 +10,15 @@ import (
 
 type GitImageJobArgs struct {
 	ConcourseBuilderGitSource *GitSource
-	ImageRegistry             *ImageRegistry
+	ImageRegistry             *image.Registry
 	ResourceRegistry          *project.ResourceRegistry
 }
 
 func GitImageJob(args *GitImageJobArgs) *project.Resource {
 	resourceName := project.ResourceName("git-image")
-	image := args.ResourceRegistry.GetResource(resourceName)
-	if image != nil {
-		return image
+	imageResource := args.ResourceRegistry.GetResource(resourceName)
+	if imageResource != nil {
+		return imageResource
 	}
 
 	curlImageJobArgs := &CurlImageJobArgs{}
@@ -25,21 +26,21 @@ func GitImageJob(args *GitImageJobArgs) *project.Resource {
 
 	curlImage := CurlImageJob(curlImageJobArgs)
 
-	tag, needJob := BranchImageTag(args.ConcourseBuilderGitSource.Branch)
+	tag, needJob := image.BranchImageTag(args.ConcourseBuilderGitSource.Branch)
 
-	image = &project.Resource{
+	imageResource = &project.Resource{
 		Name: resourceName,
 		Type: resource.ImageResourceType.Name,
-		Source: &ImageSource{
+		Source: &image.Source{
 			Tag:        tag,
 			Registry:   args.ImageRegistry,
 			Repository: "concourse-builder/git-image",
 		},
 	}
-	args.ResourceRegistry.MustRegister(image)
+	args.ResourceRegistry.MustRegister(imageResource)
 
 	if !needJob {
-		return image
+		return imageResource
 	}
 
 	RegisterConcourseBuilderGit(args.ResourceRegistry, args.ConcourseBuilderGitSource)
@@ -52,18 +53,18 @@ func GitImageJob(args *GitImageJobArgs) *project.Resource {
 		RelativePath: "docker/git",
 	}
 
-	args.ResourceRegistry.MustRegister(UbuntuImage)
+	args.ResourceRegistry.MustRegister(image.Ubuntu)
 
 	job := BuildImage(
-		UbuntuImage,
-		curlImage,
 		&BuildImageArgs{
+			Prepare:            image.Ubuntu,
+			From:               curlImage,
 			Name:               "git",
 			DockerFileResource: dockerSteps,
-			Image:              image.Name,
+			Image:              imageResource.Name,
 		})
 
-	image.NeededJobs = project.Jobs{job}
+	imageResource.NeededJobs = project.Jobs{job}
 
-	return image
+	return imageResource
 }
