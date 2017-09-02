@@ -32,6 +32,7 @@ type TaskStep struct {
 	Platform    model.Platform
 	Name        model.TaskName
 	Image       *JobResource
+	Privileged  bool
 	Run         IRun
 	Outputs     []IOutput
 	Environment map[string]interface{}
@@ -41,7 +42,8 @@ type TaskStep struct {
 
 func (ts *TaskStep) Model() (model.IStep, error) {
 	task := &model.Task{
-		Task: ts.Name,
+		Task:       ts.Name,
+		Privileged: ts.Privileged,
 		Config: &model.TaskConfig{
 			Platform: ts.Platform,
 			Run: &model.TaskRun{
