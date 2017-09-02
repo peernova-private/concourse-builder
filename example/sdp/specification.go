@@ -5,6 +5,7 @@ import (
 	"github.com/concourse-friends/concourse-builder/library/image"
 	"github.com/concourse-friends/concourse-builder/library/primitive"
 	"github.com/concourse-friends/concourse-builder/project"
+	"github.com/concourse-friends/concourse-builder/resource"
 )
 
 type testSpecification struct {
@@ -30,14 +31,18 @@ func (s *testSpecification) GoImage(resourceRegistry *project.ResourceRegistry) 
 	return image.Go, nil
 }
 
-func (s *testSpecification) ConcourseBuilderGitSource() (*library.GitSource, error) {
-	return &library.GitSource{
-		Repo: &primitive.GitRepo{
-			URI:        "git@github.com:concourse-friends/concourse-builder.git",
-			PrivateKey: "private-key",
-		},
-		Branch: &primitive.GitBranch{
-			Name: "master",
+func (s *testSpecification) ConcourseBuilderGit() (*project.Resource, error) {
+	return &project.Resource{
+		Name: library.ConcourseBuilderGitName,
+		Type: resource.GitResourceType.Name,
+		Source: &library.GitSource{
+			Repo: &primitive.GitRepo{
+				URI:        "git@github.com:concourse-friends/concourse-builder.git",
+				PrivateKey: "private-key",
+			},
+			Branch: &primitive.GitBranch{
+				Name: "master",
+			},
 		},
 	}, nil
 }
@@ -50,18 +55,13 @@ func (s *testSpecification) TargetGitRepo() (*primitive.GitRepo, error) {
 }
 
 func (s *testSpecification) GenerateProjectLocation(resourceRegistry *project.ResourceRegistry, overrideBranch *primitive.GitBranch) (project.IRun, error) {
-	gitSource, err := s.ConcourseBuilderGitSource()
+	gitResource, err := s.ConcourseBuilderGit()
 	if err != nil {
 		return nil, err
 	}
 
-	library.RegisterConcourseBuilderGit(resourceRegistry, gitSource)
-
 	return &primitive.Location{
-		Volume: &project.JobResource{
-			Name:    library.ConcourseBuilderGitName,
-			Trigger: true,
-		},
+		Volume:       resourceRegistry.JobResource(gitResource, true, nil),
 		RelativePath: "foo",
 	}, nil
 }

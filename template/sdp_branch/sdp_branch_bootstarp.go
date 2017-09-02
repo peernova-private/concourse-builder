@@ -12,7 +12,7 @@ type BootstrapSpecification interface {
 	Concourse() (*primitive.Concourse, error)
 	DeployImageRegistry() (*image.Registry, error)
 	GoImage(resourceRegistry *project.ResourceRegistry) (*project.Resource, error)
-	ConcourseBuilderGitSource() (*library.GitSource, error)
+	ConcourseBuilderGit() (*project.Resource, error)
 	GenerateProjectLocation(resourceRegistry *project.ResourceRegistry) (project.IRun, error)
 	Environment() (map[string]interface{}, error)
 }
@@ -22,7 +22,7 @@ func GenerateBootstrapProject(specification BootstrapSpecification) (*project.Pr
 	mainPipeline.AllJobsGroup = project.AllJobsGroupFirst
 	mainPipeline.Name = project.ConvertToPipelineName(specification.Branch().FriendlyName() + "-sdpb")
 
-	concourseBuilderGitSource, err := specification.ConcourseBuilderGitSource()
+	concourseBuilderGit, err := specification.ConcourseBuilderGit()
 	if err != nil {
 		return nil, err
 	}
@@ -53,13 +53,13 @@ func GenerateBootstrapProject(specification BootstrapSpecification) (*project.Pr
 	}
 
 	selfUpdateJob := library.SelfUpdateJob(&library.SelfUpdateJobArgs{
-		ConcourseBuilderGitSource: concourseBuilderGitSource,
-		ImageRegistry:             imageRegistry,
-		GoImage:                   goImage,
-		ResourceRegistry:          mainPipeline.ResourceRegistry,
-		Concourse:                 concourse,
-		Environment:               environment,
-		GenerateProjectLocation:   generateProjectLocation,
+		ConcourseBuilderGit:     concourseBuilderGit,
+		ImageRegistry:           imageRegistry,
+		GoImage:                 goImage,
+		ResourceRegistry:        mainPipeline.ResourceRegistry,
+		Concourse:               concourse,
+		Environment:             environment,
+		GenerateProjectLocation: generateProjectLocation,
 	})
 
 	mainPipeline.Jobs = project.Jobs{

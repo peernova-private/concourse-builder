@@ -11,14 +11,14 @@ import (
 )
 
 type BranchesJobArgs struct {
-	ConcourseBuilderGitSource *library.GitSource
-	ImageRegistry             *image.Registry
-	GoImage                   *project.Resource
-	ResourceRegistry          *project.ResourceRegistry
-	Concourse                 *primitive.Concourse
-	TargetGitRepo             *primitive.GitRepo
-	Environment               map[string]interface{}
-	GenerateProjectLocation   project.IRun
+	ConcourseBuilderGit     *project.Resource
+	ImageRegistry           *image.Registry
+	GoImage                 *project.Resource
+	ResourceRegistry        *project.ResourceRegistry
+	Concourse               *primitive.Concourse
+	TargetGitRepo           *primitive.GitRepo
+	Environment             map[string]interface{}
+	GenerateProjectLocation project.IRun
 }
 
 func taskObtainBranches(args *BranchesJobArgs, branchesDir *project.TaskOutput) *project.TaskStep {
@@ -27,10 +27,7 @@ func taskObtainBranches(args *BranchesJobArgs, branchesDir *project.TaskOutput) 
 
 	gitImage := library.GitImageJob(gitImageJobArgs)
 
-	gitImageResource := &project.JobResource{
-		Name:    gitImage.Name,
-		Trigger: true,
-	}
+	gitImageResource := args.ResourceRegistry.JobResource(gitImage, true, nil)
 
 	targetGitResource := &project.Resource{
 		Name: "target-git",
@@ -41,12 +38,7 @@ func taskObtainBranches(args *BranchesJobArgs, branchesDir *project.TaskOutput) 
 		},
 	}
 
-	args.ResourceRegistry.MustRegister(targetGitResource)
-
-	targetGitJobResource := &project.JobResource{
-		Name:    targetGitResource.Name,
-		Trigger: true,
-	}
+	targetGitJobResource := args.ResourceRegistry.JobResource(targetGitResource, true, nil)
 
 	environment := map[string]interface{}{
 		"GIT_REPO_DIR": &primitive.Location{
@@ -77,12 +69,7 @@ func taskObtainBranches(args *BranchesJobArgs, branchesDir *project.TaskOutput) 
 }
 
 func taskPreparePipelines(args *BranchesJobArgs, branchesDir *project.TaskOutput, pipelinesDir *project.TaskOutput) *project.TaskStep {
-	args.ResourceRegistry.MustRegister(args.GoImage)
-
-	goImageResource := &project.JobResource{
-		Name:    args.GoImage.Name,
-		Trigger: true,
-	}
+	goImageResource := args.ResourceRegistry.JobResource(args.GoImage, true, nil)
 
 	environment := make(map[string]interface{})
 	for k, v := range args.Environment {
@@ -114,10 +101,7 @@ func taskCreateMissingPipelines(args *BranchesJobArgs, pipelinesDir *project.Tas
 
 	flyImage := library.FlyImageJob(flyImageJobArgs)
 
-	flyImageResource := &project.JobResource{
-		Name:    flyImage.Name,
-		Trigger: true,
-	}
+	flyImageResource := args.ResourceRegistry.JobResource(flyImage, true, nil)
 
 	task := &project.TaskStep{
 		Platform: model.LinuxPlatform,
@@ -147,10 +131,7 @@ func taskRemoveNotNeededPipelines(args *BranchesJobArgs, pipelinesDir *project.T
 
 	flyImage := library.FlyImageJob(flyImageJobArgs)
 
-	flyImageResource := &project.JobResource{
-		Name:    flyImage.Name,
-		Trigger: true,
-	}
+	flyImageResource := args.ResourceRegistry.JobResource(flyImage, true, nil)
 
 	task := &project.TaskStep{
 		Platform: model.LinuxPlatform,

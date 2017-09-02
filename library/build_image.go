@@ -16,43 +16,33 @@ var ImagesGroup = &project.JobGroup{
 }
 
 type BuildImageArgs struct {
-	ResourceRegistry   *project.ResourceRegistry
-	Prepare            *project.Resource
-	From               *project.Resource
-	Name               string
-	DockerFileResource project.IEnvironmentValue
-	Image              project.ResourceName
-	BuildArgs          map[string]interface{}
-	PreprepareSteps    project.ISteps
-	Eval               string
+	ConcourseBuilderGit *project.Resource
+	ResourceRegistry    *project.ResourceRegistry
+	Prepare             *project.Resource
+	From                *project.Resource
+	Name                string
+	DockerFileResource  project.IEnvironmentValue
+	Image               *project.Resource
+	BuildArgs           map[string]interface{}
+	PreprepareSteps     project.ISteps
+	Eval                string
 }
 
 func BuildImage(args *BuildImageArgs) *project.Job {
-	imageResource := &project.JobResource{
-		Name: args.Image,
-	}
+	imageResource := args.ResourceRegistry.JobResource(args.Image, false, nil)
 
 	preparedDir := &project.TaskOutput{
 		Directory: "prepared",
 	}
 
-	args.ResourceRegistry.MustRegister(args.Prepare)
-	args.ResourceRegistry.MustRegister(args.From)
-
-	prepareImageResource := &project.JobResource{
-		Name:    args.Prepare.Name,
-		Trigger: true,
-	}
+	prepareImageResource := args.ResourceRegistry.JobResource(args.Prepare, true, nil)
 
 	taskPrepare := &project.TaskStep{
 		Platform: model.LinuxPlatform,
 		Name:     "prepare",
 		Image:    prepareImageResource,
 		Run: &primitive.Location{
-			Volume: &project.JobResource{
-				Name:    ConcourseBuilderGitName,
-				Trigger: true,
-			},
+			Volume:       args.ResourceRegistry.JobResource(args.ConcourseBuilderGit, true, nil),
 			RelativePath: "scripts/docker_image_prepare.sh",
 		},
 		Environment: map[string]interface{}{
@@ -71,10 +61,7 @@ func BuildImage(args *BuildImageArgs) *project.Job {
 	imageSource := args.From.Source.(*image.Source)
 	public := imageSource.Registry.Public()
 
-	fromImageResource := &project.JobResource{
-		Name:    args.From.Name,
-		Trigger: true,
-	}
+	fromImageResource := args.ResourceRegistry.JobResource(args.From, true, nil)
 
 	if !public {
 		fromImageResource.GetParams = &resource.ImageGetParams{

@@ -8,9 +8,9 @@ import (
 )
 
 type CurlImageJobArgs struct {
-	ConcourseBuilderGitSource *GitSource
-	ImageRegistry             *image.Registry
-	ResourceRegistry          *project.ResourceRegistry
+	ConcourseBuilderGit *project.Resource
+	ImageRegistry       *image.Registry
+	ResourceRegistry    *project.ResourceRegistry
 }
 
 func CurlImageJob(args *CurlImageJobArgs) *project.Resource {
@@ -20,7 +20,7 @@ func CurlImageJob(args *CurlImageJobArgs) *project.Resource {
 		return imageResource
 	}
 
-	tag, needJob := image.BranchImageTag(args.ConcourseBuilderGitSource.Branch)
+	tag, needJob := image.BranchImageTag(args.ConcourseBuilderGit.Source.(*GitSource).Branch)
 
 	imageResource = &project.Resource{
 		Name: resourceName,
@@ -31,30 +31,25 @@ func CurlImageJob(args *CurlImageJobArgs) *project.Resource {
 			Repository: "concourse-builder/curl-image",
 		},
 	}
-	args.ResourceRegistry.MustRegister(imageResource)
 
 	if !needJob {
 		return imageResource
 	}
 
-	RegisterConcourseBuilderGit(args.ResourceRegistry, args.ConcourseBuilderGitSource)
-
 	dockerSteps := &primitive.Location{
-		Volume: &project.JobResource{
-			Name:    ConcourseBuilderGitName,
-			Trigger: true,
-		},
+		Volume:       args.ResourceRegistry.JobResource(args.ConcourseBuilderGit, true, nil),
 		RelativePath: "docker/curl",
 	}
 
 	job := BuildImage(
 		&BuildImageArgs{
-			ResourceRegistry:   args.ResourceRegistry,
-			Prepare:            image.Ubuntu,
-			From:               image.Ubuntu,
-			Name:               "curl",
-			DockerFileResource: dockerSteps,
-			Image:              imageResource.Name,
+			ConcourseBuilderGit: args.ConcourseBuilderGit,
+			ResourceRegistry:    args.ResourceRegistry,
+			Prepare:             image.Ubuntu,
+			From:                image.Ubuntu,
+			Name:                "curl",
+			DockerFileResource:  dockerSteps,
+			Image:               imageResource,
 		})
 	job.AddToGroup(project.SystemGroup)
 

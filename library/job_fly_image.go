@@ -11,10 +11,10 @@ import (
 )
 
 type FlyImageJobArgs struct {
-	ConcourseBuilderGitSource *GitSource
-	ImageRegistry             *image.Registry
-	ResourceRegistry          *project.ResourceRegistry
-	Concourse                 *primitive.Concourse
+	ConcourseBuilderGit *project.Resource
+	ImageRegistry       *image.Registry
+	ResourceRegistry    *project.ResourceRegistry
+	Concourse           *primitive.Concourse
 }
 
 func FlyImageJob(args *FlyImageJobArgs) *project.Resource {
@@ -29,7 +29,7 @@ func FlyImageJob(args *FlyImageJobArgs) *project.Resource {
 
 	curlImage := CurlImageJob(curlImageJobArgs)
 
-	tag, needJob := image.BranchImageTag(args.ConcourseBuilderGitSource.Branch)
+	tag, needJob := image.BranchImageTag(args.ConcourseBuilderGit.Source.(*GitSource).Branch)
 
 	imageResource = &project.Resource{
 		Name: resourceName,
@@ -41,19 +41,12 @@ func FlyImageJob(args *FlyImageJobArgs) *project.Resource {
 		},
 	}
 
-	args.ResourceRegistry.MustRegister(imageResource)
-
 	if !needJob {
 		return imageResource
 	}
 
-	RegisterConcourseBuilderGit(args.ResourceRegistry, args.ConcourseBuilderGitSource)
-
 	dockerSteps := &primitive.Location{
-		Volume: &project.JobResource{
-			Name:    ConcourseBuilderGitName,
-			Trigger: true,
-		},
+		Volume:       args.ResourceRegistry.JobResource(args.ConcourseBuilderGit, true, nil),
 		RelativePath: "docker/fly",
 	}
 	var insecureArg string
@@ -66,13 +59,14 @@ func FlyImageJob(args *FlyImageJobArgs) *project.Resource {
 
 	job := BuildImage(
 		&BuildImageArgs{
-			ResourceRegistry:   args.ResourceRegistry,
-			Prepare:            curlImage,
-			From:               curlImage,
-			Name:               "fly",
-			DockerFileResource: dockerSteps,
-			Image:              imageResource.Name,
-			Eval:               evalFlyVersion,
+			ConcourseBuilderGit: args.ConcourseBuilderGit,
+			ResourceRegistry:    args.ResourceRegistry,
+			Prepare:             curlImage,
+			From:                curlImage,
+			Name:                "fly",
+			DockerFileResource:  dockerSteps,
+			Image:               imageResource,
+			Eval:                evalFlyVersion,
 		})
 	job.AddToGroup(project.SystemGroup)
 

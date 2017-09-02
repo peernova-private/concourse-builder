@@ -32,6 +32,15 @@ func (rr *ResourceRegistry) MustRegister(resource *Resource) {
 	rr.resources[hash] = resource
 }
 
+func (rr *ResourceRegistry) JobResource(resource *Resource, trigger bool, getParams interface{}) *JobResource {
+	rr.MustRegister(resource)
+	return &JobResource{
+		Name:      resource.Name,
+		Trigger:   trigger,
+		GetParams: getParams,
+	}
+}
+
 func (rr *ResourceRegistry) GetResource(name ResourceName) *Resource {
 	if hash, ok := rr.cross[name]; ok {
 		if res, ok := rr.resources[hash]; ok {

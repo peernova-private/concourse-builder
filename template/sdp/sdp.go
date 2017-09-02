@@ -18,7 +18,7 @@ type Specification interface {
 	Concourse() (*primitive.Concourse, error)
 	DeployImageRegistry() (*image.Registry, error)
 	GoImage(resourceRegistry *project.ResourceRegistry) (*project.Resource, error)
-	ConcourseBuilderGitSource() (*library.GitSource, error)
+	ConcourseBuilderGit() (*project.Resource, error)
 	GenerateProjectLocation(resourceRegistry *project.ResourceRegistry, branch *primitive.GitBranch) (project.IRun, error)
 	TargetGitRepo() (*primitive.GitRepo, error)
 	Environment() (map[string]interface{}, error)
@@ -74,12 +74,13 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 	mainPipeline := project.NewPipeline()
 	mainPipeline.AllJobsGroup = project.AllJobsGroupFirst
 
-	concourseBuilderGitSource, err := specification.ConcourseBuilderGitSource()
+	concourseBuilderGit, err := specification.ConcourseBuilderGit()
 	if err != nil {
 		return nil, err
 	}
 
-	mainPipeline.Name = project.ConvertToPipelineName(concourseBuilderGitSource.Branch.FriendlyName() + "-sdp")
+	rawName := concourseBuilderGit.Source.(*library.GitSource).Branch.FriendlyName() + "-sdp"
+	mainPipeline.Name = project.ConvertToPipelineName(rawName)
 
 	imageRegistry, err := specification.DeployImageRegistry()
 	if err != nil {
@@ -107,13 +108,13 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 	}
 
 	selfUpdateJob := library.SelfUpdateJob(&library.SelfUpdateJobArgs{
-		ConcourseBuilderGitSource: concourseBuilderGitSource,
-		ImageRegistry:             imageRegistry,
-		GoImage:                   goImage,
-		ResourceRegistry:          mainPipeline.ResourceRegistry,
-		Concourse:                 concourse,
-		Environment:               environment,
-		GenerateProjectLocation:   generateProjectLocation,
+		ConcourseBuilderGit:     concourseBuilderGit,
+		ImageRegistry:           imageRegistry,
+		GoImage:                 goImage,
+		ResourceRegistry:        mainPipeline.ResourceRegistry,
+		Concourse:               concourse,
+		Environment:             environment,
+		GenerateProjectLocation: generateProjectLocation,
 	})
 
 	targetGit, err := specification.TargetGitRepo()
@@ -122,14 +123,14 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 	}
 
 	branchesJob := BranchesJob(&BranchesJobArgs{
-		ConcourseBuilderGitSource: concourseBuilderGitSource,
-		ImageRegistry:             imageRegistry,
-		GoImage:                   goImage,
-		ResourceRegistry:          mainPipeline.ResourceRegistry,
-		Concourse:                 concourse,
-		TargetGitRepo:             targetGit,
-		Environment:               environment,
-		GenerateProjectLocation:   generateProjectLocation,
+		ConcourseBuilderGit:     concourseBuilderGit,
+		ImageRegistry:           imageRegistry,
+		GoImage:                 goImage,
+		ResourceRegistry:        mainPipeline.ResourceRegistry,
+		Concourse:               concourse,
+		TargetGitRepo:           targetGit,
+		Environment:             environment,
+		GenerateProjectLocation: generateProjectLocation,
 	})
 
 	mainPipeline.Jobs = project.Jobs{
