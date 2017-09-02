@@ -8,7 +8,7 @@ import (
 
 type FromParam project.Resource
 
-func (fp *FromParam) Value() interface{} {
+func (fp *FromParam) Value() string {
 	source := fp.Source.(*Source)
 	result := path.Join(source.Registry.Domain, source.Repository)
 	if source.Tag != "" {
