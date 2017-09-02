@@ -1,7 +1,6 @@
 package sdp
 
 import (
-	"github.com/concourse-friends/concourse-builder/library"
 	"github.com/concourse-friends/concourse-builder/library/image"
 	"github.com/concourse-friends/concourse-builder/library/primitive"
 	"github.com/concourse-friends/concourse-builder/project"
@@ -28,8 +27,8 @@ func (bbs *BranchBootstrapSpecification) GoImage(resourceRegistry *project.Resou
 	return bbs.Specification.GoImage(resourceRegistry)
 }
 
-func (bbs *BranchBootstrapSpecification) ConcourseBuilderGitSource() (*library.GitSource, error) {
-	return bbs.Specification.ConcourseBuilderGitSource()
+func (bbs *BranchBootstrapSpecification) ConcourseBuilderGit() (*project.Resource, error) {
+	return bbs.Specification.ConcourseBuilderGit()
 }
 
 func (bbs *BranchBootstrapSpecification) GenerateProjectLocation(resourceRegistry *project.ResourceRegistry) (project.IRun, error) {

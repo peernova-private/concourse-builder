@@ -16,7 +16,7 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 	mainPipeline.AllJobsGroup = project.AllJobsGroupFirst
 	mainPipeline.Name = project.ConvertToPipelineName(specification.Branch().FriendlyName() + "-sdpb")
 
-	concourseBuilderGitSource, err := specification.ConcourseBuilderGitSource()
+	concourseBuilderGit, err := specification.ConcourseBuilderGit()
 	if err != nil {
 		return nil, err
 	}
@@ -47,13 +47,13 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 	}
 
 	selfUpdateJob := library.SelfUpdateJob(&library.SelfUpdateJobArgs{
-		ConcourseBuilderGitSource: concourseBuilderGitSource,
-		ImageRegistry:             imageRegistry,
-		GoImage:                   goImage,
-		ResourceRegistry:          mainPipeline.ResourceRegistry,
-		Concourse:                 concourse,
-		Environment:               environment,
-		GenerateProjectLocation:   generateProjectLocation,
+		ConcourseBuilderGit:     concourseBuilderGit,
+		ImageRegistry:           imageRegistry,
+		GoImage:                 goImage,
+		ResourceRegistry:        mainPipeline.ResourceRegistry,
+		Concourse:               concourse,
+		Environment:             environment,
+		GenerateProjectLocation: generateProjectLocation,
 	})
 
 	mainPipeline.Jobs = project.Jobs{
