@@ -8,9 +8,9 @@ import (
 )
 
 type CLangFormatImageJobArgs struct {
-	ConcourseBuilderGitSource *GitSource
-	ImageRegistry             *image.Registry
-	ResourceRegistry          *project.ResourceRegistry
+	ConcourseBuilderGit *project.Resource
+	ImageRegistry       *image.Registry
+	ResourceRegistry    *project.ResourceRegistry
 }
 
 func CLangFormatImageJob(args *CLangFormatImageJobArgs) *project.Resource {
@@ -20,7 +20,7 @@ func CLangFormatImageJob(args *CLangFormatImageJobArgs) *project.Resource {
 		return imageResource
 	}
 
-	tag, needJob := image.BranchImageTag(args.ConcourseBuilderGitSource.Branch)
+	tag, needJob := image.BranchImageTag(args.ConcourseBuilderGit.Source.(*GitSource).Branch)
 
 	imageResource = &project.Resource{
 		Name: resourceName,
@@ -32,19 +32,12 @@ func CLangFormatImageJob(args *CLangFormatImageJobArgs) *project.Resource {
 		},
 	}
 
-	args.ResourceRegistry.MustRegister(imageResource)
-
 	if !needJob {
 		return imageResource
 	}
 
-	RegisterConcourseBuilderGit(args.ResourceRegistry, args.ConcourseBuilderGitSource)
-
 	dockerSteps := &primitive.Location{
-		Volume: &project.JobResource{
-			Name:    ConcourseBuilderGitName,
-			Trigger: true,
-		},
+		Volume:       args.ResourceRegistry.JobResource(args.ConcourseBuilderGit, true, nil),
 		RelativePath: "docker/clang-format",
 	}
 
@@ -55,7 +48,7 @@ func CLangFormatImageJob(args *CLangFormatImageJobArgs) *project.Resource {
 			From:               image.Ubuntu,
 			Name:               "clang-format",
 			DockerFileResource: dockerSteps,
-			Image:              imageResource.Name,
+			Image:              imageResource,
 		})
 	job.AddToGroup(project.SystemGroup)
 
