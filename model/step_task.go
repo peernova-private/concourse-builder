@@ -96,6 +96,13 @@ type Task struct {
 	// Image to works it needs to be 'Get' first which makes it part of the visioning system od concourse.
 	Image ResourceName `yaml:",omitempty"`
 
+	// Optional. Default false. If set to true, the task will run with full capabilities,
+	// as determined by the Garden backend the task runs on. For Linux-based backends it
+	// typically determines whether or not the container will run in a separate user namespace,
+	// and whether the root user is "actual" root (if set to true) or a user namespaced root
+	// (if set to false, the default).
+	Privileged bool `yaml:",omitempty"`
+
 	// The configuration of the task
 	Config *TaskConfig `yaml:",omitempty"`
 
