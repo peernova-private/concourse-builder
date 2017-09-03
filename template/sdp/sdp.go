@@ -4,7 +4,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"regexp"
 	"strings"
 
 	"github.com/concourse-friends/concourse-builder/library"
@@ -46,11 +45,12 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 		return nil, err
 	}
 
-	reInclude := regexp.MustCompile(`master|release/.*|feature/.*|task/.*`)
-	reExclude := regexp.MustCompile(`task/.*?-pr$`)
+	for _, name := range branches {
+		branch := &primitive.GitBranch{
+			Name: name,
+		}
 
-	for _, branch := range branches {
-		if !reInclude.MatchString(branch) || reExclude.MatchString(branch) {
+		if !(branch.IsMaster() || branch.IsRelease() || branch.IsFeature() || branch.IsTask()) {
 			log.Printf("Branch %s does not fit the expected name protocol", branch)
 			continue
 		}
@@ -58,9 +58,7 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 
 		branchSpecification := &BranchBootstrapSpecification{
 			Specification: specification,
-			TargetBranch: &primitive.GitBranch{
-				Name: branch,
-			},
+			TargetBranch:  branch,
 		}
 
 		project, err := sdpBranch.GenerateBootstrapProject(branchSpecification)
