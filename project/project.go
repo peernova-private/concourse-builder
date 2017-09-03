@@ -56,7 +56,7 @@ func (p *Project) Filter(jobRegex *regexp.Regexp) error {
 			if jobRegex.Match([]byte(jobs[i].Name)) {
 				i++
 			} else {
-				pipeline.Jobs = append(jobs[:i], jobs[i+1:]...)
+				jobs = append(jobs[:i], jobs[i+1:]...)
 			}
 		}
 
