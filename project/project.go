@@ -45,14 +45,23 @@ func (p *Project) Deploy() error {
 // This allows for the creating simpler pipelines that get to the jobs of interest faster.
 // Purfect for debugging. Note that on save the piplines will self expand with all of the
 // dependencies needed for the jobs to work, witch will make them valid and operational.
-func (p *Project) Filter(jobRegex *regexp.Regexp) {
+func (p *Project) Filter(jobRegex *regexp.Regexp) error {
 	for _, pipeline := range p.Pipelines {
-		for i := 0; i < len(pipeline.Jobs); {
-			if jobRegex.Match([]byte(pipeline.Jobs[i].Name)) {
+		jobs, err := pipeline.AllJobs()
+		if err != nil {
+			return err
+		}
+
+		for i := 0; i < len(jobs); {
+			if jobRegex.Match([]byte(jobs[i].Name)) {
 				i++
 			} else {
-				pipeline.Jobs = append(pipeline.Jobs[:i], pipeline.Jobs[i+1:]...)
+				jobs = append(jobs[:i], jobs[i+1:]...)
 			}
 		}
+
+		pipeline.Jobs = jobs
 	}
+
+	return nil
 }
