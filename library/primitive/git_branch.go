@@ -14,6 +14,7 @@ var (
 	isFeaturePattern  = regexp.MustCompile(`^feature/.+`)
 	isTaskPattern     = regexp.MustCompile(`^task/.+`)
 	isImagePattern    = regexp.MustCompile(`image`)
+	isPrPattern       = regexp.MustCompile(`^(.+?)-pr(#(.+)|)$`)
 )
 
 func (gb *GitBranch) CanonicalName() string {
@@ -55,11 +56,11 @@ func (gb *GitBranch) IsRelease() bool {
 }
 
 func (gb *GitBranch) IsFeature() bool {
-	return isFeaturePattern.MatchString(gb.Name)
+	return isFeaturePattern.MatchString(gb.Name) && !isPrPattern.MatchString(gb.Name)
 }
 
 func (gb *GitBranch) IsTask() bool {
-	return isTaskPattern.MatchString(gb.Name)
+	return isTaskPattern.MatchString(gb.Name) && !isPrPattern.MatchString(gb.Name)
 }
 
 func (gb *GitBranch) IsImage() bool {

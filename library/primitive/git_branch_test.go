@@ -33,3 +33,21 @@ func TestGitBranch_FriendlyName(t *testing.T) {
 
 	assert.Equal(t, "branch", branch.FriendlyName())
 }
+
+func TestGitBranch_TaskBranch(t *testing.T) {
+	branch := &GitBranch{
+		Name: "task/foo#base",
+	}
+	assert.True(t, branch.IsTask())
+
+	prBranch := branch.PrBranch()
+	assert.False(t, prBranch.IsTask())
+
+	branch = &GitBranch{
+		Name: "task/foo",
+	}
+	assert.True(t, branch.IsTask())
+
+	prBranch = branch.PrBranch()
+	assert.False(t, prBranch.IsTask())
+}
