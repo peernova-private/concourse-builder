@@ -17,11 +17,11 @@ type IOutput interface {
 }
 
 type ITaskInput interface {
-	OutputName() string
+	OutputNames() []string
 }
 
 type IEnvironmentValue interface {
-	Value() interface{}
+	Value() string
 }
 
 type ITaskDirectory interface {
@@ -81,19 +81,20 @@ func (ts *TaskStep) Model() (model.IStep, error) {
 	}
 
 	if directory, ok := ts.Directory.(ITaskInput); ok {
-		name := directory.OutputName()
-		if name != "" {
+		names := directory.OutputNames()
+		for _, name := range names {
 			inputsMap[name] = struct{}{}
 		}
 	}
 
 	// TODO: revisit this one
 	for _, value := range ts.Environment {
+		var names []string
 		if variable, ok := value.(ITaskInput); ok {
-			name := variable.OutputName()
-			if name != "" {
-				inputsMap[name] = struct{}{}
-			}
+			names = variable.OutputNames()
+		}
+		for _, name := range names {
+			inputsMap[name] = struct{}{}
 		}
 	}
 

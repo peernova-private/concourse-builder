@@ -25,6 +25,7 @@ type BuildImageArgs struct {
 	Image               *project.Resource
 	BuildArgs           map[string]interface{}
 	PreprepareSteps     project.ISteps
+	SourceDirs          []interface{}
 	Eval                string
 }
 
@@ -52,6 +53,10 @@ func BuildImage(args *BuildImageArgs) *project.Job {
 		Outputs: []project.IOutput{
 			preparedDir,
 		},
+	}
+
+	if len(args.SourceDirs) > 0 {
+		taskPrepare.Environment["SOURCE_DIRS"] = primitive.Array(args.SourceDirs)
 	}
 
 	if args.Eval != "" {

@@ -27,16 +27,16 @@ func (l *Location) InputResources() project.JobResources {
 	return resources
 }
 
-func (l *Location) OutputName() string {
+func (l *Location) OutputNames() []string {
 	if output, ok := l.Volume.(*project.TaskOutput); ok {
-		return output.Name()
+		return []string{output.Name()}
 	}
 	if res, ok := l.Volume.(*project.JobResource); ok {
-		return string(res.Name)
+		return []string{string(res.Name)}
 	}
-	return ""
+	return nil
 }
 
-func (l *Location) Value() interface{} {
+func (l *Location) Value() string {
 	return l.Path()
 }

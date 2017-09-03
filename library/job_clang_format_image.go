@@ -44,12 +44,12 @@ func CLangFormatImageJob(args *CLangFormatImageJobArgs) *project.Resource {
 	job := BuildImage(
 		&BuildImageArgs{
 			ConcourseBuilderGit: args.ConcourseBuilderGit,
-			ResourceRegistry:   args.ResourceRegistry,
-			Prepare:            image.Ubuntu,
-			From:               image.Ubuntu,
-			Name:               "clang-format",
-			DockerFileResource: dockerSteps,
-			Image:              imageResource,
+			ResourceRegistry:    args.ResourceRegistry,
+			Prepare:             image.Ubuntu,
+			From:                image.Ubuntu,
+			Name:                "clang-format",
+			DockerFileResource:  dockerSteps,
+			Image:               imageResource,
 		})
 	job.AddToGroup(project.SystemGroup)
 
