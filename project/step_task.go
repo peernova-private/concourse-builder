@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	"github.com/concourse-friends/concourse-builder/model"
+	"github.com/davecgh/go-spew/spew"
 )
 
 type IRun interface {
@@ -20,7 +21,7 @@ type ITaskInput interface {
 	OutputNames() []string
 }
 
-type IEnvironmentValue interface {
+type IValue interface {
 	Value() string
 }
 
@@ -58,11 +59,12 @@ func (ts *TaskStep) Model() (model.IStep, error) {
 	}
 
 	for _, argument := range ts.Arguments {
-		switch value := argument.(type) {
-		case string:
-			task.Config.Run.Args = append(task.Config.Run.Args, value)
-		default:
-			panic(fmt.Sprintf("%v is unsuported type", argument))
+		if arg, ok := argument.(IValue); ok {
+			task.Config.Run.Args = append(task.Config.Run.Args, arg.Value())
+		} else if arg, ok := argument.(string); ok {
+			task.Config.Run.Args = append(task.Config.Run.Args, arg)
+		} else {
+			panic(fmt.Sprintf("%s is unsuported type", spew.Sdump(argument)))
 		}
 	}
 
@@ -75,26 +77,35 @@ func (ts *TaskStep) Model() (model.IStep, error) {
 		return nil, err
 	}
 
-	inputsMap := make(map[string]struct{})
+	inputsMap := make(map[string]string)
 	for _, inputResource := range inputResources {
-		inputsMap[string(inputResource.Name)] = struct{}{}
+		inputsMap[string(inputResource.Name)] = inputResource.Path()
 	}
 
 	if directory, ok := ts.Directory.(ITaskInput); ok {
 		names := directory.OutputNames()
 		for _, name := range names {
-			inputsMap[name] = struct{}{}
+			inputsMap[name] = name
 		}
 	}
 
-	// TODO: revisit this one
+	for _, value := range ts.Arguments {
+		var names []string
+		if variable, ok := value.(ITaskInput); ok {
+			names = variable.OutputNames()
+		}
+		for _, name := range names {
+			inputsMap[name] = name
+		}
+	}
+
 	for _, value := range ts.Environment {
 		var names []string
 		if variable, ok := value.(ITaskInput); ok {
 			names = variable.OutputNames()
 		}
 		for _, name := range names {
-			inputsMap[name] = struct{}{}
+			inputsMap[name] = name
 		}
 	}
 
@@ -105,9 +116,19 @@ func (ts *TaskStep) Model() (model.IStep, error) {
 
 	sort.Strings(inputs)
 	for _, name := range inputs {
-		task.Config.Inputs = append(task.Config.Inputs, &model.TaskInput{
+		input := &model.TaskInput{
 			Name: model.ResourceName(name),
-		})
+		}
+
+		path := inputsMap[name]
+
+		fmt.Println(name, path)
+
+		if name != path {
+			input.Path = path
+		}
+
+		task.Config.Inputs = append(task.Config.Inputs, input)
 	}
 
 	for _, output := range ts.Outputs {
@@ -118,7 +139,7 @@ func (ts *TaskStep) Model() (model.IStep, error) {
 	}
 
 	for name, value := range ts.Environment {
-		if param, ok := value.(IEnvironmentValue); ok {
+		if param, ok := value.(IValue); ok {
 			task.Config.Params[name] = param.Value()
 		} else {
 			task.Config.Params[name] = value
