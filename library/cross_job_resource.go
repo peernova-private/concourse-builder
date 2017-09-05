@@ -45,11 +45,11 @@ func CrossResource(
 			RelativePath: "tar",
 		},
 		Arguments: []interface{}{
-			"-zcvf",
-			path.Join(archive.Path(), "archive.tar.gz"),
-			&primitive.Location{
+			"-zcvf", path.Join(archive.Path(), "archive.tar.gz"),
+			"-C", &primitive.Location{
 				Volume: output,
 			},
+			".",
 		},
 		Outputs: []project.IOutput{
 			archive,
