@@ -151,3 +151,25 @@ func (job *Job) Model(previousColumns []Jobs) (*model.Job, error) {
 		OnFailure: modelOnFailureStep,
 	}, nil
 }
+
+func (job *Job) TaskOutputIndex(output *TaskOutput) (int, int) {
+	for s := range job.Steps {
+		task, ok := job.Steps[s].(*TaskStep)
+		if !ok {
+			continue
+		}
+
+		for o := range task.Outputs {
+			out, ok := task.Outputs[o].(*TaskOutput)
+			if !ok {
+				continue
+			}
+
+			if out == output {
+				return s, o
+			}
+		}
+	}
+
+	return 0, 0
+}
