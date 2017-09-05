@@ -53,7 +53,7 @@ func CLangFormatImageJob(args *CLangFormatImageJobArgs) *project.Resource {
 		})
 	job.AddToGroup(project.SystemGroup)
 
-	imageResource.NeededJobs = project.Jobs{job}
+	imageResource.NeedJobs(job)
 
 	return imageResource
 }

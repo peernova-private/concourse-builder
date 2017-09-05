@@ -54,7 +54,7 @@ func (p *Pipeline) AllJobs() (Jobs, error) {
 
 		for _, resource := range resources {
 			projResource := p.ResourceRegistry.MustGetResource(resource.Name)
-			for _, resJob := range projResource.NeededJobs {
+			for _, resJob := range projResource.neededJobs {
 				job.AddJobToRunAfter(resJob)
 				if _, exists := jobs[resJob.Name]; exists {
 					continue

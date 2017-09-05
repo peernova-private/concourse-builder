@@ -72,7 +72,7 @@ func (job *Job) Resources() (JobResources, error) {
 			return nil, err
 		}
 		if outputResource != nil {
-			resources = append(resources, outputResource)
+			resources = append(resources, &JobResource{Name: outputResource.Name})
 		}
 	}
 
