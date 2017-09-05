@@ -41,22 +41,3 @@ func (im *Source) ModelSource() interface{} {
 	return source
 }
 
-var Ubuntu = &project.Resource{
-	Name: "ubuntu-image",
-	Type: resource.ImageResourceType.Name,
-	Source: &Source{
-		Registry:   DockerHub,
-		Repository: "ubuntu",
-	},
-	CheckInterval: model.Duration(24 * time.Hour),
-}
-
-var Gradle = &project.Resource{
-	Name: "gradle-image",
-	Type: resource.ImageResourceType.Name,
-	Source: &Source{
-		Registry:   DockerHub,
-		Repository: "gradle",
-	},
-	CheckInterval: model.Duration(24 * time.Hour),
-}
