@@ -36,6 +36,10 @@ func (r *Resource) NeedJobs(jobs ...*Job) {
 	r.neededJobs = append(r.neededJobs, jobs...)
 }
 
+func (r *Resource) NeededJobs() Jobs {
+	return r.neededJobs
+}
+
 type Resources []Resource
 
 type ResourceHash string

@@ -53,7 +53,7 @@ func (rr *ResourceRegistry) GetResource(name ResourceName) *Resource {
 func (rr *ResourceRegistry) MustGetResource(name ResourceName) *Resource {
 	res := rr.resources[rr.cross[name]]
 	if res == nil {
-		panic(fmt.Sprintf("Rsource %s not found", name))
+		panic(fmt.Sprintf("Resource %s not found", name))
 	}
 	return res
 }
