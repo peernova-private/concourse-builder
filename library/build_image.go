@@ -21,7 +21,7 @@ type BuildImageArgs struct {
 	Prepare             *project.Resource
 	From                *project.Resource
 	Name                string
-	DockerFileResource  project.IEnvironmentValue
+	DockerFileResource  project.IValue
 	Image               *project.Resource
 	BuildArgs           map[string]interface{}
 	PreprepareSteps     project.ISteps

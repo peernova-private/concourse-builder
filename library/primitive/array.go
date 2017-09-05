@@ -15,7 +15,7 @@ func (a Array) Value() string {
 	for _, i := range a {
 		if item, ok := i.(string); ok {
 			values = append(values, item)
-		} else if item, ok := i.(project.IEnvironmentValue); ok {
+		} else if item, ok := i.(project.IValue); ok {
 			values = append(values, item.Value())
 		} else if item, ok := i.(fmt.Stringer); ok {
 			values = append(values, item.String())

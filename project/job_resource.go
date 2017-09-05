@@ -19,12 +19,16 @@ type IJobResourceSource interface {
 }
 
 type JobResource struct {
-	Name      ResourceName
-	Trigger   bool
-	GetParams interface{}
+	Name          ResourceName
+	PreferredPath string
+	Trigger       bool
+	GetParams     interface{}
 }
 
 func (jr *JobResource) Path() string {
+	if jr.PreferredPath != "" {
+		return jr.PreferredPath
+	}
 	return string(jr.Name)
 }
 
@@ -67,10 +71,23 @@ func (jr JobResources) Deduplicate() JobResources {
 
 	pos := 0
 	for i := range jr {
+		if pos == i {
+			continue
+		}
+
 		if jr[pos].Name != jr[i].Name {
 			pos++
+			jr[pos] = jr[i]
+			continue
 		}
-		jr[pos] = jr[i]
+
+		jr[pos].Trigger = jr[pos].Trigger || jr[i].Trigger
+		if jr[pos].PreferredPath == "" {
+			jr[pos].PreferredPath = jr[i].PreferredPath
+		}
+		if jr[pos].GetParams == nil {
+			jr[pos].GetParams = jr[i].GetParams
+		}
 	}
 
 	return jr[:pos+1]

@@ -31,9 +31,6 @@ func (l *Location) OutputNames() []string {
 	if output, ok := l.Volume.(*project.TaskOutput); ok {
 		return []string{output.Name()}
 	}
-	if res, ok := l.Volume.(*project.JobResource); ok {
-		return []string{string(res.Name)}
-	}
 	return nil
 }
 

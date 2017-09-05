@@ -25,6 +25,14 @@ type S3Source struct {
 	VersionedFile string `yaml:"versioned_file,omitempty"`
 }
 
+type S3GetParams struct {
+	Unpack bool `yaml:",omitempty"`
+}
+
+type S3PutParams struct {
+	File string `yaml:",omitempty"`
+}
+
 // S3 resource type
 var S3ResourceType = &model.ResourceType{
 	// The name
