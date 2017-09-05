@@ -170,6 +170,6 @@ func (ts *TaskStep) InputResources() (JobResources, error) {
 	return resources.Deduplicate(), nil
 }
 
-func (ts *TaskStep) OutputResource() (*JobResource, error) {
+func (ts *TaskStep) OutputResource() (*Resource, error) {
 	return nil, nil
 }

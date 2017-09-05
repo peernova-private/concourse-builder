@@ -30,8 +30,6 @@ type BuildImageArgs struct {
 }
 
 func BuildImage(args *BuildImageArgs) *project.Job {
-	imageResource := args.ResourceRegistry.JobResource(args.Image, false, nil)
-
 	preparedDir := &project.TaskOutput{
 		Directory: "prepared",
 	}
@@ -75,7 +73,7 @@ func BuildImage(args *BuildImageArgs) *project.Job {
 	}
 
 	putImage := &project.PutStep{
-		JobResource: imageResource,
+		Resource: args.Image,
 		Params: &image.PutParams{
 			FromImage: fromImageResource,
 			Load:      !public,

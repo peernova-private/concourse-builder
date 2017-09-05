@@ -58,7 +58,7 @@ func GitImageJob(args *GitImageJobArgs) *project.Resource {
 			Image:               imageResource,
 		})
 
-	imageResource.NeededJobs = project.Jobs{job}
+	imageResource.NeedJobs(job)
 
 	return imageResource
 }

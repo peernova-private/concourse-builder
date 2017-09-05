@@ -10,7 +10,7 @@ type IPutParams interface {
 
 type PutStep struct {
 	// The resource that will be put
-	JobResource *JobResource
+	Resource *Resource
 
 	// Additional resource specific parameters
 	Params IPutParams
@@ -21,7 +21,7 @@ type PutStep struct {
 
 func (ps *PutStep) Model() (model.IStep, error) {
 	put := &model.Put{
-		Put:       model.ResourceName(ps.JobResource.Name),
+		Put:       model.ResourceName(ps.Resource.Name),
 		GetParams: ps.GetParams,
 	}
 
@@ -44,6 +44,6 @@ func (ps *PutStep) InputResources() (JobResources, error) {
 	return resources, nil
 }
 
-func (ps *PutStep) OutputResource() (*JobResource, error) {
-	return ps.JobResource, nil
+func (ps *PutStep) OutputResource() (*Resource, error) {
+	return ps.Resource, nil
 }

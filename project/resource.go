@@ -29,7 +29,11 @@ type Resource struct {
 
 	// Jobs needed to be part of the pipeline if this resource is consumed
 	// Usually the job that produces the resource
-	NeededJobs Jobs
+	neededJobs Jobs
+}
+
+func (r *Resource) NeedJobs(jobs ...*Job) {
+	r.neededJobs = append(r.neededJobs, jobs...)
 }
 
 type ResourceHash string
