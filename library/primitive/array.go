@@ -27,6 +27,16 @@ func (a Array) Value() string {
 	return strings.Join(values, " ")
 }
 
+func (a Array) InputResources() project.JobResources {
+	var resources project.JobResources
+	for _, i := range a {
+		if res, ok := i.(project.IInputResource); ok {
+			resources = append(resources, res.InputResources()...)
+		}
+	}
+	return resources
+}
+
 func (a Array) OutputNames() []string {
 	var names []string
 	for _, i := range a {

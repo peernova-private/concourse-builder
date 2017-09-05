@@ -36,6 +36,8 @@ func (r *Resource) NeedJobs(jobs ...*Job) {
 	r.neededJobs = append(r.neededJobs, jobs...)
 }
 
+type Resources []Resource
+
 type ResourceHash string
 
 func (r *Resource) MustHash() ResourceHash {

@@ -29,7 +29,7 @@ type BuildImageArgs struct {
 	Eval                string
 }
 
-func BuildImage(args *BuildImageArgs) *project.Job {
+func taskPrepare(args *BuildImageArgs) *project.TaskStep {
 	preparedDir := &project.TaskOutput{
 		Directory: "prepared",
 	}
@@ -61,6 +61,12 @@ func BuildImage(args *BuildImageArgs) *project.Job {
 		taskPrepare.Environment["EVAL"] = args.Eval
 	}
 
+	return taskPrepare
+}
+
+func BuildImage(args *BuildImageArgs) *project.Job {
+	taskPrepare := taskPrepare(args)
+
 	imageSource := args.From.Source.(*image.Source)
 	public := imageSource.Registry.Public()
 
@@ -71,6 +77,8 @@ func BuildImage(args *BuildImageArgs) *project.Job {
 			Save: true,
 		}
 	}
+
+	preparedDir := taskPrepare.Outputs[0]
 
 	putImage := &project.PutStep{
 		Resource: args.Image,
