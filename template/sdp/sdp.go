@@ -16,6 +16,7 @@ import (
 type Specification interface {
 	Concourse() (*primitive.Concourse, error)
 	DeployImageRegistry() (*image.Registry, error)
+	LinuxImage(resourceRegistry *project.ResourceRegistry) (*project.Resource, error)
 	GoImage(resourceRegistry *project.ResourceRegistry) (*project.Resource, error)
 	ConcourseBuilderGit() (*project.Resource, error)
 	GenerateProjectLocation(resourceRegistry *project.ResourceRegistry, branch *primitive.GitBranch) (project.IRun, error)
@@ -80,6 +81,11 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 	rawName := concourseBuilderGit.Source.(*library.GitSource).Branch.FriendlyName() + "-sdp"
 	mainPipeline.Name = project.ConvertToPipelineName(rawName)
 
+	linuxImage, err := specification.LinuxImage(mainPipeline.ResourceRegistry)
+	if err != nil {
+		return nil, err
+	}
+
 	imageRegistry, err := specification.DeployImageRegistry()
 	if err != nil {
 		return nil, err
@@ -106,6 +112,7 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 	}
 
 	selfUpdateJob := library.SelfUpdateJob(&library.SelfUpdateJobArgs{
+		LinuxImageResource:      linuxImage,
 		ConcourseBuilderGit:     concourseBuilderGit,
 		ImageRegistry:           imageRegistry,
 		GoImage:                 goImage,

@@ -9,6 +9,7 @@ import (
 )
 
 type SelfUpdateJobArgs struct {
+	LinuxImageResource      *project.Resource
 	ConcourseBuilderGit     *project.Resource
 	ImageRegistry           *image.Registry
 	GoImage                 *project.Resource

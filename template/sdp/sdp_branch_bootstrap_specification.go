@@ -11,6 +11,10 @@ type BranchBootstrapSpecification struct {
 	TargetBranch  *primitive.GitBranch
 }
 
+func (bbs *BranchBootstrapSpecification) LinuxImage(resourceRegistry *project.ResourceRegistry) (*project.Resource, error) {
+	return bbs.Specification.LinuxImage(resourceRegistry)
+}
+
 func (bbs *BranchBootstrapSpecification) Branch() *primitive.GitBranch {
 	return bbs.TargetBranch
 }
