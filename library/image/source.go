@@ -3,10 +3,7 @@ package image
 import (
 	"fmt"
 	"path"
-	"time"
 
-	"github.com/concourse-friends/concourse-builder/model"
-	"github.com/concourse-friends/concourse-builder/project"
 	"github.com/concourse-friends/concourse-builder/resource"
 )
 
@@ -40,4 +37,3 @@ func (im *Source) ModelSource() interface{} {
 
 	return source
 }
-

@@ -8,6 +8,7 @@ import (
 )
 
 type CurlImageJobArgs struct {
+	LinuxImageResource  *project.Resource
 	ConcourseBuilderGit *project.Resource
 	ImageRegistry       *image.Registry
 	ResourceRegistry    *project.ResourceRegistry
@@ -46,7 +47,7 @@ func CurlImageJob(args *CurlImageJobArgs) *project.Resource {
 			ConcourseBuilderGit: args.ConcourseBuilderGit,
 			ResourceRegistry:    args.ResourceRegistry,
 			Prepare:             image.Ubuntu,
-			From:                image.Ubuntu,
+			From:                args.LinuxImageResource,
 			Name:                "curl",
 			DockerFileResource:  dockerSteps,
 			Image:               imageResource,

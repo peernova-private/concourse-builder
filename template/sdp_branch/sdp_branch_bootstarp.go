@@ -11,6 +11,7 @@ type BootstrapSpecification interface {
 	Branch() *primitive.GitBranch
 	Concourse() (*primitive.Concourse, error)
 	DeployImageRegistry() (*image.Registry, error)
+	LinuxImage(resourceRegistry *project.ResourceRegistry) (*project.Resource, error)
 	GoImage(resourceRegistry *project.ResourceRegistry) (*project.Resource, error)
 	ConcourseBuilderGit() (*project.Resource, error)
 	GenerateProjectLocation(resourceRegistry *project.ResourceRegistry) (project.IRun, error)
@@ -21,6 +22,11 @@ func GenerateBootstrapProject(specification BootstrapSpecification) (*project.Pr
 	mainPipeline := project.NewPipeline()
 	mainPipeline.AllJobsGroup = project.AllJobsGroupFirst
 	mainPipeline.Name = project.ConvertToPipelineName(specification.Branch().FriendlyName() + "-sdpb")
+
+	linuxImage, err := specification.LinuxImage(mainPipeline.ResourceRegistry)
+	if err != nil {
+		return nil, err
+	}
 
 	concourseBuilderGit, err := specification.ConcourseBuilderGit()
 	if err != nil {
@@ -53,6 +59,7 @@ func GenerateBootstrapProject(specification BootstrapSpecification) (*project.Pr
 	}
 
 	selfUpdateJob := library.SelfUpdateJob(&library.SelfUpdateJobArgs{
+		LinuxImageResource:      linuxImage,
 		ConcourseBuilderGit:     concourseBuilderGit,
 		ImageRegistry:           imageRegistry,
 		GoImage:                 goImage,

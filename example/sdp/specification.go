@@ -11,6 +11,10 @@ import (
 type testSpecification struct {
 }
 
+func (s *testSpecification) LinuxImage(resourceRegistry *project.ResourceRegistry) (*project.Resource, error) {
+	return image.Ubuntu, nil
+}
+
 func (s *testSpecification) Concourse() (*primitive.Concourse, error) {
 	return &primitive.Concourse{
 		URL:      "http://concourse.com",

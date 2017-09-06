@@ -11,6 +11,10 @@ import (
 type testSpecification struct {
 }
 
+func (s *testSpecification) LinuxImage(resourceRegistry *project.ResourceRegistry) (*project.Resource, error) {
+	return image.Ubuntu, nil
+}
+
 func (s *testSpecification) Branch() *primitive.GitBranch {
 	return &primitive.GitBranch{
 		Name: "target_branch",

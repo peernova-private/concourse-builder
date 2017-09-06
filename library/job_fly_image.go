@@ -11,6 +11,7 @@ import (
 )
 
 type FlyImageJobArgs struct {
+	LinuxImageResource  *project.Resource
 	ConcourseBuilderGit *project.Resource
 	ImageRegistry       *image.Registry
 	ResourceRegistry    *project.ResourceRegistry
