@@ -19,10 +19,10 @@ func CrossResource(
 
 	taskIndex, outputIndex := job.TaskOutputIndex(output)
 
-	name := fmt.Sprintf("cross_%d_%d", taskIndex, outputIndex)
+	name := fmt.Sprintf("%s_cross_%d_%d", job.Name, taskIndex, outputIndex)
 
 	s3 := &project.Resource{
-		Name: project.ResourceName(name + "-s3"),
+		Name: project.ConvertToResourceName(name + "-s3"),
 		Type: resource.S3ResourceType.Name,
 		Source: &S3Source{
 			Bucker:        bucket,
