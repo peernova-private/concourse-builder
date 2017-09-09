@@ -9,12 +9,23 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var buildImageScript = `
+          H4sIAAAAAAAC/4STb2vbMBDGX1ef4qkXKAw8Mxh7l0JI3C60JcXp9mYbqSKda1HPEpKS/iEfftgm8Z94\
+          2Uudnvvd3SPdh/No42y0VkVExRZr7jKWLBYP40fzIh8Zc+QR0itj02/x9GY1Sa6XY283xJhK8RPhO4LR\
+          bDG9iZOr+W28ms2TACE/ii8f4vtlgN/MZ1SwMxKZRnCfE3cEZ0io9A1dDLRFH4CyxS23iq9zCvaYXl6N\
+          U+TgM4JUloTX9g0vGVmqY1o8k01VTnCejAO3g7S6pnLgpS/09Que3pWB81YVT9DpICxgZy2rUp47Yqlq\
+          23WVLO5W87vJdfwfQxrh8OBz3xvWktFOVdN6jTVh40hCFdVlSYPI+cbRyR6DUXMXYDxGUAlavb4qj89V\
+          wp9nqSxCA2PJcEuyRpwP/4s9QBj07qKPDaHkptpiufieTOsnVQVGzXHJpGYAcFQ9aqkqhTAIk3Zu9GlY\
+          LHVBjAmJpg9WmVy51noyXGJ2ePFactkJdRyIf0xuD3OXDdGW54d4N7Gce4B3ytBy0Qijcl+jvqP1z26V\
+          FtyflB5384/S3V2upqq+44BmB28RSlz8Ki6w229RGEoSWhJ29UKFIpXH5f8GAAD//2JqijKaBAAA |\`
+
 var expectedBootstrap = `groups:
 - name: all
   jobs:
   - curl-image
   - fly-image
-  - self-update- name: images
+  - self-update
+- name: images
   jobs:
   - curl-image
   - fly-image
@@ -71,7 +82,15 @@ jobs:
         DOCKERFILE_DIR: concourse-builder-git/docker/curl
         FROM_IMAGE: ubuntu
       run:
-        path: concourse-builder-git/scripts/docker_image_prepare.sh
+        path: /bin/bash
+        args:
+        - -c
+        - |-
+          echo \` + buildImageScript + `
+              base64 --decode |\
+              gzip -cfd > script.sh \
+          && chmod 755 script.sh \
+          && ./script.sh
       outputs:
       - name: prepared
         path: prepared
@@ -105,7 +124,15 @@ jobs:
           ',' ' { print $1 } ' | awk -F ':' ' { print $2 } '` + "`" + `
         FROM_IMAGE: registry.com/concourse-builder/curl-image:master
       run:
-        path: concourse-builder-git/scripts/docker_image_prepare.sh
+        path: /bin/bash
+        args:
+        - -c
+        - |-
+          echo \` + buildImageScript + `
+              base64 --decode |\
+              gzip -cfd > script.sh \
+          && chmod 755 script.sh \
+          && ./script.sh
       outputs:
       - name: prepared
         path: prepared
@@ -174,5 +201,5 @@ func TestSdpBranchBootstrap(t *testing.T) {
 	err = prj.Pipelines[0].Save(yml)
 	assert.NoError(t, err)
 
-	test.AssertEqual(t, expected, yml.String())
+	test.AssertEqual(t, expectedBootstrap, yml.String())
 }
