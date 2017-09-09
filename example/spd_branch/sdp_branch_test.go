@@ -72,7 +72,15 @@ jobs:
         DOCKERFILE_DIR: concourse-builder-git/docker/curl
         FROM_IMAGE: ubuntu
       run:
-        path: concourse-builder-git/scripts/docker_image_prepare.sh
+        path: /bin/bash
+        args:
+        - -c
+        - |-
+          echo \` + buildImageScript + `
+              base64 --decode |\
+              gzip -cfd > script.sh \
+          && chmod 755 script.sh \
+          && ./script.sh
       outputs:
       - name: prepared
         path: prepared
@@ -106,7 +114,15 @@ jobs:
           ',' ' { print $1 } ' | awk -F ':' ' { print $2 } '` + "`" + `
         FROM_IMAGE: registry.com/concourse-builder/curl-image:master
       run:
-        path: concourse-builder-git/scripts/docker_image_prepare.sh
+        path: /bin/bash
+        args:
+        - -c
+        - |-
+          echo \` + buildImageScript + `
+              base64 --decode |\
+              gzip -cfd > script.sh \
+          && chmod 755 script.sh \
+          && ./script.sh
       outputs:
       - name: prepared
         path: prepared

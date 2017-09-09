@@ -22,6 +22,7 @@ type BuildImageArgs struct {
 	From                *project.Resource
 	Name                string
 	DockerFileResource  project.IValue
+	DockerFileSteps     string
 	Image               *project.Resource
 	BuildArgs           map[string]interface{}
 	PreprepareSteps     project.ISteps
@@ -40,17 +41,83 @@ func taskPrepare(args *BuildImageArgs) *project.TaskStep {
 		Platform: model.LinuxPlatform,
 		Name:     "prepare",
 		Image:    prepareImageResource,
-		Run: &primitive.Location{
-			Volume:       args.ResourceRegistry.JobResource(args.ConcourseBuilderGit, true, nil),
-			RelativePath: "scripts/docker_image_prepare.sh",
-		},
 		Environment: map[string]interface{}{
-			"DOCKERFILE_DIR": args.DockerFileResource,
-			"FROM_IMAGE":     (*image.FromParam)(args.From),
+			"FROM_IMAGE": (*image.FromParam)(args.From),
 		},
 		Outputs: []project.IOutput{
 			preparedDir,
 		},
+	}
+
+	script := `#!/usr/bin/env bash
+ROOT=` + "`pwd`" + `
+
+set -ex
+
+CHECK_ARGS=true
+
+if [ -z "$DOCKERFILE_DIR" -a -z "$DOCKERFILE_STEPS" ]
+then
+	echo "Please specify DOCKERFILE_DIR or DOCKERFILE_STEPS env variable"
+	echo "DOCKERFILE_DIR specifies the directory where the dockerfile steps are"
+	echo "DOCKERFILE_STEPS is a base64 gzip string of the dockerfile steps"
+	CHECK_ARGS=false
+fi
+
+if [ -z "$FROM_IMAGE" ]
+then
+	echo "Please specify FROM_IMAGE env variable"
+	echo "It specifies the repository to be used in the FROM clause"
+	CHECK_ARGS=false
+fi
+
+if [ "$CHECK_ARGS" == "false" ]
+then
+	exit 1
+fi
+
+mkdir -p prepared
+if [ ! -z "$DOCKERFILE_DIR" ]
+then
+	cp $DOCKERFILE_DIR/* prepared
+fi
+
+for SOURCE_DIR in $SOURCE_DIRS
+do
+    mkdir -p prepared/$SOURCE_DIR
+    cp -R $SOURCE_DIR/. prepared/$SOURCE_DIR
+done
+
+cd  prepared
+
+echo FROM $FROM_IMAGE > Dockerfile
+echo >> Dockerfile
+
+if [ ! -z "$EVAL" ]
+then
+    eval "$EVAL" >> Dockerfile
+fi
+
+echo >> Dockerfile
+if [ ! -z "$DOCKERFILE_DIR" -a -e $ROOT/$DOCKERFILE_DIR/steps ]
+then
+    cat $ROOT/$DOCKERFILE_DIR/steps >> Dockerfile
+fi
+
+if [ ! -z "$DOCKERFILE_STEPS" ]
+then
+    echo "$DOCKERFILE_STEPS" | tr -d '\n' | base64 --decode | gzip -cfd >> Dockerfile
+fi
+`
+
+	taskPrepare.Run, taskPrepare.Arguments = EncodeScript(script)
+
+	if args.DockerFileResource != nil {
+		taskPrepare.Environment["DOCKERFILE_DIR"] = args.DockerFileResource
+	}
+
+	if args.DockerFileSteps != "" {
+		taskPrepare.Environment["DOCKERFILE_STEPS"] = GZipBase64Lines(args.DockerFileSteps, "\n")
 	}
 
 	if len(args.SourceDirs) > 0 {
