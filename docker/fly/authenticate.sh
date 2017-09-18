@@ -20,14 +20,9 @@ fi
 
 if [ -z "$CONCOURSE_USER" -o -z "$CONCOURSE_PASSWORD"  ]
 then
-  if [ -z "$CONCOURSE_TOKEN" ]
-  then
-    echo "Please specify (CONCOURSE_USER and CONCOURSE_PASSWORD) or CONCOURSE_TOKEN env variable"
-    echo "It specifies a user to authenticate in concourse"
-    CHECK_ARGS=false
-  else
-    AUTHENTICATE="--token $CONCOURSE_TOKEN"
-  fi
+  echo "Please specify CONCOURSE_USER and CONCOURSE_PASSWORD env variables"
+  echo "It specifies a user to authenticate in concourse"
+  CHECK_ARGS=false
 else
   AUTHENTICATE="--username $CONCOURSE_USER --password $CONCOURSE_PASSWORD"
 fi
