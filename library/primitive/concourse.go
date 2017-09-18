@@ -15,9 +15,6 @@ type Concourse struct {
 
 	// Password for the user
 	Password string
-
-	// Authentication token - alternative to user/password authentication
-	Token string
 }
 
 func (c *Concourse) PublicAccessEnvironment(environment map[string]interface{}) {
@@ -36,9 +33,5 @@ func (c *Concourse) Environment(environment map[string]interface{}) {
 	if c.User != "" && c.Password != "" {
 		environment["CONCOURSE_USER"] = c.User
 		environment["CONCOURSE_PASSWORD"] = c.Password
-	}
-
-	if c.Token != "" {
-		environment["CONCOURSE_TOKEN"] = c.Token
 	}
 }
