@@ -49,12 +49,15 @@ func EncodeScript(script string) (project.IRun, []interface{}) {
 
 	arguments := []interface{}{
 		"-c",
-		fmt.Sprintf(`echo \
+		fmt.Sprintf(`mkdir -p /tmp \
+&& echo \
 %s |\
     base64 --decode |\
-    gzip -cfd > script.sh \
-&& chmod 755 script.sh \
-&& ./script.sh`,
+    gzip -cfd > /tmp/script.sh \
+&& cat /tmp/script.sh \
+&& echo \
+&& chmod 777 /tmp/script.sh \
+&& /tmp/script.sh`,
 			GZipBase64Lines(script, "\\\n")),
 	}
 
