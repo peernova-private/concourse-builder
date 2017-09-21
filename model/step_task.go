@@ -47,6 +47,9 @@ type TaskRun struct {
 
 	// Relative location for the execution
 	Dir string `yaml:",omitempty"`
+
+	// An user to use to execute the command
+	User string `yaml:",omitempty"`
 }
 
 // An output for a task

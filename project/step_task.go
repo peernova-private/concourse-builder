@@ -35,10 +35,11 @@ type TaskStep struct {
 	Image       *JobResource
 	Privileged  bool
 	Run         IRun
+	Arguments   []interface{}
 	Outputs     []IOutput
 	Environment map[string]interface{}
 	Directory   ITaskDirectory
-	Arguments   []interface{}
+	User        string
 }
 
 func (ts *TaskStep) Model() (model.IStep, error) {
@@ -49,6 +50,7 @@ func (ts *TaskStep) Model() (model.IStep, error) {
 			Platform: ts.Platform,
 			Run: &model.TaskRun{
 				Path: ts.Run.Path(),
+				User: ts.User,
 			},
 			Params: make(map[string]interface{}),
 		},
