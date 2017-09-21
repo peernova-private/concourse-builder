@@ -5,7 +5,6 @@ import (
 	"compress/gzip"
 	"encoding/base64"
 	"fmt"
-
 	"time"
 
 	"github.com/concourse-friends/concourse-builder/library/primitive"
@@ -56,7 +55,7 @@ func EncodeScript(script string) (project.IRun, []interface{}) {
     gzip -cfd > /tmp/script.sh \
 && cat /tmp/script.sh \
 && echo \
-&& chmod 777 /tmp/script.sh \
+&& chmod 755 /tmp/script.sh \
 && /tmp/script.sh`,
 			GZipBase64Lines(script, "\\\n")),
 	}

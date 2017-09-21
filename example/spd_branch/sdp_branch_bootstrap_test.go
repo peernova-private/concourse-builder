@@ -67,30 +67,31 @@ resources:
 jobs:
 - name: curl-image
   plan:
-  - aggregate:
-    - get: concourse-builder-git
-      trigger: true
-    - get: ubuntu-image
-      trigger: true
+  - get: ubuntu-image
+    trigger: true
   - task: prepare
     image: ubuntu-image
     config:
       platform: linux
-      inputs:
-      - name: concourse-builder-git
       params:
-        DOCKERFILE_DIR: concourse-builder-git/docker/curl
+        DOCKERFILE_STEPS: |-
+          H4sIAAAAAAAC/1TMsQrCUAyF4b1PcUDoIIS8iYPg1iXWKBdiCUmu6NuLlg5dP/5zzpcTUgukb0zDAW3J
+          EjPMPQzTMI4QL3pooftNSve21fTZBr+P2VSW7vv0jyvFExR38EuCrV1ZvNhaVvLxGwAA//9QRiyQjwAA
+          AA==
         FROM_IMAGE: ubuntu
       run:
         path: /bin/bash
         args:
         - -c
         - |-
-          echo \` + buildImageScript + `
+          mkdir -p /tmp \
+          && echo \` + buildImageScript + `
               base64 --decode |\
-              gzip -cfd > script.sh \
-          && chmod 755 script.sh \
-          && ./script.sh
+              gzip -cfd > /tmp/script.sh \
+          && cat /tmp/script.sh \
+          && echo \
+          && chmod 755 /tmp/script.sh \
+          && /tmp/script.sh
       outputs:
       - name: prepared
         path: prepared
@@ -104,8 +105,6 @@ jobs:
   - aggregate:
     - get: concourse-builder-git
       trigger: true
-      passed:
-      - curl-image
     - get: curl-image
       trigger: true
       passed:
@@ -128,11 +127,14 @@ jobs:
         args:
         - -c
         - |-
-          echo \` + buildImageScript + `
+          mkdir -p /tmp \
+          && echo \` + buildImageScript + `
               base64 --decode |\
-              gzip -cfd > script.sh \
-          && chmod 755 script.sh \
-          && ./script.sh
+              gzip -cfd > /tmp/script.sh \
+          && cat /tmp/script.sh \
+          && echo \
+          && chmod 755 /tmp/script.sh \
+          && /tmp/script.sh
       outputs:
       - name: prepared
         path: prepared

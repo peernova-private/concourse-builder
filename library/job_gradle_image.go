@@ -6,15 +6,15 @@ import (
 	"github.com/concourse-friends/concourse-builder/resource"
 )
 
-type CurlImageJobArgs struct {
-	LinuxImageResource  *project.Resource
+type GradleImageJobArgs struct {
+	GradleImageResource *project.Resource
 	ConcourseBuilderGit *project.Resource
 	ImageRegistry       *image.Registry
 	ResourceRegistry    *project.ResourceRegistry
 }
 
-func CurlImageJob(args *CurlImageJobArgs) *project.Resource {
-	resourceName := project.ResourceName("curl-image")
+func GradleImageJob(args *GradleImageJobArgs) *project.Resource {
+	resourceName := project.ResourceName("root-gradle-image")
 	imageResource := args.ResourceRegistry.GetResource(resourceName)
 	if imageResource != nil {
 		return imageResource
@@ -28,7 +28,7 @@ func CurlImageJob(args *CurlImageJobArgs) *project.Resource {
 		Source: &image.Source{
 			Tag:        tag,
 			Registry:   args.ImageRegistry,
-			Repository: "concourse-builder/curl-image",
+			Repository: "concourse-builder/gradle-image",
 		},
 	}
 
@@ -36,22 +36,15 @@ func CurlImageJob(args *CurlImageJobArgs) *project.Resource {
 		return imageResource
 	}
 
-	steps := `RUN set -ex \
-# install curl \
-&& apt-get update \
-&& apt-get install -y curl \
-\
-# cleanup \
-&& apt-get clean \
-&& rm -rf /var/lib/apt/lists/*`
+	steps := `USER root`
 
 	job := BuildImage(
 		&BuildImageArgs{
 			ConcourseBuilderGit: args.ConcourseBuilderGit,
 			ResourceRegistry:    args.ResourceRegistry,
 			Prepare:             image.Ubuntu,
-			From:                args.LinuxImageResource,
-			Name:                "curl",
+			From:                args.GradleImageResource,
+			Name:                "gradle",
 			DockerFileSteps:     steps,
 			Image:               imageResource,
 		})
