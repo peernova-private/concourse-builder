@@ -1,7 +1,7 @@
 package resource
 
 import (
-	"github.com/concourse-friends/concourse-builder/model"
+	"github.com/concourse-friends/concourse-builder/project"
 )
 
 // Git pull request resource source
@@ -23,7 +23,7 @@ type GitPullRequestSource struct {
 }
 
 // The pull request resource type
-var PullRequestResourceType = &model.ResourceType{
+var PullRequestResourceType = &project.ResourceType{
 	// The name
 	Name: "pull-request",
 	// The type
@@ -37,5 +37,5 @@ var PullRequestResourceType = &model.ResourceType{
 }
 
 func init() {
-	GlobalTypeRegistry.MustRegisterType(PullRequestResourceType)
+	project.GlobalTypeRegistry.MustRegisterType(PullRequestResourceType)
 }

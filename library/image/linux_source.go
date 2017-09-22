@@ -8,6 +8,16 @@ import (
 	"github.com/concourse-friends/concourse-builder/resource"
 )
 
+var Alpine = &project.Resource{
+	Name: "alpine-image",
+	Type: resource.ImageResourceType.Name,
+	Source: &Source{
+		Registry:   DockerHub,
+		Repository: "alpine",
+	},
+	CheckInterval: model.Duration(24 * time.Hour),
+}
+
 var Ubuntu = &project.Resource{
 	Name: "ubuntu-image",
 	Type: resource.ImageResourceType.Name,

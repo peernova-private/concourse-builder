@@ -1,6 +1,9 @@
 package resource
 
-import "github.com/concourse-friends/concourse-builder/model"
+import (
+	"github.com/concourse-friends/concourse-builder/model"
+	"github.com/concourse-friends/concourse-builder/project"
+)
 
 type GitMultibranchSource struct {
 	// URI to the git repo
@@ -16,7 +19,7 @@ type GitMultibranchSource struct {
 }
 
 // The git multibranch resource type
-var GitMultibranchResourceType = &model.ResourceType{
+var GitMultibranchResourceType = &project.ResourceType{
 	// The name
 	Name: "git-multibranch",
 	// The type
@@ -30,5 +33,5 @@ var GitMultibranchResourceType = &model.ResourceType{
 }
 
 func init() {
-	GlobalTypeRegistry.MustRegisterType(GitMultibranchResourceType)
+	project.GlobalTypeRegistry.MustRegisterType(GitMultibranchResourceType)
 }

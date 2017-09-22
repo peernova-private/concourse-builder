@@ -111,7 +111,7 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 		return nil, err
 	}
 
-	selfUpdateJob := library.SelfUpdateJob(&library.SelfUpdateJobArgs{
+	selfUpdateJob, _ := library.SelfUpdateJob(&library.SelfUpdateJobArgs{
 		LinuxImageResource:      linuxImage,
 		ConcourseBuilderGit:     concourseBuilderGit,
 		ImageRegistry:           imageRegistry,

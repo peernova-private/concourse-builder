@@ -25,4 +25,8 @@ type ResourceType struct {
 // A collection of resource types
 type ResourceTypes []*ResourceType
 
+// Concourse supports several types without providing the type.
+// The system resource type name indicates that.
+const SystemResourceTypeName = ResourceTypeTypeName("system")
+
 const DockerImageType = ResourceTypeTypeName("docker-image")

@@ -2,6 +2,7 @@ package resource
 
 import (
 	"github.com/concourse-friends/concourse-builder/model"
+	"github.com/concourse-friends/concourse-builder/project"
 )
 
 // Git resource source
@@ -32,14 +33,14 @@ type GitPutParams struct {
 }
 
 // Git resource type
-var GitResourceType = &model.ResourceType{
+var GitResourceType = &project.ResourceType{
 	// The name
 	Name: "git",
 
 	// The type
-	Type: SystemResourceTypeName,
+	Type: model.SystemResourceTypeName,
 }
 
 func init() {
-	GlobalTypeRegistry.MustRegisterType(GitResourceType)
+	project.GlobalTypeRegistry.MustRegisterType(GitResourceType)
 }

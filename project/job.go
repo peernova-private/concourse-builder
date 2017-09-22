@@ -9,13 +9,14 @@ import (
 type JobName string
 
 type Job struct {
-	Name          JobName
-	Groups        JobGroups
-	Sequentiality Sequentiality
-	Steps         ISteps
-	OnSuccess     IStep
-	OnFailure     IStep
-	AfterJobs     map[*Job]struct{}
+	Name           JobName
+	Groups         JobGroups
+	Sequentiality  Sequentiality
+	ExtraResources JobResources
+	Steps          ISteps
+	OnSuccess      IStep
+	OnFailure      IStep
+	AfterJobs      map[*Job]struct{}
 }
 
 func (job *Job) AddToGroup(groups ...*JobGroup) {
@@ -37,6 +38,7 @@ func (job *Job) AddJobToRunAfter(jobs ...*Job) {
 
 func (job *Job) InputResources() (JobResources, error) {
 	var resources JobResources
+	resources = append(resources, job.ExtraResources...)
 
 	steps := append(ISteps{job.OnSuccess, job.OnFailure}, job.Steps...)
 	for _, step := range steps {
@@ -55,6 +57,7 @@ func (job *Job) InputResources() (JobResources, error) {
 
 func (job *Job) Resources() (JobResources, error) {
 	var resources JobResources
+	resources = append(resources, job.ExtraResources...)
 
 	steps := append(ISteps{job.OnSuccess, job.OnFailure}, job.Steps...)
 	for _, step := range steps {
