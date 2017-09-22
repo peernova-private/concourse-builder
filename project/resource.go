@@ -19,7 +19,7 @@ type Resource struct {
 	Name ResourceName
 
 	// The type of the resource
-	Type model.ResourceTypeName
+	Type ResourceTypeName
 
 	// The source of the resource
 	Source IJobResourceSource
@@ -37,7 +37,13 @@ func (r *Resource) NeedJobs(jobs ...*Job) {
 }
 
 func (r *Resource) NeededJobs() Jobs {
-	return r.neededJobs
+	registryType := GlobalTypeRegistry.RegisterType(r.Type)
+	if registryType.Source == nil {
+		return r.neededJobs
+	}
+
+	neededJobs := registryType.Source.NeededJobs()
+	return append(neededJobs, r.neededJobs...)
 }
 
 type Resources []Resource

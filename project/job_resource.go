@@ -37,7 +37,7 @@ func (jr *JobResource) Model(registry *ResourceRegistry) *model.Resource {
 
 	modelResource := &model.Resource{
 		Name:       model.ResourceName(jr.Name),
-		Type:       res.Type,
+		Type:       model.ResourceTypeName(res.Type),
 		CheckEvery: res.CheckInterval,
 	}
 

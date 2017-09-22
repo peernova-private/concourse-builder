@@ -1,19 +1,18 @@
-package resource
+package project
 
 import (
 	"bytes"
 	"fmt"
 
-	"github.com/concourse-friends/concourse-builder/model"
 	"gopkg.in/yaml.v2"
 )
 
 // An object that tracks collection of resources by name
 type TypeRegistry struct {
-	types map[model.ResourceTypeName]*model.ResourceType
+	types map[ResourceTypeName]*ResourceType
 }
 
-func (r *TypeRegistry) MustRegisterType(resourceType *model.ResourceType) {
+func (r *TypeRegistry) MustRegisterType(resourceType *ResourceType) {
 	res, ok := r.types[resourceType.Name]
 	if ok {
 		current, err := yaml.Marshal(res)
@@ -35,7 +34,7 @@ func (r *TypeRegistry) MustRegisterType(resourceType *model.ResourceType) {
 	r.types[resourceType.Name] = resourceType
 }
 
-func (r *TypeRegistry) RegisterType(resourceTypeName model.ResourceTypeName) *model.ResourceType {
+func (r *TypeRegistry) RegisterType(resourceTypeName ResourceTypeName) *ResourceType {
 	return r.types[resourceTypeName]
 }
 
@@ -43,7 +42,7 @@ var GlobalTypeRegistry = initTypeRegistry()
 
 func initTypeRegistry() *TypeRegistry {
 	registry := &TypeRegistry{
-		types: make(map[model.ResourceTypeName]*model.ResourceType),
+		types: make(map[ResourceTypeName]*ResourceType),
 	}
 
 	return registry

@@ -6,7 +6,6 @@ import (
 	"sort"
 
 	"github.com/concourse-friends/concourse-builder/model"
-	"github.com/concourse-friends/concourse-builder/resource"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -35,13 +34,7 @@ func NewPipeline() *Pipeline {
 	}
 }
 
-func (p *Pipeline) AllJobs() (Jobs, error) {
-	checkJobs := make(JobsSet)
-
-	for _, job := range p.Jobs {
-		checkJobs[job] = struct{}{}
-	}
-
+func (p *Pipeline) JobsFor(checkJobs JobsSet) (Jobs, error) {
 	jobs := make(map[JobName]*Job)
 	for job := checkJobs.Pop(); job != nil; job = checkJobs.Pop() {
 		log.Printf("Check job %s resources", job.Name)
@@ -53,8 +46,8 @@ func (p *Pipeline) AllJobs() (Jobs, error) {
 		}
 
 		for _, resource := range resources {
-			projResource := p.ResourceRegistry.MustGetResource(resource.Name)
-			for _, resJob := range projResource.neededJobs {
+			projectResource := p.ResourceRegistry.MustGetResource(resource.Name)
+			for _, resJob := range projectResource.NeededJobs() {
 				job.AddJobToRunAfter(resJob)
 				if _, exists := jobs[resJob.Name]; exists {
 					continue
@@ -71,6 +64,16 @@ func (p *Pipeline) AllJobs() (Jobs, error) {
 	}
 
 	return sliceJobs, nil
+}
+
+func (p *Pipeline) AllJobs() (Jobs, error) {
+	checkJobs := make(JobsSet)
+
+	for _, job := range p.Jobs {
+		checkJobs[job] = struct{}{}
+	}
+
+	return p.JobsFor(checkJobs)
 }
 
 func (p *Pipeline) ModelGroups(allJobs Jobs) (model.Groups, error) {
@@ -148,11 +151,11 @@ func (p *Pipeline) ModelResourceTypes(allJobs Jobs) (model.ResourceTypes, error)
 		return nil, err
 	}
 
-	typesSet := make(map[model.ResourceTypeName]struct{})
+	typesSet := make(map[ResourceTypeName]struct{})
 
 	for _, jobResource := range jobResources {
 		res := p.ResourceRegistry.MustGetResource(jobResource.Name)
-		resourceType := resource.GlobalTypeRegistry.RegisterType(res.Type)
+		resourceType := GlobalTypeRegistry.RegisterType(res.Type)
 		if resourceType == nil {
 			continue
 		}
@@ -169,9 +172,10 @@ func (p *Pipeline) ModelResourceTypes(allJobs Jobs) (model.ResourceTypes, error)
 
 	var resourceTypes model.ResourceTypes
 	for _, tp := range types {
-		resourceType := resource.GlobalTypeRegistry.RegisterType(model.ResourceTypeName(tp))
-		if resourceType.Type != resource.SystemResourceTypeName {
-			resourceTypes = append(resourceTypes, resourceType)
+		resourceType := GlobalTypeRegistry.RegisterType(ResourceTypeName(tp))
+		if !resourceType.IsSystem() {
+			modelResourceType := resourceType.Model()
+			resourceTypes = append(resourceTypes, modelResourceType)
 		}
 	}
 

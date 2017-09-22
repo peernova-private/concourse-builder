@@ -2,6 +2,7 @@ package resource
 
 import (
 	"github.com/concourse-friends/concourse-builder/model"
+	"github.com/concourse-friends/concourse-builder/project"
 )
 
 // S3 resource source
@@ -34,14 +35,14 @@ type S3PutParams struct {
 }
 
 // S3 resource type
-var S3ResourceType = &model.ResourceType{
+var S3ResourceType = &project.ResourceType{
 	// The name
 	Name: "s3",
 
 	// The type
-	Type: SystemResourceTypeName,
+	Type: model.SystemResourceTypeName,
 }
 
 func init() {
-	GlobalTypeRegistry.MustRegisterType(S3ResourceType)
+	project.GlobalTypeRegistry.MustRegisterType(S3ResourceType)
 }

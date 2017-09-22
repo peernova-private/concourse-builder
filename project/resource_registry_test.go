@@ -3,7 +3,6 @@ package project
 import (
 	"testing"
 
-	"github.com/concourse-friends/concourse-builder/resource"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -11,12 +10,12 @@ func TestResourceRegistry(t *testing.T) {
 
 	resourceFoo := Resource{
 		Name: "foo",
-		Type: resource.GitResourceType.Name,
+		Type: ResourceTypeName("git"),
 	}
 
 	resourceBar := Resource{
 		Name: "Bar",
-		Type: resource.GitResourceType.Name,
+		Type: ResourceTypeName("git"),
 	}
 
 	assert.Equal(t, resourceFoo.MustHash(), resourceBar.MustHash())

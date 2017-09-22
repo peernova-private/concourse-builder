@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/concourse-friends/concourse-builder/model"
+	"github.com/concourse-friends/concourse-builder/project"
 )
 
 // Time resource source
@@ -13,14 +14,14 @@ type TimeSource struct {
 }
 
 // The time resource type
-var TimeResourceType = &model.ResourceType{
+var TimeResourceType = &project.ResourceType{
 	// The name
 	Name: "time",
 
 	// The type
-	Type: SystemResourceTypeName,
+	Type: model.SystemResourceTypeName,
 }
 
 func init() {
-	GlobalTypeRegistry.MustRegisterType(TimeResourceType)
+	project.GlobalTypeRegistry.MustRegisterType(TimeResourceType)
 }

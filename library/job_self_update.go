@@ -17,9 +17,10 @@ type SelfUpdateJobArgs struct {
 	Concourse               *primitive.Concourse
 	Environment             map[string]interface{}
 	GenerateProjectLocation project.IRun
+	Bucket                  *primitive.S3Bucket
 }
 
-func SelfUpdateJob(args *SelfUpdateJobArgs) *project.Job {
+func SelfUpdateJob(args *SelfUpdateJobArgs) (*project.Job, *project.Resource) {
 	flyImageJobArgs := &FlyImageJobArgs{}
 	copier.Copy(flyImageJobArgs, args)
 
@@ -79,6 +80,22 @@ func SelfUpdateJob(args *SelfUpdateJobArgs) *project.Job {
 	}
 	args.Concourse.Environment(taskUpdate.Environment)
 
+	dummyResourceImageJobArgs := &DummyResourceImageJobArgs{}
+	copier.Copy(dummyResourceImageJobArgs, args)
+
+	dummyResourceType := DummyResourceType(dummyResourceImageJobArgs)
+
+	pipelineResource := &project.Resource{
+		Name: "pipeline",
+		Type: dummyResourceType.Name,
+	}
+
+	args.ResourceRegistry.MustRegister(pipelineResource)
+
+	pipelinePut := &project.PutStep{
+		Resource: pipelineResource,
+	}
+
 	updateJob := &project.Job{
 		Name:   project.JobName("self-update"),
 		Groups: project.JobGroups{},
@@ -86,7 +103,11 @@ func SelfUpdateJob(args *SelfUpdateJobArgs) *project.Job {
 			taskCheck,
 			taskPrepare,
 			taskUpdate,
+			pipelinePut,
 		},
 	}
-	return updateJob
+
+	pipelineResource.NeedJobs(updateJob)
+
+	return updateJob, pipelineResource
 }

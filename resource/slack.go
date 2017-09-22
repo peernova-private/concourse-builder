@@ -1,7 +1,7 @@
 package resource
 
 import (
-	"github.com/concourse-friends/concourse-builder/model"
+	"github.com/concourse-friends/concourse-builder/project"
 )
 
 // The slack resource source
@@ -11,7 +11,7 @@ type SlackSource struct {
 }
 
 // Slack resource type
-var SlackResourceType = &model.ResourceType{
+var SlackResourceType = &project.ResourceType{
 	// The name
 	Name: "slack-notification",
 
@@ -26,5 +26,5 @@ var SlackResourceType = &model.ResourceType{
 }
 
 func init() {
-	GlobalTypeRegistry.MustRegisterType(SlackResourceType)
+	project.GlobalTypeRegistry.MustRegisterType(SlackResourceType)
 }

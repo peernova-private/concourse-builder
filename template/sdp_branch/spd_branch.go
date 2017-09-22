@@ -1,6 +1,8 @@
 package sdpBranch
 
 import (
+	"log"
+
 	"github.com/concourse-friends/concourse-builder/library"
 	"github.com/concourse-friends/concourse-builder/project"
 )
@@ -9,6 +11,38 @@ type Specification interface {
 	BootstrapSpecification
 	ModifyJobs(resourceRegistry *project.ResourceRegistry) (project.Jobs, error)
 	VerifyJobs(resourceRegistry *project.ResourceRegistry) (project.Jobs, error)
+}
+
+func addPipelineResource(
+	mainPipeline *project.Pipeline,
+	selfUpdateJob *project.Job,
+	pipelineJobResource *project.JobResource) error {
+
+	jobs, err := mainPipeline.AllJobs()
+	if err != nil {
+		return err
+	}
+
+	excludeJobs, err := mainPipeline.JobsFor(project.JobsSet{selfUpdateJob: struct{}{}})
+	if err != nil {
+		return err
+	}
+
+	for _, job := range jobs {
+		ok := true
+		for _, exclude := range excludeJobs {
+			if job.Name == exclude.Name {
+				ok = false
+				break
+			}
+		}
+		if ok {
+			log.Printf("Add pipeline resource to job %s", job.Name)
+			job.ExtraResources = append(job.ExtraResources, pipelineJobResource)
+		}
+	}
+
+	return nil
 }
 
 func GenerateProject(specification Specification) (*project.Project, error) {
@@ -51,7 +85,7 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 		return nil, err
 	}
 
-	selfUpdateJob := library.SelfUpdateJob(&library.SelfUpdateJobArgs{
+	selfUpdateJob, pipelineResource := library.SelfUpdateJob(&library.SelfUpdateJobArgs{
 		LinuxImageResource:      linuxImage,
 		ConcourseBuilderGit:     concourseBuilderGit,
 		ImageRegistry:           imageRegistry,
@@ -66,6 +100,12 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 		selfUpdateJob,
 	}
 
+	pipelineJobResource := mainPipeline.ResourceRegistry.JobResource(pipelineResource, true, nil)
+
+	var modifyGroup = &project.JobGroup{
+		Name: "modify",
+	}
+
 	var modifyJobs project.Jobs
 	if specification.Branch().IsTask() {
 		modifyJobs, err = specification.ModifyJobs(mainPipeline.ResourceRegistry)
@@ -74,9 +114,14 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 		}
 
 		for _, job := range modifyJobs {
+			job.AddToGroup(modifyGroup)
 			job.AddJobToRunAfter(selfUpdateJob)
 		}
 		mainPipeline.Jobs = append(mainPipeline.Jobs, modifyJobs...)
+	}
+
+	var verifyGroup = &project.JobGroup{
+		Name: "verify",
 	}
 
 	verifyJobs, err := specification.VerifyJobs(mainPipeline.ResourceRegistry)
@@ -85,11 +130,17 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 	}
 
 	for _, job := range verifyJobs {
+		job.AddToGroup(verifyGroup)
 		job.AddJobToRunAfter(selfUpdateJob)
 		job.AddJobToRunAfter(modifyJobs...)
 	}
 
 	mainPipeline.Jobs = append(mainPipeline.Jobs, verifyJobs...)
+
+	err = addPipelineResource(mainPipeline, selfUpdateJob, pipelineJobResource)
+	if err != nil {
+		return nil, err
+	}
 
 	prj := &project.Project{
 		Pipelines: project.Pipelines{

@@ -2,15 +2,16 @@ package resource
 
 import (
 	"github.com/concourse-friends/concourse-builder/model"
+	"github.com/concourse-friends/concourse-builder/project"
 )
 
 // Image resource type
-var ImageResourceType = &model.ResourceType{
+var ImageResourceType = &project.ResourceType{
 	// The name
 	Name: "docker-image",
 
 	// The type
-	Type: SystemResourceTypeName,
+	Type: model.SystemResourceTypeName,
 }
 
 // Image resource source
@@ -31,6 +32,14 @@ type ImageSource struct {
 	AwsSecretAccessKey string `yaml:"aws_secret_access_key,omitempty"`
 }
 
+func (im ImageSource) ModelSource() interface{} {
+	return im
+}
+
+func (im ImageSource) NeededJobs() project.Jobs {
+	return nil
+}
+
 type ImageGetParams struct {
 	Save         bool `yaml:",omitempty"`
 	SkipDownload bool `yaml:"skip_download,omitempty"`
@@ -43,5 +52,5 @@ type ImagePutParams struct {
 }
 
 func init() {
-	GlobalTypeRegistry.MustRegisterType(ImageResourceType)
+	project.GlobalTypeRegistry.MustRegisterType(ImageResourceType)
 }
