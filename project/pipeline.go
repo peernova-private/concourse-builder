@@ -79,9 +79,16 @@ func (p *Pipeline) AllJobs() (Jobs, error) {
 func (p *Pipeline) ModelGroups(allJobs Jobs) (model.Groups, error) {
 	groups := make(map[*JobGroup][]string)
 
+	jobsThatHaveNoGroup := false
+
 	allJobNames := make([]string, 0, len(allJobs))
 	for _, job := range allJobs {
 		allJobNames = append(allJobNames, string(job.Name))
+
+		if len(job.Groups) == 0 {
+			jobsThatHaveNoGroup = true
+		}
+
 		for _, group := range job.Groups {
 			groups[group] = append(groups[group], string(job.Name))
 		}
@@ -98,7 +105,7 @@ func (p *Pipeline) ModelGroups(allJobs Jobs) (model.Groups, error) {
 		return nil, err
 	}
 
-	if p.AllJobsGroup != AllJobsGroupNone && len(groups) > 1 {
+	if p.AllJobsGroup != AllJobsGroupNone && (jobsThatHaveNoGroup || len(groups) > 1) {
 		all := &JobGroup{
 			Name: "all",
 		}
