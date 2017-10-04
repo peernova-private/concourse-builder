@@ -60,7 +60,6 @@ func FlyImageJob(args *FlyImageJobArgs) *project.Resource {
 
 	job := BuildImage(
 		&BuildImageArgs{
-			ConcourseBuilderGit: args.ConcourseBuilderGit,
 			ResourceRegistry:    args.ResourceRegistry,
 			Prepare:             curlImage,
 			From:                curlImage,
