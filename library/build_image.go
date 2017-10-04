@@ -16,7 +16,6 @@ var ImagesGroup = &project.JobGroup{
 }
 
 type BuildImageArgs struct {
-	ConcourseBuilderGit *project.Resource
 	ResourceRegistry    *project.ResourceRegistry
 	Prepare             *project.Resource
 	From                *project.Resource
@@ -27,6 +26,7 @@ type BuildImageArgs struct {
 	BuildArgs           map[string]interface{}
 	PreprepareSteps     project.ISteps
 	SourceDirs          []interface{}
+	EnvironmentVariables map[string]string
 	Eval                string
 }
 
@@ -122,6 +122,12 @@ fi
 
 	if len(args.SourceDirs) > 0 {
 		taskPrepare.Environment["SOURCE_DIRS"] = primitive.Array(args.SourceDirs)
+	}
+
+	if args.EnvironmentVariables != nil {
+		for k,v := range args.EnvironmentVariables {
+			taskPrepare.Environment[k] = v
+		}
 	}
 
 	if args.Eval != "" {

@@ -47,7 +47,6 @@ func CurlImageJob(args *CurlImageJobArgs) *project.Resource {
 
 	job := BuildImage(
 		&BuildImageArgs{
-			ConcourseBuilderGit: args.ConcourseBuilderGit,
 			ResourceRegistry:    args.ResourceRegistry,
 			Prepare:             image.Ubuntu,
 			From:                args.LinuxImageResource,
