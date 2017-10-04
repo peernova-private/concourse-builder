@@ -25,6 +25,11 @@ type GitSource struct {
 	// Optional. If specified as (list of pairs name and value) it will configure git global options,
 	// setting each name with each value.
 	GitConfig map[string]interface{} `yaml:"git_config,omitempty"`
+
+	// Optional. If specified, the resource will only detect commits that have a tag matching
+	// the expression that have been made against the branch. Patterns are glob(7) compatible
+	// (as in, bash compatible).
+	TagFilter string `yaml:"tag_filter,omitempty"`
 }
 
 type GitPutParams struct {

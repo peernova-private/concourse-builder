@@ -23,6 +23,14 @@ var expected = `groups:
   jobs:
   - curl-image
   - fly-image
+resource_types:
+- name: dummy
+  type: docker-image
+  source:
+    repository: registry.com/concourse-builder/dummy_resource-image
+    tag: master
+    aws_access_key_id: key
+    aws_secret_access_key: secret
 resources:
 - name: concourse-builder-git
   type: git
@@ -49,6 +57,8 @@ resources:
   source:
     repository: golang
   check_every: 24h
+- name: pipeline
+  type: dummy
 - name: ubuntu-image
   type: docker-image
   source:
@@ -182,6 +192,7 @@ jobs:
         PIPELINES: pipelines
       run:
         path: /bin/fly/set_pipelines.sh
+  - put: pipeline
 `
 
 func TestSdpBranch(t *testing.T) {
