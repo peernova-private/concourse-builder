@@ -50,12 +50,12 @@ func GitImageJob(args *GitImageJobArgs) *project.Resource {
 
 	job := BuildImage(
 		&BuildImageArgs{
-			ResourceRegistry:    args.ResourceRegistry,
-			Prepare:             image.Ubuntu,
-			From:                curlImage,
-			Name:                "git",
-			DockerFileResource:  dockerSteps,
-			Image:               imageResource,
+			ResourceRegistry:   args.ResourceRegistry,
+			PrepareImage:       image.Ubuntu,
+			From:               curlImage,
+			Name:               "git",
+			DockerFileResource: dockerSteps,
+			Image:              imageResource,
 		})
 
 	imageResource.NeedJobs(job)
