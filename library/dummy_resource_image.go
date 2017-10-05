@@ -46,12 +46,12 @@ func DummyResourceJob(args *DummyResourceImageJobArgs) *ResourceImageSource {
 
 	job := BuildImage(
 		&BuildImageArgs{
-			ResourceRegistry:    args.ResourceRegistry,
-			Prepare:             image.Ubuntu,
-			From:                image.Alpine,
-			Name:                "dummy_resource",
-			DockerFileResource:  dockerSteps,
-			Image:               imageResource,
+			ResourceRegistry:   args.ResourceRegistry,
+			PrepareImage:       image.Ubuntu,
+			From:               image.Alpine,
+			Name:               "dummy_resource",
+			DockerFileResource: dockerSteps,
+			Image:              imageResource,
 		})
 	job.AddToGroup(project.SystemGroup, project.ResourceTypeGroup)
 

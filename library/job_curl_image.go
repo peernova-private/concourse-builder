@@ -47,12 +47,12 @@ func CurlImageJob(args *CurlImageJobArgs) *project.Resource {
 
 	job := BuildImage(
 		&BuildImageArgs{
-			ResourceRegistry:    args.ResourceRegistry,
-			Prepare:             image.Ubuntu,
-			From:                args.LinuxImageResource,
-			Name:                "curl",
-			DockerFileSteps:     steps,
-			Image:               imageResource,
+			ResourceRegistry: args.ResourceRegistry,
+			PrepareImage:     image.Ubuntu,
+			From:             args.LinuxImageResource,
+			Name:             "curl",
+			DockerFileSteps:  steps,
+			Image:            imageResource,
 		})
 	job.AddToGroup(project.SystemGroup)
 

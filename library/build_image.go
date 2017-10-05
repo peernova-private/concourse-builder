@@ -16,18 +16,18 @@ var ImagesGroup = &project.JobGroup{
 }
 
 type BuildImageArgs struct {
-	ResourceRegistry    *project.ResourceRegistry
-	Prepare             *project.Resource
-	From                *project.Resource
-	Name                string
-	DockerFileResource  project.IValue
-	DockerFileSteps     string
-	Image               *project.Resource
-	BuildArgs           map[string]interface{}
-	PreprepareSteps     project.ISteps
-	SourceDirs          []interface{}
-	EnvironmentVariables map[string]string
-	Eval                string
+	ResourceRegistry   *project.ResourceRegistry
+	PrepareImage       *project.Resource
+	PrepareEnviroment  map[string]interface{}
+	From               *project.Resource
+	Name               string
+	DockerFileResource project.IValue
+	DockerFileSteps    string
+	Image              *project.Resource
+	BuildArgs          map[string]interface{}
+	PreprepareSteps    project.ISteps
+	SourceDirs         []interface{}
+	Eval               string
 }
 
 func taskPrepare(args *BuildImageArgs) *project.TaskStep {
@@ -35,7 +35,7 @@ func taskPrepare(args *BuildImageArgs) *project.TaskStep {
 		Directory: "prepared",
 	}
 
-	prepareImageResource := args.ResourceRegistry.JobResource(args.Prepare, true, nil)
+	prepareImageResource := args.ResourceRegistry.JobResource(args.PrepareImage, true, nil)
 
 	taskPrepare := &project.TaskStep{
 		Platform: model.LinuxPlatform,
@@ -112,6 +112,10 @@ fi
 
 	taskPrepare.Run, taskPrepare.Arguments = EncodeScript(script)
 
+	for k, v := range args.PrepareEnviroment {
+		taskPrepare.Environment[k] = v
+	}
+
 	if args.DockerFileResource != nil {
 		taskPrepare.Environment["DOCKERFILE_DIR"] = args.DockerFileResource
 	}
@@ -122,12 +126,6 @@ fi
 
 	if len(args.SourceDirs) > 0 {
 		taskPrepare.Environment["SOURCE_DIRS"] = primitive.Array(args.SourceDirs)
-	}
-
-	if args.EnvironmentVariables != nil {
-		for k,v := range args.EnvironmentVariables {
-			taskPrepare.Environment[k] = v
-		}
 	}
 
 	if args.Eval != "" {

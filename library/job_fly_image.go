@@ -60,13 +60,13 @@ func FlyImageJob(args *FlyImageJobArgs) *project.Resource {
 
 	job := BuildImage(
 		&BuildImageArgs{
-			ResourceRegistry:    args.ResourceRegistry,
-			Prepare:             curlImage,
-			From:                curlImage,
-			Name:                "fly",
-			DockerFileResource:  dockerSteps,
-			Image:               imageResource,
-			Eval:                evalFlyVersion,
+			ResourceRegistry:   args.ResourceRegistry,
+			PrepareImage:       curlImage,
+			From:               curlImage,
+			Name:               "fly",
+			DockerFileResource: dockerSteps,
+			Image:              imageResource,
+			Eval:               evalFlyVersion,
 		})
 	job.AddToGroup(project.SystemGroup)
 

@@ -14,7 +14,7 @@ type Source struct {
 	Tag        Tag
 }
 
-func (im *Source) ModelSource(scope project.Scope,info *project.ScopeInfo) interface{} {
+func (im *Source) ModelSource(scope project.Scope, info *project.ScopeInfo) interface{} {
 	repository := im.Repository
 	if im.Registry.Domain != "" {
 		repository = path.Join(im.Registry.Domain, repository)
