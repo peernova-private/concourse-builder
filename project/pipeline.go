@@ -152,7 +152,7 @@ func resources(allJobs Jobs) (JobResources, error) {
 	return jobResources.Deduplicate(), nil
 }
 
-func (p *Pipeline) ModelResourceTypes(allJobs Jobs) (model.ResourceTypes, error) {
+func (p *Pipeline) ModelResourceTypes(info *ScopeInfo, allJobs Jobs) (model.ResourceTypes, error) {
 	jobResources, err := resources(allJobs)
 	if err != nil {
 		return nil, err
@@ -181,7 +181,7 @@ func (p *Pipeline) ModelResourceTypes(allJobs Jobs) (model.ResourceTypes, error)
 	for _, tp := range types {
 		resourceType := GlobalTypeRegistry.RegisterType(ResourceTypeName(tp))
 		if !resourceType.IsSystem() {
-			modelResourceType := resourceType.Model()
+			modelResourceType := resourceType.Model(info)
 			resourceTypes = append(resourceTypes, modelResourceType)
 		}
 	}
@@ -189,7 +189,7 @@ func (p *Pipeline) ModelResourceTypes(allJobs Jobs) (model.ResourceTypes, error)
 	return resourceTypes, nil
 }
 
-func (p *Pipeline) ModelResources(allJobs Jobs) (model.Resources, error) {
+func (p *Pipeline) ModelResources(info *ScopeInfo, allJobs Jobs) (model.Resources, error) {
 	jobResources, err := resources(allJobs)
 	if err != nil {
 		return nil, err
@@ -197,7 +197,7 @@ func (p *Pipeline) ModelResources(allJobs Jobs) (model.Resources, error) {
 
 	var resources model.Resources
 	for _, res := range jobResources {
-		modelResource := res.Model(p.ResourceRegistry)
+		modelResource := res.Model(info, p.ResourceRegistry)
 		resources = append(resources, modelResource)
 	}
 
@@ -225,7 +225,13 @@ func (p *Pipeline) ModelJobs(allJobs Jobs) (model.Jobs, error) {
 	return modelJobs, nil
 }
 
-func (p *Pipeline) Save(writer io.Writer) error {
+func (p *Pipeline) Save(team TeamName, installation InstallationName, writer io.Writer) error {
+	info := &ScopeInfo{
+		Pipeline:     p.Name,
+		Team:         team,
+		Installation: installation,
+	}
+
 	allJobs, err := p.AllJobs()
 	if err != nil {
 		return err
@@ -236,12 +242,12 @@ func (p *Pipeline) Save(writer io.Writer) error {
 		return err
 	}
 
-	resourceTypes, err := p.ModelResourceTypes(allJobs)
+	resourceTypes, err := p.ModelResourceTypes(info, allJobs)
 	if err != nil {
 		return err
 	}
 
-	resources, err := p.ModelResources(allJobs)
+	resources, err := p.ModelResources(info, allJobs)
 	if err != nil {
 		return err
 	}

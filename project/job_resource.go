@@ -15,7 +15,7 @@ func ConvertToResourceName(raw string) ResourceName {
 }
 
 type IJobResourceSource interface {
-	ModelSource() interface{}
+	ModelSource(scope Scope, info *ScopeInfo) interface{}
 }
 
 type JobResource struct {
@@ -32,7 +32,7 @@ func (jr *JobResource) Path() string {
 	return string(jr.Name)
 }
 
-func (jr *JobResource) Model(registry *ResourceRegistry) *model.Resource {
+func (jr *JobResource) Model(info *ScopeInfo, registry *ResourceRegistry) *model.Resource {
 	res := registry.MustGetResource(jr.Name)
 
 	modelResource := &model.Resource{
@@ -42,7 +42,7 @@ func (jr *JobResource) Model(registry *ResourceRegistry) *model.Resource {
 	}
 
 	if res.Source != nil {
-		modelResource.Source = res.Source.ModelSource()
+		modelResource.Source = res.Source.ModelSource(res.Scope, info)
 	}
 
 	return modelResource

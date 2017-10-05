@@ -211,7 +211,7 @@ func TestSdpBranchBootstrap(t *testing.T) {
 
 	yml := &bytes.Buffer{}
 
-	err = prj.Pipelines[0].Save(yml)
+	err = prj.Pipelines[0].Save("team", "installation", yml)
 	assert.NoError(t, err)
 	test.AssertEqual(t, expectedBootstrap, yml.String())
 }

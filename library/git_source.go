@@ -19,7 +19,7 @@ type GitSource struct {
 	TagFilter GitTagFilter
 }
 
-func (gs *GitSource) ModelSource() interface{} {
+func (gs *GitSource) ModelSource(scope project.Scope, info *project.ScopeInfo) interface{} {
 	return &resource.GitSource{
 		URI:        gs.Repo.URI,
 		PrivateKey: gs.Repo.PrivateKey,
