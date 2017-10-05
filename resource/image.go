@@ -32,7 +32,7 @@ type ImageSource struct {
 	AwsSecretAccessKey string `yaml:"aws_secret_access_key,omitempty"`
 }
 
-func (im ImageSource) ModelSource() interface{} {
+func (im ImageSource) ModelSource(scope project.Scope, info *project.ScopeInfo) interface{} {
 	return im
 }
 

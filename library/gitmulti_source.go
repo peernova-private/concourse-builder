@@ -2,6 +2,7 @@ package library
 
 import (
 	"github.com/concourse-friends/concourse-builder/library/primitive"
+	"github.com/concourse-friends/concourse-builder/project"
 	"github.com/concourse-friends/concourse-builder/resource"
 )
 
@@ -15,7 +16,7 @@ type GitMultiSource struct {
 	Branches string
 }
 
-func (gms *GitMultiSource) ModelSource() interface{} {
+func (gms *GitMultiSource) ModelSource(scope project.Scope, info *project.ScopeInfo) interface{} {
 	return &resource.GitMultibranchSource{
 		URI:        gms.Repo.URI,
 		PrivateKey: gms.Repo.PrivateKey,

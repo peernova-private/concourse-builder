@@ -22,8 +22,9 @@ func CrossResource(
 	name := fmt.Sprintf("%s_cross_%d_%d", job.Name, taskIndex, outputIndex)
 
 	s3 := &project.Resource{
-		Name: project.ConvertToResourceName(name + "-s3"),
-		Type: resource.S3ResourceType.Name,
+		Name:  project.ConvertToResourceName(name + "-s3"),
+		Type:  resource.S3ResourceType.Name,
+		Scope: project.UniversalScope,
 		Source: &S3Source{
 			Bucker:        bucket,
 			VersionedFile: name + ".tar.gz",

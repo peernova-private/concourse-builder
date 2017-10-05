@@ -24,6 +24,9 @@ type Resource struct {
 	// The source of the resource
 	Source IJobResourceSource
 
+	// The scope of the resource
+	Scope Scope
+
 	// On what interval the resource to be pooled for updates
 	CheckInterval model.Duration
 

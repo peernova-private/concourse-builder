@@ -13,7 +13,7 @@ type Project struct {
 	Pipelines Pipelines
 }
 
-func (p *Project) Deploy() error {
+func (p *Project) Deploy(team TeamName, installation InstallationName) error {
 	for _, pipeline := range p.Pipelines {
 		tmpfile, err := ioutil.TempFile("", "pipeline")
 		if err != nil {
@@ -32,7 +32,7 @@ func (p *Project) Deploy() error {
 		}()
 		defer os.Remove(tmpfile.Name())
 
-		err = pipeline.Save(tmpfile)
+		err = pipeline.Save(team, installation, tmpfile)
 		if err != nil {
 			return err
 		}

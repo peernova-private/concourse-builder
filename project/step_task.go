@@ -8,6 +8,8 @@ import (
 	"github.com/davecgh/go-spew/spew"
 )
 
+type TaskName string
+
 type IRun interface {
 	Path() string
 }
@@ -31,7 +33,7 @@ type ITaskDirectory interface {
 
 type TaskStep struct {
 	Platform    model.Platform
-	Name        model.TaskName
+	Name        TaskName
 	Image       *JobResource
 	Privileged  bool
 	Run         IRun
@@ -44,7 +46,7 @@ type TaskStep struct {
 
 func (ts *TaskStep) Model() (model.IStep, error) {
 	task := &model.Task{
-		Task:       ts.Name,
+		Task:       model.TaskName(ts.Name),
 		Privileged: ts.Privileged,
 		Config: &model.TaskConfig{
 			Platform: ts.Platform,
