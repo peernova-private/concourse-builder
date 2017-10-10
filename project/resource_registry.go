@@ -8,6 +8,8 @@ type ResourceRegistry struct {
 	resources map[ResourceHash]*Resource
 }
 
+type ResourceRegistries []*ResourceRegistry
+
 func NewResourceRegistry() *ResourceRegistry {
 	return &ResourceRegistry{
 		cross:     make(map[ResourceName]ResourceHash),
@@ -43,9 +45,14 @@ func (rr *ResourceRegistry) JobResource(resource *Resource, trigger bool, getPar
 
 func (rr *ResourceRegistry) GetResource(name ResourceName) *Resource {
 	if hash, ok := rr.cross[name]; ok {
-		if res, ok := rr.resources[hash]; ok {
-			return res
-		}
+		return rr.GetResourceByHash(hash)
+	}
+	return nil
+}
+
+func (rr *ResourceRegistry) GetResourceByHash(hash ResourceHash) *Resource {
+	if res, ok := rr.resources[hash]; ok {
+		return res
 	}
 	return nil
 }

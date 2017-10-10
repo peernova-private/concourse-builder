@@ -41,7 +41,7 @@ resource_types:
   type: docker-image
   source:
     repository: registry.com/concourse-builder/dummy_resource-image
-    tag: master
+    tag: master_image
     aws_access_key_id: key
     aws_secret_access_key: secret
 - name: git-multibranch
@@ -53,27 +53,27 @@ resources:
   type: git
   source:
     uri: git@github.com:concourse-friends/concourse-builder.git
-    branch: master
+    branch: master_image
     private_key: private-key
 - name: curl-image
   type: docker-image
   source:
     repository: registry.com/concourse-builder/curl-image
-    tag: master
+    tag: master_image
     aws_access_key_id: key
     aws_secret_access_key: secret
 - name: fly-image
   type: docker-image
   source:
     repository: registry.com/concourse-builder/fly-image
-    tag: master
+    tag: master_image
     aws_access_key_id: key
     aws_secret_access_key: secret
 - name: git-image
   type: docker-image
   source:
     repository: registry.com/concourse-builder/git-image
-    tag: master
+    tag: master_image
     aws_access_key_id: key
     aws_secret_access_key: secret
 - name: go-image
@@ -151,7 +151,7 @@ jobs:
         DOCKERFILE_DIR: concourse-builder-git/docker/fly
         EVAL: echo ENV FLY_VERSION=` + "`" + `curl http://concourse.com/api/v1/info | awk -F
           ',' ' { print $1 } ' | awk -F ':' ' { print $2 } '` + "`" + `
-        FROM_IMAGE: registry.com/concourse-builder/curl-image:master
+        FROM_IMAGE: registry.com/concourse-builder/curl-image:master_image
       run:
         path: /bin/bash
         args:
@@ -197,7 +197,7 @@ jobs:
       - name: concourse-builder-git
       params:
         DOCKERFILE_DIR: concourse-builder-git/docker/git
-        FROM_IMAGE: registry.com/concourse-builder/curl-image:master
+        FROM_IMAGE: registry.com/concourse-builder/curl-image:master_image
       run:
         path: /bin/bash
         args:
@@ -263,7 +263,7 @@ jobs:
       - name: branches
       - name: concourse-builder-git
       params:
-        BRANCH: branch
+        BRANCH: branch_image
         BRANCHES_FILE: branches/branches
         PIPELINES: pipelines
       run:
@@ -328,7 +328,7 @@ jobs:
       inputs:
       - name: concourse-builder-git
       params:
-        BRANCH: branch
+        BRANCH: branch_image
         PIPELINES: pipelines
       run:
         path: concourse-builder-git/foo

@@ -45,7 +45,7 @@ func (s *testSpecification) ConcourseBuilderGit() (*project.Resource, error) {
 				PrivateKey: "private-key",
 			},
 			Branch: &primitive.GitBranch{
-				Name: "master",
+				Name: "master_image",
 			},
 		},
 	}, nil
@@ -72,6 +72,6 @@ func (s *testSpecification) GenerateProjectLocation(resourceRegistry *project.Re
 
 func (s *testSpecification) Environment() (map[string]interface{}, error) {
 	return map[string]interface{}{
-		"BRANCH": "branch",
+		"BRANCH": "branch_image",
 	}, nil
 }

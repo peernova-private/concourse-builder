@@ -70,33 +70,57 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 		prj.Pipelines = append(prj.Pipelines, project.Pipelines...)
 	}
 
-	mainPipeline := project.NewPipeline()
-	mainPipeline.AllJobsGroup = project.AllJobsGroupFirst
-
 	concourseBuilderGit, err := specification.ConcourseBuilderGit()
 	if err != nil {
 		return nil, err
 	}
 
-	rawName := concourseBuilderGit.Source.(*library.GitSource).Branch.FriendlyName() + "-sdp"
-	mainPipeline.Name = project.ConvertToPipelineName(rawName)
-
-	linuxImage, err := specification.LinuxImage(mainPipeline.ResourceRegistry)
-	if err != nil {
-		return nil, err
-	}
+	concourseBuilderBranch := concourseBuilderGit.Source.(*library.GitSource).Branch
 
 	imageRegistry, err := specification.DeployImageRegistry()
 	if err != nil {
 		return nil, err
 	}
 
-	goImage, err := specification.GoImage(mainPipeline.ResourceRegistry)
+	concourse, err := specification.Concourse()
 	if err != nil {
 		return nil, err
 	}
 
-	concourse, err := specification.Concourse()
+	concourseBuilderPipeline := project.NewPipeline()
+	concourseBuilderPipeline.AllJobsGroup = project.AllJobsGroupFirst
+	concourseBuilderPipeline.Name = project.ConvertToPipelineName(concourseBuilderBranch.FriendlyName() + "-cb")
+
+	concourseBuilderLinuxImage, err := specification.LinuxImage(concourseBuilderPipeline.ResourceRegistry)
+	if err != nil {
+		return nil, err
+	}
+
+	concourseBuilderPipeline.Jobs = project.Jobs{
+		library.AllImages(&library.AllImagesArgs{
+			LinuxImageResource:  concourseBuilderLinuxImage,
+			ConcourseBuilderGit: concourseBuilderGit,
+			ImageRegistry:       imageRegistry,
+			ResourceRegistry:    concourseBuilderPipeline.ResourceRegistry,
+			Concourse:           concourse,
+		}),
+	}
+
+	mainPipeline := project.NewPipeline()
+	mainPipeline.AllJobsGroup = project.AllJobsGroupFirst
+
+	mainPipeline.Name = project.ConvertToPipelineName(concourseBuilderBranch.FriendlyName() + "-sdp")
+
+	if !concourseBuilderBranch.IsImage() {
+		mainPipeline.ReuseFrom = append(mainPipeline.ReuseFrom, concourseBuilderPipeline.ResourceRegistry)
+	}
+
+	linuxImage, err := specification.LinuxImage(mainPipeline.ResourceRegistry)
+	if err != nil {
+		return nil, err
+	}
+
+	goImage, err := specification.GoImage(mainPipeline.ResourceRegistry)
 	if err != nil {
 		return nil, err
 	}
@@ -143,6 +167,8 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 		branchesJob,
 	}
 
-	prj.Pipelines = append(prj.Pipelines, mainPipeline)
+	prj.Pipelines = append(prj.Pipelines,
+		mainPipeline,
+		concourseBuilderPipeline)
 	return prj, nil
 }
