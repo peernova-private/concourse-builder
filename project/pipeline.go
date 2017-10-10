@@ -24,6 +24,9 @@ type Pipeline struct {
 	Jobs         Jobs
 
 	ResourceRegistry *ResourceRegistry
+
+	// List of external registries that might provide some of the resources
+	ReuseFrom ResourceRegistries
 }
 
 type Pipelines []*Pipeline
@@ -32,6 +35,17 @@ func NewPipeline() *Pipeline {
 	return &Pipeline{
 		ResourceRegistry: NewResourceRegistry(),
 	}
+}
+
+func (p *Pipeline) ReuseResourceFrom(resource *Resource) bool {
+	hash := resource.MustHash()
+	for _, registry := range p.ReuseFrom {
+		reuseResource := registry.GetResourceByHash(hash)
+		if reuseResource != nil {
+			return true
+		}
+	}
+	return false
 }
 
 func (p *Pipeline) JobsFor(checkJobs JobsSet) (Jobs, error) {
@@ -47,6 +61,10 @@ func (p *Pipeline) JobsFor(checkJobs JobsSet) (Jobs, error) {
 
 		for _, resource := range resources {
 			projectResource := p.ResourceRegistry.MustGetResource(resource.Name)
+			if p.ReuseResourceFrom(projectResource) {
+				continue
+			}
+
 			for _, resJob := range projectResource.NeededJobs() {
 				job.AddJobToRunAfter(resJob)
 				if _, exists := jobs[resJob.Name]; exists {
