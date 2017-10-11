@@ -9,6 +9,7 @@ import (
 
 type BootstrapSpecification interface {
 	Branch() *primitive.GitBranch
+	TargetGitRepo() (*primitive.GitRepo, error)
 	Concourse() (*primitive.Concourse, error)
 	DeployImageRegistry() (*image.Registry, error)
 	LinuxImage(resourceRegistry *project.ResourceRegistry) (*project.Resource, error)

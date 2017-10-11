@@ -18,5 +18,5 @@ func BranchImageTag(branch *primitive.GitBranch) (Tag, bool) {
 	if branch.IsMaster() || branch.IsImage() {
 		return ConvertToImageTag(branch.FriendlyName()), true
 	}
-	return ConvertToImageTag(branch.BaseBranch()), false
+	return ConvertToImageTag(branch.BaseBranch().Name), false
 }

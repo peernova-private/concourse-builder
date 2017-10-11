@@ -5,10 +5,13 @@ import (
 
 	"github.com/concourse-friends/concourse-builder/library"
 	"github.com/concourse-friends/concourse-builder/project"
+	"github.com/concourse-friends/concourse-builder/resource"
 )
 
 type Specification interface {
 	BootstrapSpecification
+
+	SharedJobs(resourceRegistry *project.ResourceRegistry, gitResource *project.Resource) (project.Jobs, error)
 	ModifyJobs(resourceRegistry *project.ResourceRegistry) (project.Jobs, error)
 	VerifyJobs(resourceRegistry *project.ResourceRegistry) (project.Jobs, error)
 }
@@ -46,6 +49,8 @@ func addPipelineResource(
 }
 
 func GenerateProject(specification Specification) (*project.Project, error) {
+	prj := &project.Project{}
+
 	concourseBuilderGit, err := specification.ConcourseBuilderGit()
 	if err != nil {
 		return nil, err
@@ -70,7 +75,8 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 
 	concourseBuilderPipeline := project.NewPipeline()
 	concourseBuilderPipeline.AllJobsGroup = project.AllJobsGroupFirst
-	concourseBuilderPipeline.Name = project.ConvertToPipelineName(concourseBuilderBranch.FriendlyName() + "-cb")
+	concourseBuilderPipeline.Name =
+		project.ConvertToPipelineName("cb-" + concourseBuilderBranch.FriendlyName() + "-shrd")
 
 	concourseBuilderLinuxImage, err := specification.LinuxImage(concourseBuilderPipeline.ResourceRegistry)
 	if err != nil {
@@ -85,6 +91,38 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 			ResourceRegistry:    concourseBuilderPipeline.ResourceRegistry,
 			Concourse:           concourse,
 		}),
+	}
+
+	prj.Pipelines = append(prj.Pipelines, concourseBuilderPipeline)
+
+	targetGit, err := specification.TargetGitRepo()
+	if err != nil {
+		return nil, err
+	}
+
+	baseSharedPipeline := project.NewPipeline()
+
+	baseBranch := specification.Branch().BaseBranch()
+
+	baseGitResource := &project.Resource{
+		Name: project.ConvertToResourceName(baseBranch.FriendlyName() + "-git"),
+		Type: resource.GitResourceType.Name,
+		Source: &library.GitSource{
+			Repo:   targetGit,
+			Branch: baseBranch,
+		},
+	}
+
+	baseSharedPipeline.Jobs, err = specification.SharedJobs(baseSharedPipeline.ResourceRegistry, baseGitResource)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(baseSharedPipeline.Jobs) > 0 {
+		baseSharedPipeline.AllJobsGroup = project.AllJobsGroupFirst
+		baseSharedPipeline.Name =
+			project.ConvertToPipelineName(targetGit.FriendlyName() + "-shrd")
+		prj.Pipelines = append(prj.Pipelines, baseSharedPipeline)
 	}
 
 	mainPipeline := project.NewPipeline()
@@ -167,12 +205,7 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 		return nil, err
 	}
 
-	prj := &project.Project{
-		Pipelines: project.Pipelines{
-			concourseBuilderPipeline,
-			mainPipeline,
-		},
-	}
+	prj.Pipelines = append(prj.Pipelines, mainPipeline)
 
 	return prj, nil
 }

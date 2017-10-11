@@ -26,20 +26,24 @@ func (gb *GitBranch) FriendlyName() string {
 	return matches[0][1]
 }
 
-func (gb *GitBranch) BaseBranch() string {
+func (gb *GitBranch) BaseBranch() *GitBranch {
 	matches := baseBranchPattern.FindAllStringSubmatch(gb.Name, -1)
 	if matches != nil {
-		return matches[0][1]
+		return &GitBranch{
+			Name: matches[0][1],
+		}
 	}
 
-	return "master"
+	return &GitBranch{
+		Name: "master",
+	}
 }
 
 func (gb *GitBranch) PrBranch() *GitBranch {
 	name := gb.FriendlyName() + "-pr"
 	base := gb.BaseBranch()
-	if base != "" {
-		name += "#" + base
+	if base.Name != "master" {
+		name += "#" + base.Name
 	}
 
 	return &GitBranch{

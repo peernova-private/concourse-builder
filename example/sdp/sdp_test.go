@@ -66,7 +66,7 @@ resources:
   type: docker-image
   source:
     repository: registry.com/concourse-builder/fly-image
-    tag: master_image
+    tag: installation_master_image
     aws_access_key_id: key
     aws_secret_access_key: secret
 - name: git-image

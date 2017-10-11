@@ -19,6 +19,10 @@ func (bbs *BranchBootstrapSpecification) Branch() *primitive.GitBranch {
 	return bbs.TargetBranch
 }
 
+func (bbs *BranchBootstrapSpecification) TargetGitRepo() (*primitive.GitRepo, error) {
+	return bbs.Specification.TargetGitRepo()
+}
+
 func (bbs *BranchBootstrapSpecification) Concourse() (*primitive.Concourse, error) {
 	return bbs.Specification.Concourse()
 }

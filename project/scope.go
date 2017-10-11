@@ -9,7 +9,9 @@ type InstallationName string
 
 const (
 	PipelineScope = iota
+	AllPipelinesScope
 	TeamScope
+	AllTeamsScope
 	InstallationScope
 	UniversalScope
 )
@@ -34,6 +36,13 @@ func (info *ScopeInfo) Scope(scope Scope, delimiter string) string {
 	case TeamScope:
 		return fmt.Sprintf("%s%s",
 			info.Pipeline, delimiter)
+	case AllTeamsScope:
+		return fmt.Sprintf("%s%s",
+			info.Installation, delimiter)
+	case AllPipelinesScope:
+		return fmt.Sprintf("%s%s%s%s",
+			info.Installation, delimiter,
+			info.Team, delimiter)
 	}
 
 	return ""

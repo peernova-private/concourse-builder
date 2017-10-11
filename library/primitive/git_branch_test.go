@@ -11,13 +11,13 @@ func TestGitBranch_BaseBranch(t *testing.T) {
 		Name: "branch#base",
 	}
 
-	assert.Equal(t, "base", branch.BaseBranch())
+	assert.Equal(t, "base", branch.BaseBranch().Name)
 
 	branch = &GitBranch{
 		Name: "branch",
 	}
 
-	assert.Equal(t, "master", branch.BaseBranch())
+	assert.Equal(t, "master", branch.BaseBranch().Name)
 }
 
 func TestGitBranch_FriendlyName(t *testing.T) {
