@@ -33,8 +33,9 @@ func FlyImageJob(args *FlyImageJobArgs) *project.Resource {
 	tag, needJob := image.BranchImageTag(args.ConcourseBuilderGit.Source.(*GitSource).Branch)
 
 	imageResource = &project.Resource{
-		Name: resourceName,
-		Type: resource.ImageResourceType.Name,
+		Name:  resourceName,
+		Type:  resource.ImageResourceType.Name,
+		Scope: project.AllTeamsScope,
 		Source: &image.Source{
 			Tag:        tag,
 			Registry:   args.ImageRegistry,

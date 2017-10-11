@@ -21,6 +21,13 @@ func (s *testSpecification) Branch() *primitive.GitBranch {
 	}
 }
 
+func (s *testSpecification) TargetGitRepo() (*primitive.GitRepo, error) {
+	return &primitive.GitRepo{
+		URI:        "git@github.com:concourse-friends/concourse-builder.git",
+		PrivateKey: "private-key",
+	}, nil
+}
+
 func (s *testSpecification) Concourse() (*primitive.Concourse, error) {
 	return &primitive.Concourse{
 		URL:      "http://concourse.com",
@@ -74,6 +81,10 @@ func (s *testSpecification) Environment() (map[string]interface{}, error) {
 	return map[string]interface{}{
 		"BRANCH": "branch_image",
 	}, nil
+}
+
+func (s *testSpecification) SharedJobs(resourceRegistry *project.ResourceRegistry, gitResource *project.Resource) (project.Jobs, error) {
+	return nil, nil
 }
 
 func (s *testSpecification) ModifyJobs(resourceRegistry *project.ResourceRegistry) (project.Jobs, error) {

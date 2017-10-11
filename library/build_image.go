@@ -18,7 +18,7 @@ var ImagesGroup = &project.JobGroup{
 type BuildImageArgs struct {
 	ResourceRegistry   *project.ResourceRegistry
 	PrepareImage       *project.Resource
-	PrepareEnviroment  map[string]interface{}
+	PrepareEnvironment map[string]interface{}
 	From               *project.Resource
 	Name               string
 	DockerFileResource project.IValue
@@ -112,7 +112,7 @@ fi
 
 	taskPrepare.Run, taskPrepare.Arguments = EncodeScript(script)
 
-	for k, v := range args.PrepareEnviroment {
+	for k, v := range args.PrepareEnvironment {
 		taskPrepare.Environment[k] = v
 	}
 

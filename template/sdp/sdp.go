@@ -109,7 +109,12 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 	mainPipeline := project.NewPipeline()
 	mainPipeline.AllJobsGroup = project.AllJobsGroupFirst
 
-	mainPipeline.Name = project.ConvertToPipelineName(concourseBuilderBranch.FriendlyName() + "-sdp")
+	targetGit, err := specification.TargetGitRepo()
+	if err != nil {
+		return nil, err
+	}
+
+	mainPipeline.Name = project.ConvertToPipelineName(targetGit.FriendlyName() + "-sdp")
 
 	if !concourseBuilderBranch.IsImage() {
 		mainPipeline.ReuseFrom = append(mainPipeline.ReuseFrom, concourseBuilderPipeline.ResourceRegistry)
@@ -145,11 +150,6 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 		Environment:             environment,
 		GenerateProjectLocation: generateProjectLocation,
 	})
-
-	targetGit, err := specification.TargetGitRepo()
-	if err != nil {
-		return nil, err
-	}
 
 	branchesJob := BranchesJob(&BranchesJobArgs{
 		ConcourseBuilderGit:     concourseBuilderGit,
