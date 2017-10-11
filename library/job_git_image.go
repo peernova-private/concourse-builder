@@ -27,20 +27,14 @@ func GitImageJob(args *GitImageJobArgs) *project.Resource {
 
 	curlImage := CurlImageJob(curlImageJobArgs)
 
-	tag, needJob := image.BranchImageTag(args.ConcourseBuilderGit.Source.(*GitSource).Branch)
-
 	imageResource = &project.Resource{
-		Name: resourceName,
-		Type: resource.ImageResourceType.Name,
+		Name:  resourceName,
+		Type:  resource.ImageResourceType.Name,
+		Scope: project.TeamScope,
 		Source: &image.Source{
-			Tag:        tag,
 			Registry:   args.ImageRegistry,
 			Repository: "concourse-builder/git-image",
 		},
-	}
-
-	if !needJob {
-		return imageResource
 	}
 
 	dockerSteps := &primitive.Location{

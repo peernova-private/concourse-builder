@@ -13,7 +13,7 @@ const (
 	TeamScope
 	AllTeamsScope
 	InstallationScope
-	UniversalScope
+	UniverseScope
 )
 
 type ScopeInfo struct {
@@ -24,7 +24,7 @@ type ScopeInfo struct {
 
 func (info *ScopeInfo) Scope(scope Scope, delimiter string) string {
 	switch scope {
-	case UniversalScope:
+	case UniverseScope:
 		return fmt.Sprintf("%s%s%s%s%s%s",
 			info.Installation, delimiter,
 			info.Team, delimiter,

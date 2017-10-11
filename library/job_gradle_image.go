@@ -8,7 +8,6 @@ import (
 
 type GradleImageJobArgs struct {
 	GradleImageResource *project.Resource
-	ConcourseBuilderGit *project.Resource
 	ImageRegistry       *image.Registry
 	ResourceRegistry    *project.ResourceRegistry
 }
@@ -20,20 +19,14 @@ func GradleImageJob(args *GradleImageJobArgs) *project.Resource {
 		return imageResource
 	}
 
-	tag, needJob := image.BranchImageTag(args.ConcourseBuilderGit.Source.(*GitSource).Branch)
-
 	imageResource = &project.Resource{
-		Name: resourceName,
-		Type: resource.ImageResourceType.Name,
+		Name:  resourceName,
+		Type:  resource.ImageResourceType.Name,
+		Scope: project.TeamScope,
 		Source: &image.Source{
-			Tag:        tag,
 			Registry:   args.ImageRegistry,
 			Repository: "concourse-builder/gradle-image",
 		},
-	}
-
-	if !needJob {
-		return imageResource
 	}
 
 	steps := `USER root`
