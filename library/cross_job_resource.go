@@ -24,7 +24,7 @@ func CrossResource(
 	s3 := &project.Resource{
 		Name:  project.ConvertToResourceName(name + "-s3"),
 		Type:  resource.S3ResourceType.Name,
-		Scope: project.UniversalScope,
+		Scope: project.UniverseScope,
 		Source: &S3Source{
 			Bucker:        bucket,
 			VersionedFile: name + ".tar.gz",

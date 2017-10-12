@@ -10,14 +10,15 @@ import (
 )
 
 var buildImageScript = `
-          H4sIAAAAAAAC/4STb2vbMBDGX1ef4qkXKAw8Mxh7l0JI3C60JcXp9mYbqSKda1HPEpKS/iEfftgm8Z94\
-          2Uudnvvd3SPdh/No42y0VkVExRZr7jKWLBYP40fzIh8Zc+QR0itj02/x9GY1Sa6XY283xJhK8RPhO4LR\
-          bDG9iZOr+W28ms2TACE/ii8f4vtlgN/MZ1SwMxKZRnCfE3cEZ0io9A1dDLRFH4CyxS23iq9zCvaYXl6N\
-          U+TgM4JUloTX9g0vGVmqY1o8k01VTnCejAO3g7S6pnLgpS/09Que3pWB81YVT9DpICxgZy2rUp47Yqlq\
-          23WVLO5W87vJdfwfQxrh8OBz3xvWktFOVdN6jTVh40hCFdVlSYPI+cbRyR6DUXMXYDxGUAlavb4qj89V\
-          wp9nqSxCA2PJcEuyRpwP/4s9QBj07qKPDaHkptpiufieTOsnVQVGzXHJpGYAcFQ9aqkqhTAIk3Zu9GlY\
-          LHVBjAmJpg9WmVy51noyXGJ2ePFactkJdRyIf0xuD3OXDdGW54d4N7Gce4B3ytBy0Qijcl+jvqP1z26V\
-          FtyflB5384/S3V2upqq+44BmB28RSlz8Ki6w229RGEoSWhJ29UKFIpXH5f8GAAD//2JqijKaBAAA |\`
+          H4sIAAAAAAAC/4RUXWvbQBB8zv2KiSpIU1BFofSh4IBxFNckQUFyC6UtzvluZR9RdeLu7HzgH18kYUu2\
+          lfRRe7OzO7O7encarqwJ56oIqVhjzu2SJXE8HdyXj/KeMUsOAT0xNvoWja5nw2ScDpxZEWMqwy8EL/D8\
+          y3h0HSVXk5todjlJPAT8KJ5Oo7vUwx/mllSwExJLDe8uJ24JtiShsmfs00AbHBKganHNjeLznLwtzUFe\
+          Q6fIwi0JUhkSTptnPC7JUBPT4oFMpnKCdVRacNPL1tRUFrzyhb58xuJFlbDOqGIBnfWSeeykY1XGc0ss\
+          U127rpL4dja5HY6j/xjSAvuFT9yBWEOltqpW6zTmhJUlCVXUjxUbRM5Xlt7s0fPbNw+DAbwa0On1STl8\
+          qhP+PkhlEJQoDZXckGwoTvv3YksgShy8hR9ahoo30wZp/D0ZNSNVBfz2M2VSMwA4qh52UDVClAiSbm74\
+          sR8sdUGMCYm2D5ZEd3E6mcbJz4H/XnAHvzqMsDO/sDX8nE2H41dxji/OWT20egp+S/3Vnw7HuMDlbo0a\
+          3MVeaM/W6MfwZmdmpZLWPN/F9xMrM3v43ppSdb201XAwpuZcOqU7cnuhx928Unr/B1Grqne8B7OBMwgk\
+          zn4XZ9hsTzMIJAktCZvmSgORyePy/wIAAP///BQZEO8EAAA= |\`
 
 var expected = `groups:
 - name: all
@@ -41,7 +42,7 @@ resource_types:
   type: docker-image
   source:
     repository: registry.com/concourse-builder/dummy_resource-image
-    tag: master_image
+    tag: git@github.com:target.git-sdp
     aws_access_key_id: key
     aws_secret_access_key: secret
 - name: git-multibranch
@@ -59,21 +60,21 @@ resources:
   type: docker-image
   source:
     repository: registry.com/concourse-builder/curl-image
-    tag: master_image
+    tag: git@github.com:target.git-sdp
     aws_access_key_id: key
     aws_secret_access_key: secret
 - name: fly-image
   type: docker-image
   source:
     repository: registry.com/concourse-builder/fly-image
-    tag: installation_master_image
+    tag: installation
     aws_access_key_id: key
     aws_secret_access_key: secret
 - name: git-image
   type: docker-image
   source:
     repository: registry.com/concourse-builder/git-image
-    tag: master_image
+    tag: git@github.com:target.git-sdp
     aws_access_key_id: key
     aws_secret_access_key: secret
 - name: go-image
@@ -103,12 +104,14 @@ jobs:
     image: ubuntu-image
     config:
       platform: linux
+      inputs:
+      - name: ubuntu-image
       params:
         DOCKERFILE_STEPS: |-
           H4sIAAAAAAAC/1TMsQrCUAyF4b1PcUDoIIS8iYPg1iXWKBdiCUmu6NuLlg5dP/5zzpcTUgukb0zDAW3J
           EjPMPQzTMI4QL3pooftNSve21fTZBr+P2VSW7vv0jyvFExR38EuCrV1ZvNhaVvLxGwAA//9QRiyQjwAA
           AA==
-        FROM_IMAGE: ubuntu
+        FROM_IMAGE: ubuntu-image
       run:
         path: /bin/bash
         args:
@@ -147,11 +150,12 @@ jobs:
       platform: linux
       inputs:
       - name: concourse-builder-git
+      - name: curl-image
       params:
         DOCKERFILE_DIR: concourse-builder-git/docker/fly
         EVAL: echo ENV FLY_VERSION=` + "`" + `curl http://concourse.com/api/v1/info | awk -F
           ',' ' { print $1 } ' | awk -F ':' ' { print $2 } '` + "`" + `
-        FROM_IMAGE: registry.com/concourse-builder/curl-image:master_image
+        FROM_IMAGE: curl-image
       run:
         path: /bin/bash
         args:
@@ -195,9 +199,10 @@ jobs:
       platform: linux
       inputs:
       - name: concourse-builder-git
+      - name: curl-image
       params:
         DOCKERFILE_DIR: concourse-builder-git/docker/git
-        FROM_IMAGE: registry.com/concourse-builder/curl-image:master_image
+        FROM_IMAGE: curl-image
       run:
         path: /bin/bash
         args:

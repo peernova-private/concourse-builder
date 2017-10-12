@@ -83,14 +83,18 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 		return nil, err
 	}
 
+	sharedResourcesArgs := &library.SharedResourcesArgs{
+		LinuxImageResource:  concourseBuilderLinuxImage,
+		ConcourseBuilderGit: concourseBuilderGit,
+		ImageRegistry:       imageRegistry,
+		ResourceRegistry:    concourseBuilderPipeline.ResourceRegistry,
+		Concourse:           concourse,
+	}
+
+	specification.InitializeAdditionalSharedResourcesArgs(sharedResourcesArgs)
+
 	concourseBuilderPipeline.Jobs = project.Jobs{
-		library.AllImages(&library.AllImagesArgs{
-			LinuxImageResource:  concourseBuilderLinuxImage,
-			ConcourseBuilderGit: concourseBuilderGit,
-			ImageRegistry:       imageRegistry,
-			ResourceRegistry:    concourseBuilderPipeline.ResourceRegistry,
-			Concourse:           concourse,
-		}),
+		library.SharedResources(sharedResourcesArgs),
 	}
 
 	prj.Pipelines = append(prj.Pipelines, concourseBuilderPipeline)
@@ -130,7 +134,7 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 	mainPipeline.Name = project.ConvertToPipelineName(specification.Branch().FriendlyName() + "-sdpb")
 
 	if !concourseBuilderBranch.IsImage() {
-		mainPipeline.ReuseFrom = append(mainPipeline.ReuseFrom, concourseBuilderPipeline.ResourceRegistry)
+		mainPipeline.ReuseFromPipeline = append(mainPipeline.ReuseFromPipeline, concourseBuilderPipeline)
 	}
 
 	linuxImage, err := specification.LinuxImage(mainPipeline.ResourceRegistry)
