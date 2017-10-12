@@ -1,6 +1,7 @@
 package sdp
 
 import (
+	"github.com/concourse-friends/concourse-builder/library"
 	"github.com/concourse-friends/concourse-builder/library/image"
 	"github.com/concourse-friends/concourse-builder/library/primitive"
 	"github.com/concourse-friends/concourse-builder/project"
@@ -50,4 +51,8 @@ func (bbs *BranchBootstrapSpecification) Environment() (map[string]interface{}, 
 	}
 	enviroment["BRANCH"] = bbs.TargetBranch.CanonicalName()
 	return enviroment, nil
+}
+
+func (bbs *BranchBootstrapSpecification) InitializeAdditionalSharedResourcesArgs(sharedResourcesArgs *library.SharedResourcesArgs) error {
+	return bbs.Specification.InitializeAdditionalSharedResourcesArgs(sharedResourcesArgs)
 }
