@@ -28,7 +28,7 @@ resource_types:
   type: docker-image
   source:
     repository: registry.com/concourse-builder/dummy_resource-image
-    tag: master_image
+    tag: target_branch_image-sdpb
     aws_access_key_id: key
     aws_secret_access_key: secret
 resources:
@@ -42,14 +42,14 @@ resources:
   type: docker-image
   source:
     repository: registry.com/concourse-builder/curl-image
-    tag: master_image
+    tag: target_branch_image-sdpb
     aws_access_key_id: key
     aws_secret_access_key: secret
 - name: fly-image
   type: docker-image
   source:
     repository: registry.com/concourse-builder/fly-image
-    tag: installation_master_image
+    tag: installation
     aws_access_key_id: key
     aws_secret_access_key: secret
 - name: go-image
@@ -73,12 +73,14 @@ jobs:
     image: ubuntu-image
     config:
       platform: linux
+      inputs:
+      - name: ubuntu-image
       params:
         DOCKERFILE_STEPS: |-
           H4sIAAAAAAAC/1TMsQrCUAyF4b1PcUDoIIS8iYPg1iXWKBdiCUmu6NuLlg5dP/5zzpcTUgukb0zDAW3J
           EjPMPQzTMI4QL3pooftNSve21fTZBr+P2VSW7vv0jyvFExR38EuCrV1ZvNhaVvLxGwAA//9QRiyQjwAA
           AA==
-        FROM_IMAGE: ubuntu
+        FROM_IMAGE: ubuntu-image
       run:
         path: /bin/bash
         args:
@@ -117,11 +119,12 @@ jobs:
       platform: linux
       inputs:
       - name: concourse-builder-git
+      - name: curl-image
       params:
         DOCKERFILE_DIR: concourse-builder-git/docker/fly
         EVAL: echo ENV FLY_VERSION=` + "`" + `curl http://concourse.com/api/v1/info | awk -F
           ',' ' { print $1 } ' | awk -F ':' ' { print $2 } '` + "`" + `
-        FROM_IMAGE: registry.com/concourse-builder/curl-image:master_image
+        FROM_IMAGE: curl-image
       run:
         path: /bin/bash
         args:

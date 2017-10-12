@@ -75,3 +75,7 @@ func (s *testSpecification) Environment() (map[string]interface{}, error) {
 		"BRANCH": "branch_image",
 	}, nil
 }
+
+func (s *testSpecification) InitializeAdditionalSharedResourcesArgs(sharedResourcesArgs *library.SharedResourcesArgs) error {
+	return nil
+}

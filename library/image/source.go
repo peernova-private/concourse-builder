@@ -20,11 +20,16 @@ func (im *Source) ModelSource(scope project.Scope, info *project.ScopeInfo) inte
 		repository = path.Join(im.Registry.Domain, repository)
 	}
 
-	tagPrefix := info.Scope(scope, "_")
+	tag := info.Scope(scope, "-")
+	if tag != "" && im.Tag == "" {
+		tag = tag[:len(tag)-1]
+	} else {
+		tag = tag + string(im.Tag)
+	}
 
 	source := &resource.ImageSource{
 		Repository: repository,
-		Tag:        tagPrefix + string(im.Tag),
+		Tag:        string(ConvertToImageTag(tag)),
 	}
 
 	if im.Registry.AwsAccessKeyId != "" || im.Registry.AwsSecretAccessKey != "" {

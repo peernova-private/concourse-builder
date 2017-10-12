@@ -37,12 +37,16 @@ func taskPrepare(args *BuildImageArgs) *project.TaskStep {
 
 	prepareImageResource := args.ResourceRegistry.JobResource(args.PrepareImage, true, nil)
 
+	fromImageResource := args.ResourceRegistry.JobResource(args.From, true, nil)
+
 	taskPrepare := &project.TaskStep{
 		Platform: model.LinuxPlatform,
 		Name:     "prepare",
 		Image:    prepareImageResource,
 		Environment: map[string]interface{}{
-			"FROM_IMAGE": (*image.FromParam)(args.From),
+			"FROM_IMAGE": &primitive.Location{
+				Volume: fromImageResource,
+			},
 		},
 		Outputs: []project.IOutput{
 			preparedDir,
@@ -90,7 +94,9 @@ done
 
 cd  prepared
 
-echo FROM $FROM_IMAGE > Dockerfile
+REPOSITORY=$(cat $ROOT/$FROM_IMAGE/repository)
+TAG=$(cat $ROOT/$FROM_IMAGE/tag)
+echo FROM $REPOSITORY:$TAG > Dockerfile
 echo >> Dockerfile
 
 if [ ! -z "$EVAL" ]

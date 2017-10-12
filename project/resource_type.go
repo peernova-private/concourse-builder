@@ -14,6 +14,7 @@ var ResourceTypeGroup = &JobGroup{
 type ResourceTypeName string
 
 type IResourceTypeSource interface {
+	ResourceScope() Scope
 	ModelSource(scope Scope, info *ScopeInfo) interface{}
 	NeededJobs() Jobs
 }
@@ -37,7 +38,7 @@ func (rt *ResourceType) Model(info *ScopeInfo) *model.ResourceType {
 	}
 
 	if rt.Source != nil {
-		resourceType.Source = rt.Source.ModelSource(PipelineScope, info)
+		resourceType.Source = rt.Source.ModelSource(rt.Source.ResourceScope(), info)
 	}
 
 	return resourceType

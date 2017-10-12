@@ -21,23 +21,17 @@ func DummyResourceJob(args *DummyResourceImageJobArgs) *ResourceImageSource {
 		return (*ResourceImageSource)(imageResource)
 	}
 
-	tag, needJob := image.BranchImageTag(args.ConcourseBuilderGit.Source.(*GitSource).Branch)
-
 	imageResource = &project.Resource{
-		Name: resourceName,
-		Type: resource.ImageResourceType.Name,
+		Name:  resourceName,
+		Type:  resource.ImageResourceType.Name,
+		Scope: project.TeamScope,
 		Source: &image.Source{
-			Tag:        tag,
 			Registry:   args.ImageRegistry,
 			Repository: "concourse-builder/dummy_resource-image",
 		},
 	}
 
 	args.ResourceRegistry.MustRegister(imageResource)
-
-	if !needJob {
-		return (*ResourceImageSource)(imageResource)
-	}
 
 	dockerSteps := &primitive.Location{
 		Volume:       args.ResourceRegistry.JobResource(args.ConcourseBuilderGit, true, nil),
