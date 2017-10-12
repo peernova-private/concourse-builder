@@ -54,18 +54,26 @@ func (p *Pipeline) JobsFor(checkJobs JobsSet) (Jobs, error) {
 		log.Printf("Check job %s resources", job.Name)
 		jobs[job.Name] = job
 
-		resources, err := job.InputResources()
+		resources, err := job.Resources()
 		if err != nil {
 			return nil, err
 		}
 
 		for _, resource := range resources {
 			projectResource := p.ResourceRegistry.MustGetResource(resource.Name)
-			if p.ReuseResourceFrom(projectResource) != nil {
+
+			needs := projectResource.NeededJobs()
+
+			if len(needs) > 0 && p.ReuseResourceFrom(projectResource) != nil {
+				log.Printf("Drop jobs for resource %s, it will be reused", projectResource.Name)
 				continue
 			}
 
-			for _, resJob := range projectResource.NeededJobs() {
+			for _, resJob := range needs {
+				if resJob == job {
+					continue
+				}
+
 				job.AddJobToRunAfter(resJob)
 				if _, exists := jobs[resJob.Name]; exists {
 					continue
@@ -198,11 +206,27 @@ func (p *Pipeline) ModelResourceTypes(info *ScopeInfo, allJobs Jobs) (model.Reso
 	var resourceTypes model.ResourceTypes
 	for _, tp := range types {
 		resourceType := GlobalTypeRegistry.RegisterType(ResourceTypeName(tp))
-		if !resourceType.IsSystem() {
-			// TODO: resource types need to handle reuse case too.
-			modelResourceType := resourceType.Model(info)
-			resourceTypes = append(resourceTypes, modelResourceType)
+		if resourceType.IsSystem() {
+			continue
 		}
+
+		scope := info
+
+		resourceName := resourceType.Source.ResourceName()
+		if resourceName != "" {
+			projectResource := p.ResourceRegistry.MustGetResource(resourceName)
+
+			if pipeline := p.ReuseResourceFrom(projectResource); pipeline != nil {
+				scope = &ScopeInfo{
+					Pipeline:     pipeline.Name,
+					Team:         info.Team,
+					Installation: info.Installation,
+				}
+			}
+		}
+
+		modelResourceType := resourceType.Model(scope)
+		resourceTypes = append(resourceTypes, modelResourceType)
 	}
 
 	return resourceTypes, nil

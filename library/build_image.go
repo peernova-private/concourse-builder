@@ -11,7 +11,7 @@ import (
 var ImagesGroup = &project.JobGroup{
 	Name: "images",
 	Before: project.JobGroups{
-		project.SystemGroup,
+		project.ResourceTypeGroup,
 	},
 }
 

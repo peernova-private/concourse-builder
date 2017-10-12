@@ -4,6 +4,10 @@ import "github.com/concourse-friends/concourse-builder/project"
 
 type ResourceImageSource project.Resource
 
+func (ris *ResourceImageSource) ResourceName() project.ResourceName {
+	return ris.Name
+}
+
 func (ris *ResourceImageSource) ResourceScope() project.Scope {
 	return project.Resource(*ris).Scope
 }

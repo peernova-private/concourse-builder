@@ -44,7 +44,6 @@ func (r *Resource) NeededJobs() Jobs {
 	if registryType.Source == nil {
 		return r.neededJobs
 	}
-
 	neededJobs := registryType.Source.NeededJobs()
 	return append(neededJobs, r.neededJobs...)
 }
