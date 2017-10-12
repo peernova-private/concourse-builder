@@ -26,7 +26,7 @@ type Pipeline struct {
 	ResourceRegistry *ResourceRegistry
 
 	// List of external registries that might provide some of the resources
-	ReuseFrom ResourceRegistries
+	ReuseFromPipeline Pipelines
 }
 
 type Pipelines []*Pipeline
@@ -37,15 +37,15 @@ func NewPipeline() *Pipeline {
 	}
 }
 
-func (p *Pipeline) ReuseResourceFrom(resource *Resource) bool {
+func (p *Pipeline) ReuseResourceFrom(resource *Resource) *Pipeline {
 	hash := resource.MustHash()
-	for _, registry := range p.ReuseFrom {
-		reuseResource := registry.GetResourceByHash(hash)
+	for _, pipeline := range p.ReuseFromPipeline {
+		reuseResource := pipeline.ResourceRegistry.GetResourceByHash(hash)
 		if reuseResource != nil {
-			return true
+			return pipeline
 		}
 	}
-	return false
+	return nil
 }
 
 func (p *Pipeline) JobsFor(checkJobs JobsSet) (Jobs, error) {
@@ -61,7 +61,7 @@ func (p *Pipeline) JobsFor(checkJobs JobsSet) (Jobs, error) {
 
 		for _, resource := range resources {
 			projectResource := p.ResourceRegistry.MustGetResource(resource.Name)
-			if p.ReuseResourceFrom(projectResource) {
+			if p.ReuseResourceFrom(projectResource) != nil {
 				continue
 			}
 
@@ -199,6 +199,7 @@ func (p *Pipeline) ModelResourceTypes(info *ScopeInfo, allJobs Jobs) (model.Reso
 	for _, tp := range types {
 		resourceType := GlobalTypeRegistry.RegisterType(ResourceTypeName(tp))
 		if !resourceType.IsSystem() {
+			// TODO: resource types need to handle reuse case too.
 			modelResourceType := resourceType.Model(info)
 			resourceTypes = append(resourceTypes, modelResourceType)
 		}
@@ -215,7 +216,18 @@ func (p *Pipeline) ModelResources(info *ScopeInfo, allJobs Jobs) (model.Resource
 
 	var resources model.Resources
 	for _, res := range jobResources {
-		modelResource := res.Model(info, p.ResourceRegistry)
+		projectResource := p.ResourceRegistry.MustGetResource(res.Name)
+
+		scope := info
+		if pipeline := p.ReuseResourceFrom(projectResource); pipeline != nil {
+			scope = &ScopeInfo{
+				Pipeline:     pipeline.Name,
+				Team:         info.Team,
+				Installation: info.Installation,
+			}
+		}
+
+		modelResource := res.Model(scope, p.ResourceRegistry)
 		resources = append(resources, modelResource)
 	}
 

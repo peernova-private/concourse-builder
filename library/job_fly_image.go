@@ -30,21 +30,14 @@ func FlyImageJob(args *FlyImageJobArgs) *project.Resource {
 
 	curlImage := CurlImageJob(curlImageJobArgs)
 
-	tag, needJob := image.BranchImageTag(args.ConcourseBuilderGit.Source.(*GitSource).Branch)
-
 	imageResource = &project.Resource{
 		Name:  resourceName,
 		Type:  resource.ImageResourceType.Name,
 		Scope: project.AllTeamsScope,
 		Source: &image.Source{
-			Tag:        tag,
 			Registry:   args.ImageRegistry,
 			Repository: "concourse-builder/fly-image",
 		},
-	}
-
-	if !needJob {
-		return imageResource
 	}
 
 	dockerSteps := &primitive.Location{

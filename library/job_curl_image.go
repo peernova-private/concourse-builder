@@ -7,10 +7,9 @@ import (
 )
 
 type CurlImageJobArgs struct {
-	LinuxImageResource  *project.Resource
-	ConcourseBuilderGit *project.Resource
-	ImageRegistry       *image.Registry
-	ResourceRegistry    *project.ResourceRegistry
+	LinuxImageResource *project.Resource
+	ImageRegistry      *image.Registry
+	ResourceRegistry   *project.ResourceRegistry
 }
 
 func CurlImageJob(args *CurlImageJobArgs) *project.Resource {
@@ -20,20 +19,14 @@ func CurlImageJob(args *CurlImageJobArgs) *project.Resource {
 		return imageResource
 	}
 
-	tag, needJob := image.BranchImageTag(args.ConcourseBuilderGit.Source.(*GitSource).Branch)
-
 	imageResource = &project.Resource{
-		Name: resourceName,
-		Type: resource.ImageResourceType.Name,
+		Name:  resourceName,
+		Type:  resource.ImageResourceType.Name,
+		Scope: project.TeamScope,
 		Source: &image.Source{
-			Tag:        tag,
 			Registry:   args.ImageRegistry,
 			Repository: "concourse-builder/curl-image",
 		},
-	}
-
-	if !needJob {
-		return imageResource
 	}
 
 	steps := `RUN set -ex \

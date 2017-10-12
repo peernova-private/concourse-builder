@@ -17,6 +17,7 @@ type BootstrapSpecification interface {
 	ConcourseBuilderGit() (*project.Resource, error)
 	GenerateProjectLocation(resourceRegistry *project.ResourceRegistry) (project.IRun, error)
 	Environment() (map[string]interface{}, error)
+	InitializeAdditionalSharedResourcesArgs(sharedResourcesArgs *library.SharedResourcesArgs) error
 }
 
 func GenerateBootstrapProject(specification BootstrapSpecification) (*project.Project, error) {

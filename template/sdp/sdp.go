@@ -22,6 +22,7 @@ type Specification interface {
 	GenerateProjectLocation(resourceRegistry *project.ResourceRegistry, branch *primitive.GitBranch) (project.IRun, error)
 	TargetGitRepo() (*primitive.GitRepo, error)
 	Environment() (map[string]interface{}, error)
+	InitializeAdditionalSharedResourcesArgs(sharedResourcesArgs *library.SharedResourcesArgs) error
 }
 
 const BranchesFileEnvVar = "BRANCHES_FILE"
@@ -89,21 +90,26 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 
 	concourseBuilderPipeline := project.NewPipeline()
 	concourseBuilderPipeline.AllJobsGroup = project.AllJobsGroupFirst
-	concourseBuilderPipeline.Name = project.ConvertToPipelineName(concourseBuilderBranch.FriendlyName() + "-cb")
+	concourseBuilderPipeline.Name =
+		project.ConvertToPipelineName("cb-" + concourseBuilderBranch.FriendlyName() + "-shrd")
 
 	concourseBuilderLinuxImage, err := specification.LinuxImage(concourseBuilderPipeline.ResourceRegistry)
 	if err != nil {
 		return nil, err
 	}
 
+	sharedResourcesArgs := &library.SharedResourcesArgs{
+		LinuxImageResource:  concourseBuilderLinuxImage,
+		ConcourseBuilderGit: concourseBuilderGit,
+		ImageRegistry:       imageRegistry,
+		ResourceRegistry:    concourseBuilderPipeline.ResourceRegistry,
+		Concourse:           concourse,
+	}
+
+	specification.InitializeAdditionalSharedResourcesArgs(sharedResourcesArgs)
+
 	concourseBuilderPipeline.Jobs = project.Jobs{
-		library.AllImages(&library.AllImagesArgs{
-			LinuxImageResource:  concourseBuilderLinuxImage,
-			ConcourseBuilderGit: concourseBuilderGit,
-			ImageRegistry:       imageRegistry,
-			ResourceRegistry:    concourseBuilderPipeline.ResourceRegistry,
-			Concourse:           concourse,
-		}),
+		library.SharedResources(sharedResourcesArgs),
 	}
 
 	mainPipeline := project.NewPipeline()
@@ -117,7 +123,7 @@ func GenerateProject(specification Specification) (*project.Project, error) {
 	mainPipeline.Name = project.ConvertToPipelineName(targetGit.FriendlyName() + "-sdp")
 
 	if !concourseBuilderBranch.IsImage() {
-		mainPipeline.ReuseFrom = append(mainPipeline.ReuseFrom, concourseBuilderPipeline.ResourceRegistry)
+		mainPipeline.ReuseFromPipeline = append(mainPipeline.ReuseFromPipeline, concourseBuilderPipeline)
 	}
 
 	linuxImage, err := specification.LinuxImage(mainPipeline.ResourceRegistry)

@@ -83,6 +83,10 @@ func (s *testSpecification) Environment() (map[string]interface{}, error) {
 	}, nil
 }
 
+func (s *testSpecification) InitializeAdditionalSharedResourcesArgs(sharedResourcesArgs *library.SharedResourcesArgs) error {
+	return nil
+}
+
 func (s *testSpecification) SharedJobs(resourceRegistry *project.ResourceRegistry, gitResource *project.Resource) (project.Jobs, error) {
 	return nil, nil
 }

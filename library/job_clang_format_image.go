@@ -20,20 +20,14 @@ func CLangFormatImageJob(args *CLangFormatImageJobArgs) *project.Resource {
 		return imageResource
 	}
 
-	tag, needJob := image.BranchImageTag(args.ConcourseBuilderGit.Source.(*GitSource).Branch)
-
 	imageResource = &project.Resource{
-		Name: resourceName,
-		Type: resource.ImageResourceType.Name,
+		Name:  resourceName,
+		Type:  resource.ImageResourceType.Name,
+		Scope: project.TeamScope,
 		Source: &image.Source{
-			Tag:        tag,
 			Registry:   args.ImageRegistry,
 			Repository: "concourse-builder/clang_format-image",
 		},
-	}
-
-	if !needJob {
-		return imageResource
 	}
 
 	dockerSteps := &primitive.Location{
