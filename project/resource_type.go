@@ -14,6 +14,7 @@ var ResourceTypeGroup = &JobGroup{
 type ResourceTypeName string
 
 type IResourceTypeSource interface {
+	ResourceName() ResourceName
 	ResourceScope() Scope
 	ModelSource(scope Scope, info *ScopeInfo) interface{}
 	NeededJobs() Jobs

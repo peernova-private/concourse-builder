@@ -32,6 +32,10 @@ type ImageSource struct {
 	AwsSecretAccessKey string `yaml:"aws_secret_access_key,omitempty"`
 }
 
+func (im ImageSource) ResourceName() project.ResourceName {
+	return ""
+}
+
 func (im ImageSource) ResourceScope() project.Scope {
 	return project.PipelineScope
 }

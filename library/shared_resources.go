@@ -33,6 +33,14 @@ func SharedResources(args *SharedResourcesArgs) *project.Job {
 		Environment: make(map[string]interface{}),
 	}
 
+	dummyResourceImageJobArgs := &DummyResourceImageJobArgs{}
+	copier.Copy(dummyResourceImageJobArgs, args)
+	dummyResourceImage := DummyResourceJob(dummyResourceImageJobArgs)
+	dummyResourceImageResource := args.ResourceRegistry.JobResource((*project.Resource)(dummyResourceImage), true, nil)
+	taskDummy.Environment["DUMMY_RESOURCE_IMAGE"] = &primitive.Location{
+		Volume: dummyResourceImageResource,
+	}
+
 	if args.LinuxImageResource != nil {
 		flyImageJobArgs := &FlyImageJobArgs{}
 		copier.Copy(flyImageJobArgs, args)

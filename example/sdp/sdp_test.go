@@ -25,17 +25,23 @@ var expected = `groups:
   jobs:
   - branches
   - curl-image
+  - dummy_resource-image
   - fly-image
   - git-image
   - self-update
 - name: images
   jobs:
   - curl-image
+  - dummy_resource-image
   - fly-image
   - git-image
+- name: res_types
+  jobs:
+  - dummy_resource-image
 - name: sys
   jobs:
   - curl-image
+  - dummy_resource-image
   - fly-image
 resource_types:
 - name: dummy
@@ -50,6 +56,11 @@ resource_types:
   source:
     repository: cfcommunity/git-multibranch-resource
 resources:
+- name: alpine-image
+  type: docker-image
+  source:
+    repository: alpine
+  check_every: 24h
 - name: concourse-builder-git
   type: git
   source:
@@ -60,6 +71,13 @@ resources:
   type: docker-image
   source:
     repository: registry.com/concourse-builder/curl-image
+    tag: git@github.com:target.git-sdp
+    aws_access_key_id: key
+    aws_secret_access_key: secret
+- name: dummy_resource-image
+  type: docker-image
+  source:
+    repository: registry.com/concourse-builder/dummy_resource-image
     tag: git@github.com:target.git-sdp
     aws_access_key_id: key
     aws_secret_access_key: secret
@@ -133,11 +151,53 @@ jobs:
       build: prepared
     get_params:
       skip_download: true
+- name: dummy_resource-image
+  plan:
+  - aggregate:
+    - get: alpine-image
+      trigger: true
+    - get: concourse-builder-git
+      trigger: true
+    - get: ubuntu-image
+      trigger: true
+  - task: prepare
+    image: ubuntu-image
+    config:
+      platform: linux
+      inputs:
+      - name: alpine-image
+      - name: concourse-builder-git
+      params:
+        DOCKERFILE_DIR: concourse-builder-git/docker/dummy_resource
+        FROM_IMAGE: alpine-image
+      run:
+        path: /bin/bash
+        args:
+        - -c
+        - |-
+          mkdir -p /tmp \
+          && echo \` + buildImageScript + `
+              base64 --decode |\
+              gzip -cfd > /tmp/script.sh \
+          && cat /tmp/script.sh \
+          && echo \
+          && chmod 755 /tmp/script.sh \
+          && /tmp/script.sh
+      outputs:
+      - name: prepared
+        path: prepared
+  - put: dummy_resource-image
+    params:
+      build: prepared
+    get_params:
+      skip_download: true
 - name: fly-image
   plan:
   - aggregate:
     - get: concourse-builder-git
       trigger: true
+      passed:
+      - dummy_resource-image
     - get: curl-image
       trigger: true
       passed:
@@ -183,6 +243,8 @@ jobs:
   - aggregate:
     - get: concourse-builder-git
       trigger: true
+      passed:
+      - dummy_resource-image
     - get: curl-image
       trigger: true
       passed:
@@ -193,6 +255,7 @@ jobs:
       trigger: true
       passed:
       - curl-image
+      - dummy_resource-image
   - task: prepare
     image: ubuntu-image
     config:
