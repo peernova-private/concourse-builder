@@ -96,6 +96,23 @@ func SelfUpdateJob(args *SelfUpdateJobArgs) (*project.Job, *project.Resource) {
 		Resource: pipelineResource,
 	}
 
+	pipelineresourceconfigImageJobArgs := &PipelineResourceConfigImageJobArgs{}
+	copier.Copy(pipelineresourceconfigImageJobArgs, args)
+
+	pipelineResourceConfigType := PipelineResourceConfigType(pipelineresourceconfigImageJobArgs)
+
+	pipelineConfig := &project.Resource{
+		Name: "pipeline-config",
+		Type:  pipelineResourceConfigType.Name,
+	}
+
+	args.ResourceRegistry.MustRegister(pipelineConfig)
+
+	pipelineConfigPut :=&project.PutStep{
+		Resource: pipelineConfig,
+	}
+
+
 	updateJob := &project.Job{
 		Name:   project.JobName("self-update"),
 		Groups: project.JobGroups{},
@@ -104,6 +121,7 @@ func SelfUpdateJob(args *SelfUpdateJobArgs) (*project.Job, *project.Resource) {
 			taskPrepare,
 			taskUpdate,
 			pipelinePut,
+			pipelineConfigPut,
 		},
 	}
 

@@ -33,18 +33,7 @@ func SharedResources(args *SharedResourcesArgs) *project.Job {
 		Environment: make(map[string]interface{}),
 	}
 
-	taskPipeline := &project.TaskStep{
-		Platform: model.LinuxPlatform,
-		Name:     "pipeline_config",
-		Image:    args.ResourceRegistry.JobResource(image.Alpine, true, nil),
-		Run: &primitive.Location{
-			Volume: &primitive.Directory{
-				Root: "/bin",
-			},
-			RelativePath: "echo",
-		},
-		Environment: make(map[string]interface{}),
-	}
+
 
 	dummyResourceImageJobArgs := &DummyResourceImageJobArgs{}
 	copier.Copy(dummyResourceImageJobArgs, args)
@@ -72,6 +61,17 @@ func SharedResources(args *SharedResourcesArgs) *project.Job {
 		taskDummy.Environment["AWS_IMAGE"] = &primitive.Location{
 			Volume: awsImageResource,
 		}
+	}
+
+	if args.LinuxImageResource != nil {
+		pipelineresourceconfigImageJobArgs := &PipelineResourceConfigImageJobArgs{}
+		copier.Copy(pipelineresourceconfigImageJobArgs, args)
+		pipelineresourceconfigImage := PipelineResourceConfigImageJob(pipelineresourceconfigImageJobArgs)
+		configImageResource := args.ResourceRegistry.JobResource((*project.Resource)(pipelineresourceconfigImage), true, nil)
+		taskDummy.Environment["PIPELINE_RESOURCE"] = &primitive.Location{
+			Volume: configImageResource,
+		}
+
 	}
 
 	if args.LinuxImageResource != nil {
@@ -106,15 +106,4 @@ func SharedResources(args *SharedResourcesArgs) *project.Job {
 
 	return dummyJob
 
-	pipelineJob := &project.Job{
-		Name:   project.JobName("pipeline-config"),
-		Groups: project.JobGroups{},
-		Steps: project.ISteps{
-			taskPipeline,
-		},
-
-
-	}
-
-	return pipelineJob
 }
