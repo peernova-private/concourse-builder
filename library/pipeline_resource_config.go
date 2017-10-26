@@ -30,7 +30,7 @@ type PipelineResourceConfigImageJobArgs struct {
 }
 
 func PipelineResourceConfigImageJob(args *PipelineResourceConfigImageJobArgs) *ResourceImageSource {
-	resourceName := project.ResourceName("pipeline-resource-config")
+	resourceName := project.ResourceName("pipeline-resource-image")
 	imageResource := args.ResourceRegistry.GetResource(resourceName)
 
 	if imageResource != nil {

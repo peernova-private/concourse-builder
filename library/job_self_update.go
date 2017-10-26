@@ -13,6 +13,7 @@ type SelfUpdateJobArgs struct {
 	ConcourseBuilderGit     *project.Resource
 	ImageRegistry           *image.Registry
 	GoImage                 *project.Resource
+	PipelineResourceConfigImageJobArgs *project.Resource
 	ResourceRegistry        *project.ResourceRegistry
 	Concourse               *primitive.Concourse
 	Environment             map[string]interface{}
@@ -99,7 +100,25 @@ func SelfUpdateJob(args *SelfUpdateJobArgs) (*project.Job, *project.Resource) {
 	pipelineresourceconfigImageJobArgs := &PipelineResourceConfigImageJobArgs{}
 	copier.Copy(pipelineresourceconfigImageJobArgs, args)
 
-	pipelineResourceConfigType := PipelineResourceConfigType(pipelineresourceconfigImageJobArgs)
+	pipelineresourceconfigImage := PipelineResourceConfigImageJob(pipelineresourceconfigImageJobArgs)
+
+	pipelineresourceconfigImageResource := args.ResourceRegistry.JobResource((*project.Resource)(pipelineresourceconfigImage), true, nil)
+
+	pipelineConfigCheck := &project.TaskStep{
+		Platform: model.LinuxPlatform,
+		Name:     "check",
+		Image:    pipelineresourceconfigImageResource,
+		Run: &primitive.Location{
+			Volume: &primitive.Directory{
+				Root: "/opt/resource",
+			},
+			RelativePath: "check",
+		},
+		Environment: map[string]interface{}{},
+	}
+
+	args.Concourse.PublicAccessEnvironment(pipelineConfigCheck.Environment)
+	/*pipelineResourceConfigType := PipelineResourceConfigType(pipelineresourceconfigImageJobArgs)
 
 	pipelineConfig := &project.Resource{
 		Name: "pipeline-config",
@@ -110,7 +129,7 @@ func SelfUpdateJob(args *SelfUpdateJobArgs) (*project.Job, *project.Resource) {
 
 	pipelineConfigPut :=&project.PutStep{
 		Resource: pipelineConfig,
-	}
+	}*/
 
 
 	updateJob := &project.Job{
@@ -121,7 +140,7 @@ func SelfUpdateJob(args *SelfUpdateJobArgs) (*project.Job, *project.Resource) {
 			taskPrepare,
 			taskUpdate,
 			pipelinePut,
-			pipelineConfigPut,
+			pipelineConfigCheck,
 		},
 	}
 
