@@ -13,7 +13,6 @@ type SelfUpdateJobArgs struct {
 	ConcourseBuilderGit     *project.Resource
 	ImageRegistry           *image.Registry
 	GoImage                 *project.Resource
-	PipelineResourceConfigType *project.ResourceType
 	ResourceRegistry        *project.ResourceRegistry
 	Concourse               *primitive.Concourse
 	Environment             map[string]interface{}
@@ -21,6 +20,10 @@ type SelfUpdateJobArgs struct {
 	Bucket                  *primitive.S3Bucket
 }
 
+var instancesS3TestRes = &project.Resource{
+	Name: "pipeline-resource",
+
+}
 func SelfUpdateJob(args *SelfUpdateJobArgs) (*project.Job, *project.Resource) {
 	flyImageJobArgs := &FlyImageJobArgs{}
 	copier.Copy(flyImageJobArgs, args)
@@ -100,13 +103,17 @@ func SelfUpdateJob(args *SelfUpdateJobArgs) (*project.Job, *project.Resource) {
 	pipelineresourceconfigImageJobArgs := &PipelineResourceConfigImageJobArgs{}
 	copier.Copy(pipelineresourceconfigImageJobArgs, args)
 
-	pipelineresourceconfigImage := PipelineResourceConfigImageJob(pipelineresourceconfigImageJobArgs)
-	configImageResource := args.ResourceRegistry.JobResource((*project.Resource)(pipelineresourceconfigImage), true, nil)
-	taskCheck.Environment["PIPELINE_RESOURCE"] = &primitive.Location{
-			Volume: configImageResource,
-		}
+	pipelineResourceConfigType := PipelineResourceConfigType(pipelineresourceconfigImageJobArgs)
+	pipelineResourceConfig := &project.Resource{
+		Name: "pipeline resource",
+		Type: pipelineResourceConfigType.Name,
+	}
 
+	args.ResourceRegistry.MustRegister(pipelineResourceConfig)
 
+	pipelineConfig := &project.PutStep{
+		Resource: pipelineResourceConfig,
+	}
 
 
 	updateJob := &project.Job{
@@ -117,6 +124,7 @@ func SelfUpdateJob(args *SelfUpdateJobArgs) (*project.Job, *project.Resource) {
 			taskPrepare,
 			taskUpdate,
 			pipelinePut,
+			pipelineConfig,
 		},
 	}
 
