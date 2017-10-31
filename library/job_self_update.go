@@ -20,10 +20,6 @@ type SelfUpdateJobArgs struct {
 	Bucket                  *primitive.S3Bucket
 }
 
-var instancesS3TestRes = &project.Resource{
-	Name: "pipeline-resource",
-
-}
 func SelfUpdateJob(args *SelfUpdateJobArgs) (*project.Job, *project.Resource) {
 	flyImageJobArgs := &FlyImageJobArgs{}
 	copier.Copy(flyImageJobArgs, args)
@@ -104,15 +100,16 @@ func SelfUpdateJob(args *SelfUpdateJobArgs) (*project.Job, *project.Resource) {
 	copier.Copy(pipelineresourceconfigImageJobArgs, args)
 
 	pipelineResourceConfigType := PipelineResourceConfigType(pipelineresourceconfigImageJobArgs)
-	pipelineResourceConfig := &project.Resource{
-		Name: "pipeline resource",
+
+	pipelineconfig := &project.Resource{
+		Name: "pipeline-resource",
 		Type: pipelineResourceConfigType.Name,
 	}
 
-	args.ResourceRegistry.MustRegister(pipelineResourceConfig)
+	args.ResourceRegistry.MustRegister(pipelineconfig)
 
-	pipelineConfig := &project.PutStep{
-		Resource: pipelineResourceConfig,
+    pipelineGet := &project.PutStep{
+		Resource: pipelineconfig,
 	}
 
 
@@ -124,11 +121,12 @@ func SelfUpdateJob(args *SelfUpdateJobArgs) (*project.Job, *project.Resource) {
 			taskPrepare,
 			taskUpdate,
 			pipelinePut,
-			pipelineConfig,
+			pipelineGet,
 		},
 	}
 
 	pipelineResource.NeedJobs(updateJob)
+	pipelineconfig.NeedJobs()
 
 	return updateJob, pipelineResource
 }
