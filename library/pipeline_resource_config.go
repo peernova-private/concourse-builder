@@ -19,6 +19,7 @@ import (
 "github.com/concourse-friends/concourse-builder/project"
 "github.com/concourse-friends/concourse-builder/resource"
 	"github.com/concourse-friends/concourse-builder/model"
+	"github.com/jinzhu/copier"
 )
 
 type PipelineResourceConfigImageJobArgs struct {
@@ -36,6 +37,11 @@ func PipelineResourceConfigImageJob(args *PipelineResourceConfigImageJobArgs) *R
 	if imageResource != nil {
 		return (*ResourceImageSource)(imageResource)
 	}
+
+	flyImageJobArgs := &FlyImageJobArgs{}
+	copier.Copy(flyImageJobArgs, args)
+
+	flyImage := FlyImageJob(flyImageJobArgs)
 
 	imageResource = &project.Resource{
 		Name:  resourceName,
@@ -56,8 +62,8 @@ func PipelineResourceConfigImageJob(args *PipelineResourceConfigImageJobArgs) *R
 	job := BuildImage(
 		&BuildImageArgs{
 			ResourceRegistry:   args.ResourceRegistry,
-			PrepareImage:       image.Ubuntu,
-			From:               args.LinuxImageResource,
+			PrepareImage:       flyImage,
+			From:               flyImage,
 			Name:               "pipeline-resource",
 			DockerFileResource: dockerSteps,
 			Image:              imageResource,

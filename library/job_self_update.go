@@ -108,9 +108,6 @@ func SelfUpdateJob(args *SelfUpdateJobArgs) (*project.Job, *project.Resource) {
 
 	args.ResourceRegistry.MustRegister(pipelineconfig)
 
-    pipelineGet := &project.PutStep{
-		Resource: pipelineconfig,
-	}
 
 
 	updateJob := &project.Job{
