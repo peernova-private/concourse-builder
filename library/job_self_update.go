@@ -126,7 +126,7 @@ func SelfUpdateJob(args *SelfUpdateJobArgs) (*project.Job, *project.Resource) {
 	}
 
 	pipelineResource.NeedJobs(updateJob)
-	pipelineconfig.NeedJobs()
+
 
 	return updateJob, pipelineResource
 }

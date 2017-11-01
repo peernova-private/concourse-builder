@@ -68,7 +68,7 @@ func SharedResources(args *SharedResourcesArgs) *project.Job {
 		copier.Copy(pipelineresourceconfigImageJobArgs, args)
 		pipelineresourceconfigImage := PipelineResourceConfigImageJob(pipelineresourceconfigImageJobArgs)
 		configImageResource := args.ResourceRegistry.JobResource((*project.Resource)(pipelineresourceconfigImage), true, nil)
-		taskDummy.Environment["PIPELINE_RESOURCE"] = &primitive.Location{
+		taskDummy.Environment["PIPELINE_RESOURCE_IMAGE"] = &primitive.Location{
 			Volume: configImageResource,
 		}
 
