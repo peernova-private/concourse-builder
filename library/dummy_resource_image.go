@@ -1,11 +1,11 @@
 package library
 
 import (
-	"github.com/concourse-friends/concourse-builder/library/image"
-	"github.com/concourse-friends/concourse-builder/library/primitive"
-	"github.com/concourse-friends/concourse-builder/model"
-	"github.com/concourse-friends/concourse-builder/project"
-	"github.com/concourse-friends/concourse-builder/resource"
+"github.com/concourse-friends/concourse-builder/library/image"
+"github.com/concourse-friends/concourse-builder/library/primitive"
+"github.com/concourse-friends/concourse-builder/model"
+"github.com/concourse-friends/concourse-builder/project"
+"github.com/concourse-friends/concourse-builder/resource"
 )
 
 type DummyResourceImageJobArgs struct {

@@ -1,0 +1,180 @@
+#!/bin/bash
+# vim: set ft=sh
+
+set -e
+
+exec 3>&1 # make stdout available as fd 3 for the result
+exec 1>&2 # redirect all output to stderr for logging
+
+source $(dirname $0)/utils.sh
+
+source=$1
+
+if [ -z "$source" ]; then
+  echo "usage: $0 <path/to/source>"
+  exit 1
+fi
+
+# for jq
+PATH=/usr/local/bin:$PATH
+
+payload=$TMPDIR/pipelines-resource-request
+
+cat > $payload <&0
+
+log "Parsing payload"
+username=$(jq -r '.source.username // ""' < "$payload")
+password=$(jq -r '.source.password // ""' < "$payload")
+team=$(jq -r '.source.team // "main"' < "$payload")
+atc=$(jq -r ".source.target // \"$ATC_EXTERNAL_URL\"" < "$payload")
+insecure=$(jq -r '.source.insecure // "false"' < "$payload")
+
+if [ -z "$username" ]; then
+  log "Missing username"
+  exit 1
+fi
+
+if [ -z "$password" ]; then
+  log "Missing password"
+  exit 1
+fi
+
+cd "$source"
+
+log "Parsing parameters"
+config=$(jq -r '.params.config.file // ""' < "$payload")
+pipelines=$(jq -r '.params.config.pipelines // []' < "$payload")
+inject=$(jq -r '.params.inject // false' < "$payload")
+
+# reference included in pipeline names to allow tracking them for sync (when removing others)
+reference=$(jq -r ".params.reference // \" (${BUILD_PIPELINE_NAME} > ${BUILD_JOB_NAME})\"" < "$payload")
+reference=$(replace_placeholder "$reference" "BUILD_PIPELINE_NAME" "$BUILD_PIPELINE_NAME")
+reference=$(replace_placeholder "$reference" "BUILD_JOB_NAME" "$BUILD_JOB_NAME")
+
+if [ "$inject" == "true" ]; then
+  # no syncing for inject (since no other pipelines are created)
+  sync=false
+fi
+
+if [ -z "$config" -a "$pipelines" == "[]" ]; then
+  log "Missing config, either add a config file or add some pipelines"
+  exit 1
+fi
+
+if [ -n "$config" ]; then
+  if [ ! -r "$config" ]; then
+    log "Config file '$config' can't be found"
+    exit 1
+  fi
+
+  # determine base directory from config file, which is important for all references to pipeline yml files in config
+  base=$(dirname "$config")
+
+  # add config file contents to pipelines (and remap config and vars_from paths to include base path of config file)
+  log "Gathering pipelines from $config"
+  config_pipelines="$(jq -c '.pipelines // [] | .[]' "$config")"
+  if [ -n "$config_pipelines" ]; then
+    while read pipeline ; do
+      pipelines=$(jq -c ". + [($pipeline | .config = (\"${base}/\" + .config) | .vars_from = (.vars_from // [] | map(\"${base}/\" + .)))]" <<< "$pipelines")
+    done <<< "$config_pipelines"
+  fi
+fi
+
+get_fly_variables() {
+  # $1: payload
+
+  local pipeline_vars=$(echo "$1" | jq -r '.vars // {} | keys | .[]')
+  local result=""
+  if [ -n "$pipeline_vars" ]; then
+    while read key ; do
+      log "Including fly variable for $key"
+      local value=$(echo "$1" | jq -r ".vars[\"$key\"]")
+      result+=" --var \"$(replace "$key" '"' '\"')=$(replace "$value" '"' '\"')\" "
+    done <<< "$pipeline_vars"
+  fi
+  echo "$result"
+}
+
+get_fly_variables_from() {
+  # $1: payload
+
+  local pipeline_vars_from=$(echo "$1" | jq -r '.vars_from // [] | .[]')
+  local result=""
+  if [ -n "$pipeline_vars_from" ]; then
+    while read var ; do
+      if [ ! -r "$var" ]; then
+        log "Variables file to load can't be found: $var"
+        exit 1
+      fi
+
+      log "Including fly variables from $var"
+      result+=" --load-vars-from \"$var\" "
+    done <<< "$pipeline_vars_from"
+  fi
+  echo "$result"
+}
+
+fly_vars=$(get_fly_variables "$(jq -c '.params' < "$payload")")
+fly_vars_from=$(get_fly_variables_from "$(jq -c '.params' < "$payload")")
+
+target="test-${BUILD_PIPELINE_NAME}-${BUILD_JOB_NAME}"
+
+insecure=""
+if [ "$insecure" == "true" ]; then
+  insecure=" --insecure "
+fi
+
+# first authenticate
+log "Authenticating for target $target"
+fly -t "$target" login -c "$atc" -u "$username" -p "$password" -n "$team" $insecure
+
+# make sure your fly version is in sync with concourse version
+log "Syncing fly version with target concourse"
+fly -t "$target" sync
+
+
+# create temporary files for pipeline handling
+tmp="$TMPDIR/pipelines-sync-resource-tmp-pipeline"
+pipeline_payload="$TMPDIR/pipelines-resource-pipeline"
+
+# gather all files to validate for changes
+log "Searching pipeline files..."
+files="$(jq -c '.[]' <<< "$pipelines")"
+if [ -n "$files" ]; then
+  while read pipeline ; do
+    pipeline_name=$(echo "$pipeline" | jq -r '.name')
+    pipeline_config=$(echo "$pipeline" | jq -r '.config')
+    log "Found pipeline '$pipeline_name' with config '$pipeline_config'"
+
+    # if pipeline file does not exist or isn't readable we exit with failure
+    if [ ! -r "${pipeline_config}" ]; then
+      log "Missing config file '$pipeline_config' for '$pipeline_name'"
+      exit 2
+    fi
+
+    # add fly variables from pipeline config and add them to general variables (collected from resource parameters)
+    fly_variables="${fly_vars}$(get_fly_variables "$pipeline")"
+    fly_variables_from="${fly_vars_from}$(get_fly_variables_from "$pipeline")"
+
+      # get current pipeline configuration
+      log "Getting pipeline configuration for $BUILD_PIPELINE_NAME"
+      fly -t "$target" get-pipeline -p "$BUILD_PIPELINE_NAME" --json | jq -c '.' > "$pipeline_payload"
+
+      # get pipeline configuration by adding and removing pipeline to concourse
+      # TODO should be adapted by verify call, feature request added to GitHub: https://github.com/concourse/concourse/issues/747
+      temporary_pipeline="pipelines-resource-$RANDOM"
+      log "Getting pipeline configuration for $temporary_pipeline"
+      fly -t "$target" get-pipeline -p "$temporary_pipeline" --json | jq -c '.' > "$pipeline_config"
+
+
+
+      # grep current pipelines to know if it is a new or existing pipeline
+      pipeline_name+="$reference"
+      log "Checking if '$pipeline_name' already exists"
+      if fly -t "$target" pipelines | grep "$pipeline_name"; then
+        existing="true"
+      fi
+
+jq -n "{
+  version: {}
+}" >&3

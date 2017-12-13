@@ -13,6 +13,7 @@ type SelfUpdateJobArgs struct {
 	ConcourseBuilderGit     *project.Resource
 	ImageRegistry           *image.Registry
 	GoImage                 *project.Resource
+	PipelineResourceConfigType *project.Resource
 	ResourceRegistry        *project.ResourceRegistry
 	Concourse               *primitive.Concourse
 	Environment             map[string]interface{}
@@ -96,6 +97,21 @@ func SelfUpdateJob(args *SelfUpdateJobArgs) (*project.Job, *project.Resource) {
 		Resource: pipelineResource,
 	}
 
+	pipelineresourceconfigImageJobArgs := &PipelineResourceConfigImageJobArgs{}
+	copier.Copy(pipelineresourceconfigImageJobArgs, args)
+
+	pipelineResourceConfigType := PipelineResourceConfigType(pipelineresourceconfigImageJobArgs)
+
+	pipelineconfig := &project.Resource{
+		Name: "pipeline-resource",
+		Type: pipelineResourceConfigType.Name,
+	}
+
+	args.ResourceRegistry.MustRegister(pipelineconfig)
+	taskCheck.Environment["PIPELINE_RESOURCE"] = &primitive.Location{
+		Volume:  args.ResourceRegistry.JobResource(pipelineconfig, true, nil),
+	}
+
 	updateJob := &project.Job{
 		Name:   project.JobName("self-update"),
 		Groups: project.JobGroups{},
@@ -108,6 +124,7 @@ func SelfUpdateJob(args *SelfUpdateJobArgs) (*project.Job, *project.Resource) {
 	}
 
 	pipelineResource.NeedJobs(updateJob)
+
 
 	return updateJob, pipelineResource
 }

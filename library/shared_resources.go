@@ -33,6 +33,8 @@ func SharedResources(args *SharedResourcesArgs) *project.Job {
 		Environment: make(map[string]interface{}),
 	}
 
+
+
 	dummyResourceImageJobArgs := &DummyResourceImageJobArgs{}
 	copier.Copy(dummyResourceImageJobArgs, args)
 	dummyResourceImage := DummyResourceJob(dummyResourceImageJobArgs)
@@ -62,6 +64,17 @@ func SharedResources(args *SharedResourcesArgs) *project.Job {
 	}
 
 	if args.LinuxImageResource != nil {
+		pipelineresourceconfigImageJobArgs := &PipelineResourceConfigImageJobArgs{}
+		copier.Copy(pipelineresourceconfigImageJobArgs, args)
+		pipelineresourceconfigImage := PipelineResourceConfigImageJob(pipelineresourceconfigImageJobArgs)
+		configImageResource := args.ResourceRegistry.JobResource((*project.Resource)(pipelineresourceconfigImage), true, nil)
+		taskDummy.Environment["PIPELINE_RESOURCE_IMAGE"] = &primitive.Location{
+			Volume: configImageResource,
+		}
+
+	}
+
+	if args.LinuxImageResource != nil {
 		gitImageJobArgs := &GitImageJobArgs{}
 		copier.Copy(gitImageJobArgs, args)
 		gitImage := GitImageJob(gitImageJobArgs)
@@ -87,7 +100,10 @@ func SharedResources(args *SharedResourcesArgs) *project.Job {
 		Steps: project.ISteps{
 			taskDummy,
 		},
+
+
 	}
 
 	return dummyJob
+
 }

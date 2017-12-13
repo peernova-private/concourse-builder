@@ -1,0 +1,9 @@
+RUN set -ex \
+    # install jq \
+    && apt-get update \
+    && apt-get -y install jq  \
+    # cleanup \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY check in out utils.sh /opt/resource/
