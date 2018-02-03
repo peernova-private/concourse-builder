@@ -50,16 +50,12 @@ pipeline {
                 parallel (
 		     "Code-gen": {
 				        
-                            env.context="jenkins-ci/@code-gen"
-                            setBuildStatus ("${context}", 'Jenkins CI build pending', 'PENDING')
                             dir("$GOPATH/$REPODIR/canary/ci/scripts") {
                                     sh './check_generation.sh'
                             }
             
                     },
                    "test": {
-                        env.context="jenkins-ci/@test"
-                        setBuildStatus ("${context}", 'Jenkins CI build pending', 'PENDING')
                          dir("$GOPATH/$REPODIR/cuneiform/src/tools/ci/scripts") {
                                     echo "Stage was successful"
                                 
@@ -70,8 +66,6 @@ pipeline {
                     
                     "Lint-Test": {
 			            
-                                env.context="jenkins-ci/@lint"
-                                setBuildStatus ("${context}", 'Jenkins CI build pending', 'PENDING')
                                 dir("$GOPATH/$REPODIR/canary") {
                                     sh 'go get -u github.com/golang/lint/golint'
                                     sh 'golint ./...'
@@ -81,8 +75,6 @@ pipeline {
 			        },
                     "Copyright": {
 				        
-                            env.context="jenkins-ci/@copyright"
-                            setBuildStatus ("${context}", 'Jenkins CI build pending', 'PENDING')
                             dir("$GOPATH/$REPODIR/canary/ci/scripts") {
                                     sh './check_copyright.sh'
                             }
@@ -90,8 +82,6 @@ pipeline {
                     },
                     "go_vendor": {
 				        
-                            env.context="jenkins-ci/@go-vendor"
-                            setBuildStatus ("${context}", 'Jenkins CI build pending', 'PENDING')
                             dir("$GOPATH/$REPODIR/canary/ci/scripts") {
                                     sh './go_vendor.sh'
                             }
@@ -99,16 +89,12 @@ pipeline {
                     },
                     "Meta-Linter": {
 				        
-                            env.context="jenkins-ci/@meta-linter"
-                            setBuildStatus ("${context}", 'Jenkins CI build pending', 'PENDING')
                             dir("$GOPATH/$REPODIR/canary/ci/scripts") {
                                     sh './meta_linter.sh'
                             }
             
                     },
                     "Vet" : {
-                        env.context="jenkins-ci/@vet"
-                        setBuildStatus ("${context}", 'Jenkins CI build pending', 'PENDING')
                         dir("$GOPATH/$REPODIR/canary") {
 		                sh 'go vet  ./...'
                         }
