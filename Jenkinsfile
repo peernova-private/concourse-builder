@@ -36,7 +36,7 @@ pipeline {
                         dir('src/github.com/peernova-private/concourse-builder') {
                             checkout scm
                         } 
-                    }
+                    },
 		    "Integration" : {
                         dir("$REPODIR/integration") {
  			    checkout scm
