@@ -49,7 +49,10 @@ pipeline {
             }
             
             githubNotify(status: 'failed', description: 'fail', account: 'peernova-private', context: 'jenkins-ci@code_gen', credentialsId: 'peernova-go', repo: 'canary')
-            githubNotify()
+            catchError() {
+              githubNotify(status: 'failed', description: 'failed', account: 'peernova-private', credentialsId: 'peernova-go', repo: 'canary')
+            }
+            
           }
         }
         stage('test') {
