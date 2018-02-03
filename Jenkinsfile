@@ -106,6 +106,14 @@ pipeline {
         }
       }
     }
+    stage('') {
+      steps {
+        waitUntil() {
+          githubNotify(status: 'hhh', description: 'bbbb', account: 'peernova-private', context: 'hhh', credentialsId: 'peernova-go', repo: 'canary')
+        }
+        
+      }
+    }
   }
   environment {
     GOROOT = '/var/opt/go'
