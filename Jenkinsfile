@@ -46,6 +46,7 @@ pipeline {
             }
     	}
 	stage('pre-check') {
+	   steps {
                 parallel (
 		     "Code-gen": {
 				        
@@ -165,6 +166,7 @@ pipeline {
                         }
                     }
                 )
+	    }	
         }    
     } 
 }   
